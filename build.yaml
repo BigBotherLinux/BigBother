@@ -1,0 +1,323 @@
+---
+- name: Download, Mount and Extract ISO
+  hosts: localhost
+  gather_facts: false
+  tags: extract
+  vars_files:
+    - ./build_vars.yaml
+    
+  tasks:
+  - name: Create build folders
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+    loop:
+      - "{{ build_folder }}"
+      - "{{ download_folder }}/memtest86"
+      - "{{ download_folder }}/isolinux"
+      - "{{ build_folder }}/calamares"
+  
+  - name: Bootstrap ubuntu
+    ansible.builtin.command:
+      cmd: debootstrap --arch={{ architecture }} --variant=minbase jammy {{ chroot_folder }} {{ ubuntu_mirror }}
+      creates: "{{ build_folder }}/chroot"
+
+  - name: Create chroot log folder
+    tags: debug
+    ansible.builtin.file:
+      path: "{{ chroot_folder }}/build/log"
+      state: directory
+
+  - name: Copy scripts from src folder to chroot
+    tags: debug
+    ansible.posix.synchronize:
+      src: ./src
+      dest: "{{ chroot_folder }}"
+      checksum: yes
+
+  - name: "Copy build_vars"
+    tags: debug
+    ansible.builtin.copy:
+      src: "build_vars.yaml"
+      dest: "{{ chroot_folder }}/src/build_vars.yaml"
+      remote_src: yes
+
+- name: Configs
+  hosts: localhost
+  gather_facts: false
+  tags: config
+  vars_files:
+    - ./build_vars.yaml
+  tasks:
+  - name: Set hostname
+    ansible.builtin.copy:
+      dest: "{{ chroot_folder }}/etc/hostname"
+      content: "{{ hostname }}"
+
+  - name: Set sources.list
+    ansible.builtin.copy:
+      dest: "{{ chroot_folder }}/etc/apt/sources.list"
+      content: |
+        deb {{ ubuntu_mirror }} {{ubuntu_version}} main restricted universe multiverse
+        deb-src {{ ubuntu_mirror }} {{ubuntu_version}} main restricted universe multiverse
+
+        deb {{ ubuntu_mirror }} {{ubuntu_version}}-security main restricted universe multiverse
+        deb-src {{ ubuntu_mirror }} {{ubuntu_version}}-security main restricted universe multiverse
+
+        deb {{ ubuntu_mirror }} {{ubuntu_version}}-updates main restricted universe multiverse
+        deb-src {{ ubuntu_mirror }} {{ubuntu_version}}-updates main restricted universe multiverse
+  
+  
+
+- name: Prepare chroot
+  hosts: localhost
+  tags: chroot
+  vars_files:
+    - ./build_vars.yaml
+  tasks:
+  - name: mount chroot environment and run shell
+    block:
+      - name: Mount /run
+        tags: debug
+        ansible.builtin.command: 
+          cmd: mount -o bind /run/ {{ chroot_folder }}/run
+          creates: "{{ chroot_folder }}/run/udev"
+
+      - name: Mount /dev
+        tags: debug
+        ansible.builtin.command: 
+          cmd: mount --bind /dev/ {{ chroot_folder }}/dev
+          creates: "{{ chroot_folder }}/dev/cpu"
+
+      - name: "Chroot: Mount dirs" # TODO: Mount from ansible instead
+        tags: debug
+        ansible.builtin.shell: chroot {{ chroot_folder }} /src/mount.sh
+
+      - name: "Chroot: Run Main script"
+        ansible.builtin.shell: chroot {{ chroot_folder }} /src/install_preq.sh
+
+    always:
+      - name: Umount /proc
+        retries: 3
+        delay: 3
+        tags: unmount
+        ansible.builtin.command: 
+          cmd: umount {{ chroot_folder }}/proc -l
+          removes: "{{ chroot_folder }}/proc/cpuinfo"
+
+      - name: Umount /sys
+        retries: 3
+        delay: 3
+        tags: unmount
+        ansible.builtin.command: 
+          cmd: umount {{ chroot_folder }}/sys
+          removes: "{{ chroot_folder }}/sys/bus/"
+
+      - name: Umount /run
+        retries: 3
+        delay: 3
+        tags: unmount
+        ansible.builtin.command: 
+          cmd: umount {{ chroot_folder }}/run
+          removes: "{{ chroot_folder }}/run/user"
+
+      - name: Umount /dev/pts
+        retries: 3
+        delay: 3
+        tags: unmount
+        ignore_errors: true
+        ansible.builtin.command: 
+          cmd: umount {{ chroot_folder }}/dev/pts -l
+          removes: "{{ chroot_folder }}/dev/pts/ptmx"
+      
+      - name: Umount /dev
+        retries: 3
+        delay: 3
+        tags: unmount
+        ansible.builtin.command: 
+          cmd: umount {{ chroot_folder }}/dev -l
+          removes: "{{ chroot_folder }}/dev/cpu"
+
+#       - name: Ensure log folder exists
+#         ansible.builtin.file:
+#           path: "{{ build_folder }}/logs/"
+#           state: directory
+
+#       - name: "Copy build logs"
+#         ansible.builtin.copy:
+#           src: "{{ chroot_folder }}/build/log"
+#           dest: "{{ build_folder }}/logs/{{ ansible_date_time.iso8601 }}"
+#           remote_src: yes
+
+#       - name: Cleanup old log folder
+#         ansible.builtin.file:
+#           path: "{{ chroot_folder }}/build/log"
+#           state: absent
+
+# - name: Configs
+#   hosts: localhost
+#   tags: config
+#   vars:
+#   - build_folder: "./build"
+#   - chroot_folder: "{{ build_folder }}/squashfs-root"
+#   - iso_folder: "{{ build_folder }}/extracted-iso"
+#   tasks:
+#     - name: Grub config
+#       ansible.builtin.copy:
+#         src: ./src/configs/grub.cfg
+#         dest: "{{ iso_folder }}/boot/grub/grub.cfg"
+#         remote_src: yes
+
+- name: Assemble ISO
+  hosts: localhost
+  tags: iso
+  vars_files:
+    - ./build_vars.yaml
+  tasks:
+    - name: Create iso folders
+      ansible.builtin.file:
+        path: "{{ iso_folder }}/{{ item }}"
+        state: directory
+      loop: 
+        - casper
+        - isolinux
+        - install
+        - boot
+        - boot/grub
+
+    - name: Copy linux kernel
+      ansible.builtin.copy:
+        src: "{{ chroot_folder }}/boot/vmlinuz"
+        dest: "{{ iso_folder }}/casper/vmlinuz"
+
+    - name: Copy initrd
+      ansible.builtin.copy:
+        src: "{{ chroot_folder }}/src/initrd"
+        dest: "{{ iso_folder }}/casper/initrd"      
+
+    - name: Download and extract memtest86+
+      ansible.builtin.unarchive:
+        src: https://www.memtest86.com/downloads/memtest86-usb.zip
+        dest: "{{ download_folder }}/memtest86/"
+        remote_src: yes
+    
+    - name: Copy memtest86+ binary
+      ansible.builtin.copy:
+        src: "{{ download_folder }}/memtest86/memtest86-usb.img"
+        dest: "{{ iso_folder }}/install/memtest86"
+
+    # - name: Copy grub
+    #   ansible.builtin.copy:
+    #     src: "src/configs/grub.cfg"
+    #     dest: "{{ iso_folder }}/isolinux/grub.cfg"
+
+    - name: Copy manifest
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ iso_folder }}/casper/"
+      loop:
+        - "{{ chroot_folder }}/src/filesystem.manifest"
+        - "{{ chroot_folder }}/src/filesystem.manifest-desktop"
+
+    - name: Remove previous squashfs if exists
+      ansible.builtin.file:
+        dest: "{{ iso_folder }}/casper/filesystem.squashfs"
+        state: absent
+
+    - name: Compress filesystem
+      ansible.builtin.command:
+        cmd: mksquashfs {{ chroot_folder }} {{ iso_folder }}/casper/filesystem.squashfs
+
+    - name: Generate filesize
+      ansible.builtin.shell:
+        cmd: printf $(du -sx --block-size=1 {{ chroot_folder }} | cut -f1) > {{ iso_folder }}/casper/filesystem.size
+
+    - name: copy grub config
+      ansible.builtin.template:
+        src: src/iso_grub.cfg.j2
+        dest: "{{ iso_folder }}/boot/grub/grub.cfg"
+        
+    - name: Create diskdefines file
+      ansible.builtin.copy:
+        dest: "{{ iso_folder }}/README.diskdefines"
+        content: |
+          #define DISKNAME  Ubuntu from scratch
+          #define TYPE  binary
+          #define TYPEbinary  1
+          #define ARCH  amd64
+          #define ARCHamd64  1
+          #define DISKNUM  1
+          #define DISKNUM1  1
+          #define TOTALNUM  0
+          #define TOTALNUM0  1
+
+    - name: Generate ISO
+      tags: isotest
+      block:
+      - name: Generate UEFI Image
+        ansible.builtin.command:
+          cmd: grub-mkstandalone --format=x86_64-efi --output=isolinux/bootx64.efi --locales="" --fonts="" boot/grub/grub.cfg=isolinux/grub.cfg
+          chdir: "{{ iso_folder }}"
+
+      - name: Create FAT16 UEFI boot disk Image
+        block:
+          - name: Ensure img file exists and empty
+            ansible.builtin.command:
+              cmd: dd if=/dev/zero of={{ iso_folder }}/isolinux/efiboot.img bs=1M count=10
+          
+          - name: Make filesystem on image
+            ansible.builtin.command:
+              cmd: mkfs.vfat {{ iso_folder }}/isolinux/efiboot.img
+          
+          - name: Make dirs inside image
+            ansible.builtin.shell:
+              cmd: LC_CTYPE=C mmd -i efiboot.img efi efi/boot
+              chdir: "{{ iso_folder }}/isolinux/"
+
+          - name: Make dirs inside image
+            ansible.builtin.shell:
+              cmd: LC_CTYPE=C mcopy -i efiboot.img ./bootx64.efi ::efi/boot/
+              chdir: "{{ iso_folder }}/isolinux/"
+      
+      - name: Write bios config
+        ansible.builtin.copy:
+          dest: "{{iso_folder}}/isolinux/isolinux.cfg"
+          content: |
+            UI vesamenu.c32
+
+            MENU TITLE Boot Menu
+            DEFAULT linux
+            TIMEOUT 600
+            MENU RESOLUTION 640 480
+            MENU COLOR border       30;44   #40ffffff #a0000000 std
+            MENU COLOR title        1;36;44 #9033ccff #a0000000 std
+            MENU COLOR sel          7;37;40 #e0ffffff #20ffffff all
+            MENU COLOR unsel        37;44   #50ffffff #a0000000 std
+            MENU COLOR help         37;40   #c0ffffff #a0000000 std
+            MENU COLOR timeout_msg  37;40   #80ffffff #00000000 std
+            MENU COLOR timeout      1;37;40 #c0ffffff #00000000 std
+            MENU COLOR msg07        37;40   #90ffffff #a0000000 std
+            MENU COLOR tabmsg       31;40   #30ffffff #00000000 std
+
+            LABEL linux
+            MENU LABEL Try Ubuntu FS
+            MENU DEFAULT
+            KERNEL /casper/vmlinuz
+            APPEND initrd=/casper/initrd boot=casper
+
+            LABEL linux
+            MENU LABEL Try Ubuntu FS (nomodeset)
+            MENU DEFAULT
+            KERNEL /casper/vmlinuz
+            APPEND initrd=/casper/initrd boot=casper nomodeset
+
+
+      - name: Copy isolinux
+        ansible.builtin.copy:
+          src: "{{ chroot_folder }}/src/isolinux/"
+          dest: "{{ iso_folder }}/isolinux/"
+
+      - name: Generate iso
+        ansible.builtin.shell:
+          cmd: grub-mkrescue -o {{ iso_output }} {{ iso_folder }}
+      

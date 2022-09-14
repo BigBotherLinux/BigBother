@@ -1,0 +1,276 @@
+---
+- name: Essentials
+  hosts: localhost
+  tags: init
+  vars_files:
+    - ./build_vars.yaml
+  tasks:
+    # - name: Set environment
+    #   ansible.builtin.shell:
+    #     cmd: "export {{ item }}"
+    #   loop:
+    #     - "LC_ALL=C"
+    #     - "HOME=/root"
+
+    - name: Install essential packages
+      ansible.builtin.apt:
+        name:
+          - 'libterm-readline-gnu-perl'
+          - 'systemd-sysv'
+
+    - name: Create machine ID
+      ansible.builtin.command:
+        cmd: dbus-uuidgen > /etc/machine-id && ln -fs /etc/machine-id /var/lib/dbus/machine-id
+        creates: /etc/machine-id
+
+    - name: Divert initctl
+      community.general.dpkg_divert:
+        path: /sbin/initctl
+        rename: yes
+
+    - name: Symlink initctl
+      ansible.builtin.file:
+        src: /bin/true
+        dest: /sbin/initctl
+        state: link
+
+    - name: Upgrade packages
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Install packages for LIVE system
+      ansible.builtin.apt:
+        name:
+          - sudo
+          - ubuntu-standard
+          - discover
+          - casper
+          - laptop-detect
+          - os-prober
+          - network-manager
+          - resolvconf
+          - net-tools
+          - wireless-tools
+          - wpagui
+          - locales
+          - grub-common
+          - grub-gfxpayload-lists
+          - grub-pc
+          - grub-pc-bin
+          - grub2-common
+          - kde-standard
+          - syslinux-common
+          - isolinux
+          - calamares
+          - kde-config-sddm
+          - sddm-theme-breeze
+
+        state: present
+
+    - name: Install linux kernel
+      ansible.builtin.apt:
+        name:
+          - linux-generic
+        state: latest
+        install_recommends: false
+    
+    - name: Create /etc/NetworkManager/ folder
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop: 
+        - '/etc/NetworkManager/'
+        - '/src/isolinux/'
+        
+    - name: Set default locale
+      ansible.builtin.debconf:
+        name: locales
+        question: locales/default_environment_locale
+        value: "{{ default_locale }}"
+        vtype: select
+        
+    - name: Generate locales
+      ansible.builtin.debconf:
+        name: locales
+        question: locales/locales_to_be_generated
+        value: "{{ default_locale }}"
+        vtype: multiselect
+              
+    - name: Configure resolvconf
+      ansible.builtin.debconf:
+        name: resolvconf
+        question: resolvconf/linkify-resolvconf
+        value: true
+        vtype: boolean
+
+    - name: Set network-manager config
+      ansible.builtin.copy:
+        dest: /etc/NetworkManager/NetworkManager.conf
+        
+        content: |
+          [main]
+          rc-manager=resolvconf
+          plugins=ifupdown,keyfile
+          dns=dnsmasq
+
+          [ifupdown]
+          managed=false
+    
+    - name: Copy grub config
+      ansible.builtin.template:
+        src: /src/iso_grub.cfg.j2
+        dest: /boot/grub/grub.cfg
+
+    - name: Copy isolinux 
+      ansible.builtin.copy:
+        src: /usr/lib/ISOLINUX/isolinux.bin
+        dest: /src/isolinux/isolinux.bin
+
+    - name: Copy syslinux modules
+      ansible.builtin.copy:
+        src: /usr/lib/syslinux/modules/bios/
+        dest: /src/isolinux/
+
+    - name: Copy Calamares config
+      ansible.builtin.copy:
+        src: /src/configs/calamares/
+        dest: /etc/calamares/
+      
+    - name: Copy Calamares config
+      ansible.builtin.template:
+        src: /etc/calamares/branding/bigbother/branding.desc.j2
+        dest: /etc/calamares/branding/bigbother/branding.desc
+        
+    - name: Copy Calamares config
+      ansible.builtin.template:
+        src: /etc/calamares/installer.desktop.j2
+        dest: /usr/share/applications/installer.desktop
+
+    - name: Copy casper config
+      ansible.builtin.copy:
+        src: /src/configs/casper/26copy_desktop.sh
+        dest: /usr/share/initramfs-tools/scripts/casper-bottom/26copy_desktop.sh
+
+    # - name: Grub config
+    #   ansible.builtin.command:
+    #     cmd: update-grub
+
+    # - name: Grub config
+    #   ansible.builtin.command:
+    #     cmd: grub-mkconfig -o /boot/grub/grub.cfg
+        
+- name: Prepare Microsoft Edge
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Install required packages for edge
+      ansible.builtin.apt:
+        name:
+          - 'software-properties-common'
+          - 'apt-transport-https'
+          - 'wget'
+          - 'ca-certificates'
+          - 'gnupg2'
+          - 'ubuntu-keyring'
+        update_cache: yes
+        state: latest
+
+    - name: Import Microsoft Edge GPG keys
+      ansible.builtin.apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        keyring: /usr/share/keyrings/microsoft-edge.gpg
+        state: present
+
+    - name: Import Microsoft Edge Repo
+      ansible.builtin.apt_repository:
+        repo: deb [signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main
+        state: present
+
+    - name: Install glorious browser
+      ansible.builtin.apt:
+        name: microsoft-edge-stable
+        update_cache: yes
+
+- name: Other packages
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ./build_vars.yaml
+  tasks:
+  - name: sudoers config
+    ansible.builtin.copy:
+      src: /src/configs/sudoers
+      dest: /etc/sudoers
+
+  - name: sudoers.lecture file
+    ansible.builtin.copy:
+      src: /src/configs/sudoers.lecture
+      dest: /etc/sudoers.lecture
+
+#   - name: copy wallpaper
+#     ansible.builtin.copy:
+#       src: /build/src/configs/kde/Bothered
+#       dest: /usr/share/wallpapers/Bothered
+#       remote_src: true
+
+  - name: copy sddm config
+    ansible.builtin.copy:
+      src: /src/configs/sddm.conf
+      dest: /etc/sddm.conf
+      remote_src: true
+
+  - name: copy skel config files
+    ansible.builtin.copy:
+      src: /src/configs/kde/.config
+      dest: /etc/skel/
+      remote_src: true
+
+  - name: copy lsb-release
+    ansible.builtin.template:
+      src: /src/configs/lsb-release.j2
+      dest: /etc/lsb-release
+
+- name: Cleanup
+  hosts: localhost
+  gather_facts: false
+  tasks:
+  - name: Divert initctl
+    community.general.dpkg_divert:
+      path: /sbin/initctl
+      state: absent
+
+  - name: remove initctl
+    ansible.builtin.file:
+      path: /sbin/initctl
+      state: absent
+
+  - name: Remove machine-id
+    ansible.builtin.copy:
+      dest: /etc/machine-id
+      content: ''
+      
+  - name: Initramfs
+    block:
+    - name: Copy initrd config
+      ansible.builtin.copy:
+        src: /src/configs/default-boot-to-casper.conf
+        dest: /etc/initramfs-tools/conf.d/default-boot-to-casper.conf
+        remote_src: true
+
+    - name: Remove previous initrd if exists
+      ansible.builtin.file:
+        path: /src/initrd
+        state: absent
+
+    - name: Compress initrd
+      ansible.builtin.shell:
+        cmd: mkinitramfs -o /src/initrd $(ls /lib/modules | sort -r | head -n 1)
+    always:
+    #IDK if this hurts future initram updates, so i just remove the file to be sure..
+    - name: Cleanup initram config
+      ansible.builtin.file:
+        path: /etc/initramfs-tools/conf.d/default-boot-to-casper.conf
+        state: absent
+
