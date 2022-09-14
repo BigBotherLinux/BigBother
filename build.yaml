@@ -3,10 +3,11 @@
   hosts: localhost
   tags: depend
   tasks:
-    - name: dnf install dependencies
+    - name: yum install dependencies
       ansible.builtin.yum:
         name:
           - 'debootstrap'
+      when: ansible_facts['distribution'] == 'Fedora'
 
 - name: Download, Mount and Extract ISO
   hosts: localhost
