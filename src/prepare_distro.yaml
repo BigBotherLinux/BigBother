@@ -40,7 +40,7 @@
         state: latest
         update_cache: true
 
-    - name: Install packages for LIVE system
+    - name: Install packages
       ansible.builtin.apt:
         name:
           - sudo
@@ -66,7 +66,8 @@
           - calamares
           - kde-config-sddm
           - sddm-theme-breeze
-
+          - neofetch
+          - vim
         state: present
 
     - name: Install linux kernel
@@ -76,7 +77,7 @@
         state: latest
         install_recommends: false
     
-    - name: Create /etc/NetworkManager/ folder
+    - name: Create needed folders
       ansible.builtin.file:
         path: "{{ item }}"
         state: directory
@@ -148,11 +149,11 @@
         src: /etc/calamares/installer.desktop.j2
         dest: /usr/share/applications/installer.desktop
 
-    - name: Copy casper config
-      ansible.builtin.copy:
-        src: /src/configs/casper/26copy_desktop.sh
-        dest: /usr/share/initramfs-tools/scripts/casper-bottom/26copy_desktop.sh
-
+    - name: Add nano=vim .bashrc alias
+      ansible.builtin.lineinfile:
+        line: 'alias nano=vim'
+        path: '/etc/skel/.bashrc'
+        
     # - name: Grub config
     #   ansible.builtin.command:
     #     cmd: update-grub
