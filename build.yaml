@@ -1,4 +1,13 @@
 ---
+- name: Install dependencies
+  hosts: localhost
+  tags: depend
+  tasks:
+    - name: dnf install dependencies
+      ansible.builtin.yum:
+        name:
+          - 'debootstrap'
+
 - name: Download, Mount and Extract ISO
   hosts: localhost
   gather_facts: false
@@ -16,6 +25,14 @@
       - "{{ download_folder }}/memtest86"
       - "{{ download_folder }}/isolinux"
       - "{{ build_folder }}/calamares"
+
+  - name: Ensure shell scripts are executable
+    file:
+      dest: "{{ item }}"
+      mode: 'a+x'
+    loop:
+      - src/mount.sh
+      - src/install_preq.sh
   
   - name: Bootstrap ubuntu
     ansible.builtin.command:
