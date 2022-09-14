@@ -1,0 +1,10 @@
+[KDE]
+AnimationDurationFactor=4
+
+[General]
+BrowserApplication=microsoft-edge.desktop
+
+[General]
+AutomountEnabled=false
+AutomountOnLogin=false
+AutomountOnPlugin=false

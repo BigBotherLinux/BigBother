@@ -1,0 +1,12 @@
+[Added Associations]
+inode/directory=org.kde.dolphin.desktop;
+x-scheme-handler/geo=qwant-maps-geo-handler.desktop;
+x-scheme-handler/http=microsoft-edge.desktop;
+x-scheme-handler/https=microsoft-edge.desktop;
+
+[Default Applications]
+inode/directory=org.kde.dolphin.desktop;
+x-scheme-handler/bitwarden=bitwarden.desktop
+x-scheme-handler/geo=qwant-maps-geo-handler.desktop;
+x-scheme-handler/http=microsoft-edge.desktop;
+x-scheme-handler/https=microsoft-edge.desktop;
