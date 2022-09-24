@@ -25,6 +25,7 @@
       - "{{ build_folder }}"
       - "{{ download_folder }}/memtest86"
       - "{{ download_folder }}/isolinux"
+      - "{{ build_folder }}/result"
 
   - name: Ensure shell scripts are executable
     file:
@@ -155,31 +156,6 @@
           cmd: umount {{ chroot_folder }}/dev -l
           removes: "{{ chroot_folder }}/dev/cpu"
 
-#       - name: "Copy build logs"
-#         ansible.builtin.copy:
-#           src: "{{ chroot_folder }}/build/log"
-#           dest: "{{ build_folder }}/logs/{{ ansible_date_time.iso8601 }}"
-#           remote_src: yes
-
-#       - name: Cleanup old log folder
-#         ansible.builtin.file:
-#           path: "{{ chroot_folder }}/build/log"
-#           state: absent
-
-# - name: Configs
-#   hosts: localhost
-#   tags: config
-#   vars:
-#   - build_folder: "./build"
-#   - chroot_folder: "{{ build_folder }}/squashfs-root"
-#   - iso_folder: "{{ build_folder }}/extracted-iso"
-#   tasks:
-#     - name: Grub config
-#       ansible.builtin.copy:
-#         src: ./src/configs/grub.cfg
-#         dest: "{{ iso_folder }}/boot/grub/grub.cfg"
-#         remote_src: yes
-
 - name: Assemble ISO
   hosts: localhost
   tags: iso
@@ -217,11 +193,6 @@
       ansible.builtin.copy:
         src: "{{ download_folder }}/memtest86/memtest86-usb.img"
         dest: "{{ iso_folder }}/install/memtest86"
-
-    # - name: Copy grub
-    #   ansible.builtin.copy:
-    #     src: "src/configs/grub.cfg"
-    #     dest: "{{ iso_folder }}/isolinux/grub.cfg"
 
     - name: Copy manifest
       ansible.builtin.copy:
@@ -328,7 +299,6 @@
             KERNEL /casper/vmlinuz
             APPEND initrd=/casper/initrd boot=casper nomodeset
 
-
       - name: Copy isolinux
         ansible.builtin.copy:
           src: "{{ chroot_folder }}/src/isolinux/"
@@ -337,4 +307,37 @@
       - name: Generate iso
         ansible.builtin.shell:
           cmd: grub-mkrescue -o {{ iso_output }} {{ iso_folder }}
-      
+
+- name: Package ISO
+  hosts: localhost
+  tags: package
+  vars_files:
+    - ./build_vars.yaml
+  tasks:
+    - name: Get checksum of iso
+      tags: test1
+      ansible.builtin.stat:
+        path: "{{ iso_output }}" 
+        checksum_algorithm: sha256
+        get_checksum: yes
+      register: sha256
+
+    - name: Get checksum of iso
+      ansible.builtin.stat:
+        path: "{{ iso_output }}" 
+        checksum_algorithm: sha512
+        get_checksum: yes
+      register: sha512
+
+    - name: insert to checksum file
+      ansible.builtin.copy:
+        dest: "{{ build_folder }}/result/check.sum"
+        content: |
+          sha256_{{ sha256.stat.checksum }}
+          sha512_{{ sha512.stat.checksum }}
+
+    - name: pack into tar
+      ansible.builtin.archive:
+        path: "{{ build_folder }}/result/"
+        dest: "{{ build_folder }}/bigbother.iso.tar"
+        format: tar
