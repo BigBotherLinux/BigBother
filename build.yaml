@@ -25,7 +25,7 @@
       - "{{ build_folder }}"
       - "{{ download_folder }}/memtest86"
       - "{{ download_folder }}/isolinux"
-      - "{{ build_folder }}/result"
+      - "{{ build_folder }}/{{ distro_short_name }}{{ distro_version }}"
 
   - name: Ensure shell scripts are executable
     file:
@@ -331,19 +331,13 @@
 
     - name: insert to checksum file
       ansible.builtin.copy:
-        dest: "{{ build_folder }}/result/check.sum"
+        dest: "{{ build_folder }}/{{ distro_short_name }}{{ distro_version }}/check.sum"
         content: |
           sha256_{{ sha256.stat.checksum }}
           sha512_{{ sha512.stat.checksum }}
 
     - name: add README to tar
       ansible.builtin.copy:
-        dest: "{{ build_folder }}/result/README.md"
+        dest: "{{ build_folder }}/{{ distro_short_name }}{{ distro_version }}/README.md"
         src: README.md
         remote_src: true
-
-    - name: pack into tar
-      ansible.builtin.archive:
-        path: "{{ build_folder }}/result/"
-        dest: "{{ build_folder }}/bigbother.iso.tar"
-        format: tar
