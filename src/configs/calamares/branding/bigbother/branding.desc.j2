@@ -24,7 +24,7 @@ welcomeExpandingLogo:   true
 #  - "normal" or unset, expand as needed, use *windowSize*
 #  - "fullscreen", start as large as possible, ignore *windowSize*
 #  - "noexpand", don't expand automatically, use *windowSize*
-windowExpanding:    normal
+windowExpanding:    fullscreen
 
 # Size of Calamares window, expressed as w,h. Both w and h
 # may be either pixels (suffix px) or font-units (suffix em).
@@ -33,13 +33,13 @@ windowExpanding:    normal
 # This setting is ignored if "fullscreen" is selected for
 # *windowExpanding*, above. If not set, use constants defined
 # in CalamaresUtilsGui, 800x520.
-windowSize: 800px,520px
+#windowSize: 800px,520px
 
 # Placement of Calamares window. Either "center" or "free".
 # Whether "center" actually works does depend on the window
 # manager in use (and only makes sense if you're not using
 # *windowExpanding* set to "fullscreen").
-windowPlacement: center
+#windowPlacement: center
 
 # Kind of sidebar (panel on the left, showing progress).
 #  - "widget" or unset, use traditional sidebar (logo, items)
@@ -99,11 +99,10 @@ strings:
     versionedName:       {{ distro_name }} {{ ubuntu_version_number }}
     shortVersionedName:  {{ distro_name }} {{ ubuntu_version_number }}
     bootloaderEntryName: {{ distro_short_name }}
-    productUrl:          https://calamares.io/
-    supportUrl:          https://github.com/calamares/calamares/issues
-    knownIssuesUrl:      https://calamares.io/about/
-    releaseNotesUrl:     https://calamares.io/about/
-    donateUrl:           https://kde.org/community/donations/index.php
+    productUrl:          https://github.com/BigBotherLinux/BigBother
+    supportUrl:          https://github.com/BigBotherLinux/BigBother/issues
+    knownIssuesUrl:      https://github.com/BigBotherLinux/BigBother/issues
+    releaseNotesUrl:     https://github.com/BigBotherLinux/BigBother
 
 # These images are loaded from the branding module directory.
 #
@@ -164,7 +163,7 @@ slideshow:               "show.qml"
 #      the QML components).
 #
 # An image slideshow does not need to have the API defined.
-slideshowAPI: 2
+slideshowAPI: 1
 
 
 # Colors for text and background components.
@@ -179,7 +178,7 @@ slideshowAPI: 2
 # branding component also ships a stylesheet.qss. Then they are
 # the corresponding CSS attributes of #sidebarApp.
 style:
-   sidebarBackground:    "#292F34"
+   sidebarBackground:    "#E2BE83"
    sidebarText:          "#FFFFFF"
-   sidebarTextSelect:    "#292F34"
+   sidebarTextSelect:    "#E2BE83"
    sidebarTextHighlight: "#D35400"

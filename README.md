@@ -13,7 +13,7 @@ Hope you have a misserable experience!
 - Snap is the default package manager
 - Accidental boot protection
 - Telemetry enabled by default
-- Custom login screen
+- Neutral login screen
 - Nano is aliased to VIM
 - Calamares installer
 - Custom sudo config
@@ -23,8 +23,12 @@ Hope you have a misserable experience!
 
 Why would you want to do this to yourself? Anyways, to get this installed, check the github releases for torrent file which will include the ISO. Boot up the ISO, preferably in an Virtual Machine.
 
+## Need help?
+
+There is nothing wrong in seeking help, lots of great support can be found [here](https://www.healthygamer.gg/about-us)
+
 ## Found something useful?  
-Please create issues in the repository if you have any ideas of how the user experience can deteriorate.
+Please create issues in the repository if you have any ideas of how the user experience can deteriorate. [Inspirational comic strip](https://feelafraidcomic.com/60.php)
 ## Building from source
 The entire build is done from Ansible, the only shell scripts used is for running the chroot environment, as the ansible chroot module is not good enough. 
 
