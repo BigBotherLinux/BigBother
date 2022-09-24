@@ -336,6 +336,12 @@
           sha256_{{ sha256.stat.checksum }}
           sha512_{{ sha512.stat.checksum }}
 
+    - name: add README to tar
+      ansible.builtin.copy:
+        dest: "{{ build_folder }}/result/README.md"
+        src: README.md
+        remote_src: true
+
     - name: pack into tar
       ansible.builtin.archive:
         path: "{{ build_folder }}/result/"

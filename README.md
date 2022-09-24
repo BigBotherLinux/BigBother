@@ -11,7 +11,7 @@ Hope you have a misserable experience!
 - KDE desktop environment
 - Microsoft Edge as default browser
 - Snap is the default package manager
-- Accidental boot protection
+- Accidental boot protection (currently only in installer)
 - Telemetry enabled by default
 - Neutral login screen
 - Nano is aliased to VIM
@@ -21,15 +21,19 @@ Hope you have a misserable experience!
 ## Getting started
 **INSTALL AT YOUR OWN RISK**
 
-Why would you want to do this to yourself? Anyways, to get this installed, check the github releases for torrent file which will include the ISO. Boot up the ISO, preferably in an Virtual Machine.
+Why would you want to do this to yourself? Anyways, to get this installed, check the [github releases](https://github.com/BigBotherLinux/BigBother/releases) for torrent file which will include the ISO. Boot up the ISO, preferably in an Virtual Machine.
 
+
+## Found something useful?  
+Please create issues in the [repository](https://github.com/BigBotherLinux/BigBother/issues) if you have any ideas of how the user experience can deteriorate. [Inspirational comic strip](https://feelafraidcomic.com/60.php)
 ## Need help?
 
 There is nothing wrong in seeking help, lots of great support can be found [here](https://www.healthygamer.gg/about-us)
-
-## Found something useful?  
-Please create issues in the repository if you have any ideas of how the user experience can deteriorate. [Inspirational comic strip](https://feelafraidcomic.com/60.php)
 ## Building from source
 The entire build is done from Ansible, the only shell scripts used is for running the chroot environment, as the ansible chroot module is not good enough. 
 
 To build this project, run `ansible-playbook build.yaml` with root privileges. You may have to install some dependencies on your own, such as **debootstrap**, but that is your problem, not mine.
+
+### Build dependencies
+  * debootstrap
+  * grub
