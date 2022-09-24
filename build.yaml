@@ -25,7 +25,6 @@
       - "{{ build_folder }}"
       - "{{ download_folder }}/memtest86"
       - "{{ download_folder }}/isolinux"
-      - "{{ build_folder }}/calamares"
 
   - name: Ensure shell scripts are executable
     file:
@@ -156,11 +155,6 @@
           cmd: umount {{ chroot_folder }}/dev -l
           removes: "{{ chroot_folder }}/dev/cpu"
 
-#       - name: Ensure log folder exists
-#         ansible.builtin.file:
-#           path: "{{ build_folder }}/logs/"
-#           state: directory
-
 #       - name: "Copy build logs"
 #         ansible.builtin.copy:
 #           src: "{{ chroot_folder }}/build/log"
@@ -240,6 +234,11 @@
     - name: Remove previous squashfs if exists
       ansible.builtin.file:
         dest: "{{ iso_folder }}/casper/filesystem.squashfs"
+        state: absent
+
+    - name: Remove calamares startup
+      ansible.builtin.file:
+        dest: "{{ chroot_folder }}/etc/skel/autostart/calamares.desktop"
         state: absent
 
     - name: Compress filesystem

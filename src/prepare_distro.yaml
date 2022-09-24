@@ -12,6 +12,11 @@
     #     - "LC_ALL=C"
     #     - "HOME=/root"
 
+    - name: copy lsb-release
+      ansible.builtin.template:
+        src: /src/configs/lsb-release.j2
+        dest: /etc/lsb-release
+
     - name: Install essential packages
       ansible.builtin.apt:
         name:
@@ -84,6 +89,7 @@
       loop: 
         - '/etc/NetworkManager/'
         - '/src/isolinux/'
+        - '/etc/skel/.config/autostart/'
         
     - name: Set default locale
       ansible.builtin.debconf:
@@ -124,6 +130,11 @@
         src: /src/iso_grub.cfg.j2
         dest: /boot/grub/grub.cfg
 
+    - name: copy grub config
+      ansible.builtin.template:
+        src: /src/iso_grub.cfg.j2
+        dest: /etc/grub.d/40_custom
+
     - name: Copy isolinux 
       ansible.builtin.copy:
         src: /usr/lib/ISOLINUX/isolinux.bin
@@ -147,13 +158,15 @@
     - name: Copy Calamares config
       ansible.builtin.template:
         src: /etc/calamares/installer.desktop.j2
-        dest: /usr/share/applications/installer.desktop
+        dest: /etc/skel/.config/autostart/calamares.desktop
 
     - name: Add nano=vim .bashrc alias
       ansible.builtin.lineinfile:
         line: 'alias nano=vim'
         path: '/etc/skel/.bashrc'
-        
+
+
+          
     # - name: Grub config
     #   ansible.builtin.command:
     #     cmd: update-grub
@@ -227,11 +240,6 @@
       src: /src/configs/kde/.config
       dest: /etc/skel/
       remote_src: true
-
-  - name: copy lsb-release
-    ansible.builtin.template:
-      src: /src/configs/lsb-release.j2
-      dest: /etc/lsb-release
 
 - name: Cleanup
   hosts: localhost
