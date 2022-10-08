@@ -8,14 +8,12 @@ Hope you have a misserable experience!
 
 
 ## Broad overview of features
-- KDE desktop environment
 - Microsoft Edge as default browser
 - Snap is the default package manager
 - Accidental boot protection (currently only in installer)
 - Telemetry enabled by default
 - Neutral login screen
 - Nano is aliased to VIM
-- Calamares installer
 - Custom sudo config
 
 ## Getting started
