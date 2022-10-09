@@ -6,7 +6,8 @@
     - name: yum install dependencies
       ansible.builtin.yum:
         name:
-          - 'debootstrap'
+          - debootstrap
+          - grub2-efi-x64-modules
       when: ansible_facts['distribution'] == 'Fedora'
 
 - name: Download, Mount and Extract ISO
@@ -244,7 +245,7 @@
       block:
       - name: Generate UEFI Image
         ansible.builtin.command:
-          cmd: grub-mkstandalone --format=x86_64-efi --output=isolinux/bootx64.efi --locales="" --fonts="" boot/grub/grub.cfg=isolinux/grub.cfg
+          cmd: grub2-mkstandalone --format=x86_64-efi --output=isolinux/bootx64.efi --locales="" --fonts="" boot/grub/grub.cfg=isolinux/grub.cfg
           chdir: "{{ iso_folder }}"
 
       - name: Create FAT16 UEFI boot disk Image
@@ -306,7 +307,7 @@
 
       - name: Generate iso
         ansible.builtin.shell:
-          cmd: grub-mkrescue -o {{ iso_output }} {{ iso_folder }}
+          cmd: grub2-mkrescue -o {{ iso_output }} {{ iso_folder }}
 
 - name: Package ISO
   hosts: localhost
