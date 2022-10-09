@@ -10,7 +10,7 @@
           - grub2-efi-x64-modules
       when: ansible_facts['distribution'] == 'Fedora'
 
-- name: Download, Mount and Extract ISO
+- name: Download and create build folders 
   hosts: localhost
   gather_facts: false
   tags: extract
@@ -47,7 +47,7 @@
       path: "{{ chroot_folder }}/build/log"
       state: directory
 
-  - name: Copy scripts from src folder to chroot
+  - name: Copy scripts from src folder to chroot env
     tags: debug
     ansible.posix.synchronize:
       src: ./src
@@ -85,9 +85,7 @@
 
         deb {{ ubuntu_mirror }} {{ubuntu_version}}-updates main restricted universe multiverse
         deb-src {{ ubuntu_mirror }} {{ubuntu_version}}-updates main restricted universe multiverse
-  
-  
-
+    
 - name: Prepare chroot
   hosts: localhost
   tags: chroot
@@ -206,11 +204,6 @@
     - name: Remove previous squashfs if exists
       ansible.builtin.file:
         dest: "{{ iso_folder }}/casper/filesystem.squashfs"
-        state: absent
-
-    - name: Remove calamares startup
-      ansible.builtin.file:
-        dest: "{{ chroot_folder }}/etc/skel/autostart/calamares.desktop"
         state: absent
 
     - name: Compress filesystem
