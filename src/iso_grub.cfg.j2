@@ -12,19 +12,7 @@ submenu "Try or Install {{ distro_name }}" {
 		}
 		menuentry "YES" {
 			set gfxpayload=keep
-			linux	/casper/vmlinuz quiet splash --- 
-			initrd	/casper/initrd
-		}
-	}
-}
-submenu "{{ distro_name }} (safe graphics)" {
-	submenu "Are you sure you want to start?" {
-		menuentry "NO" {
-			halt
-		}
-		menuentry "YES" {
-			set gfxpayload=keep
-			linux	/casper/vmlinuz nomodeset quiet splash --- 
+			linux	/casper/vmlinuz nomodeset --- 
 			initrd	/casper/initrd
 		}
 	}
