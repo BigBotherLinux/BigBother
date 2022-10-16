@@ -1,0 +1,14 @@
+#!/bin/sh
+exec tail -n +3 $0
+menuentry "Accidental boot protection" {
+	
+	echo "Accidental boot avoided, shutting down."
+	sleep 3
+	clear
+	echo "Accidental boot avoided, shutting down.."
+	sleep 2
+	clear
+	echo "Accidental boot avoided, shutting down..."
+	sleep 3
+	halt
+}
