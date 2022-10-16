@@ -53,7 +53,7 @@ The login screen (SDDM) is customized to never remember the username, so the use
 ## Building from source
 The entire build is done from Ansible, the only shell scripts used is for running the chroot environment, as the ansible chroot module is not good enough. 
 
-To build this project, run `ansible-playbook build.yaml` with root privileges. You may have to install some dependencies on your own, such as **debootstrap**, but that is your problem, not mine.
+To build this project, run `ansible-playbook build.yaml --ask-become-pass`.  You may have to install some dependencies on your own, such as **debootstrap**, but that is your problem, not mine.
 
 ### Build dependencies
   * debootstrap

@@ -2,6 +2,7 @@
 - name: Install dependencies
   hosts: localhost
   tags: depend
+  become: yes
   tasks:
     - name: yum install dependencies
       ansible.builtin.yum:
@@ -37,18 +38,14 @@
       - src/install_preq.sh
   
   - name: Bootstrap ubuntu
+    become: yes
     ansible.builtin.command:
       cmd: debootstrap --arch={{ architecture }} --variant=minbase jammy {{ chroot_folder }} {{ ubuntu_mirror }}
       creates: "{{ build_folder }}/chroot"
 
-  - name: Create chroot log folder
-    tags: debug
-    ansible.builtin.file:
-      path: "{{ chroot_folder }}/build/log"
-      state: directory
-
   - name: Copy scripts from src folder to chroot env
     tags: debug
+    become: yes
     ansible.posix.synchronize:
       src: ./src
       dest: "{{ chroot_folder }}"
@@ -56,18 +53,33 @@
 
   - name: "Copy build_vars"
     tags: debug
+    become: yes
     ansible.builtin.copy:
       src: "build_vars.yaml"
       dest: "{{ chroot_folder }}/src/build_vars.yaml"
       remote_src: yes
 
+  - name: Download and extract memtest86+
+    ansible.builtin.unarchive:
+      src: https://www.memtest86.com/downloads/memtest86-usb.zip
+      dest: "{{ download_folder }}/memtest86/"
+      remote_src: yes
+
 - name: Configs
   hosts: localhost
   gather_facts: false
+  become: yes
   tags: config
   vars_files:
     - ./build_vars.yaml
   tasks:
+  - name: Create chroot folders
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+    loop:
+      - "{{ chroot_folder }}/build/log"
+
   - name: Set hostname
     ansible.builtin.copy:
       dest: "{{ chroot_folder }}/etc/hostname"
@@ -89,6 +101,7 @@
 - name: Prepare chroot
   hosts: localhost
   tags: chroot
+  become: yes
   vars_files:
     - ./build_vars.yaml
   tasks:
@@ -158,6 +171,7 @@
 - name: Assemble ISO
   hosts: localhost
   tags: iso
+  become: yes
   vars_files:
     - ./build_vars.yaml
   tasks:
@@ -171,22 +185,24 @@
         - install
         - boot
         - boot/grub
-
+      
     - name: Copy linux kernel
-      ansible.builtin.copy:
-        src: "{{ chroot_folder }}/boot/vmlinuz"
-        dest: "{{ iso_folder }}/casper/vmlinuz"
-
+      ansible.builtin.command:
+        cmd: "cp {{ chroot_folder }}/boot/vmlinuz {{ iso_folder }}/casper/vmlinuz"
+      
     - name: Copy initrd
-      ansible.builtin.copy:
-        src: "{{ chroot_folder }}/src/initrd"
-        dest: "{{ iso_folder }}/casper/initrd"      
+      ansible.builtin.command:
+        cmd: "cp {{ chroot_folder }}/src/initrd {{ iso_folder }}/casper/initrd"
+    
+    # - name: Copy linux kernel
+    #   ansible.builtin.copy:
+    #     src: "{{ chroot_folder }}/boot/vmlinuz"
+    #     dest: "{{ iso_folder }}/casper/vmlinuz"
 
-    - name: Download and extract memtest86+
-      ansible.builtin.unarchive:
-        src: https://www.memtest86.com/downloads/memtest86-usb.zip
-        dest: "{{ download_folder }}/memtest86/"
-        remote_src: yes
+    # - name: Copy initrd
+    #   ansible.builtin.copy:
+    #     src: "{{ chroot_folder }}/src/initrd"
+    #     dest: "{{ iso_folder }}/casper/initrd"      
     
     - name: Copy memtest86+ binary
       ansible.builtin.copy:
@@ -238,7 +254,7 @@
       block:
       - name: Generate UEFI Image
         ansible.builtin.command:
-          cmd: grub2-mkstandalone --format=x86_64-efi --output=isolinux/bootx64.efi --locales="" --fonts="" boot/grub/grub.cfg=isolinux/grub.cfg
+          cmd: grub-mkstandalone --format=x86_64-efi --output=isolinux/bootx64.efi --locales="" --fonts="" boot/grub/grub.cfg=isolinux/grub.cfg
           chdir: "{{ iso_folder }}"
 
       - name: Create FAT16 UEFI boot disk Image
@@ -298,9 +314,6 @@
           src: "{{ chroot_folder }}/src/isolinux/"
           dest: "{{ iso_folder }}/isolinux/"
 
-      - name: Generate iso
-        ansible.builtin.shell:
-          cmd: grub2-mkrescue -o {{ iso_output }} {{ iso_folder }}
 
 - name: Package ISO
   hosts: localhost
@@ -308,6 +321,10 @@
   vars_files:
     - ./build_vars.yaml
   tasks:
+    - name: Generate iso
+      ansible.builtin.shell:
+        cmd: grub-mkrescue -o {{ iso_output }} {{ iso_folder }}
+
     - name: Get checksum of iso
       tags: test1
       ansible.builtin.stat:
