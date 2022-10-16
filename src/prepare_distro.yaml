@@ -123,6 +123,8 @@
           iface eth inet dhcp
           auto /ens*=ens
           iface ens inet dhcp
+          auto /enp*=enp
+          iface enp inet dhcp
 
     - name: Set network-manager config
       ansible.builtin.copy:
@@ -136,6 +138,12 @@
 
           [ifupdown]
           managed=false
+
+    
+    - name: Exclude hyper-v floppy driver
+      ansible.builtin.copy:
+        dest: "/etc/modprobe.d/blacklist-floppy.conf"
+        content: "blacklist floppy"
     
     - name: Copy grub config
       ansible.builtin.template:
@@ -179,16 +187,6 @@
       ansible.builtin.lineinfile:
         line: 'alias nano=vim'
         path: '/etc/skel/.bashrc'
-
-
-          
-    # - name: Grub config
-    #   ansible.builtin.command:
-    #     cmd: update-grub
-
-    # - name: Grub config
-    #   ansible.builtin.command:
-    #     cmd: grub-mkconfig -o /boot/grub/grub.cfg
         
 - name: Prepare Microsoft Edge
   hosts: localhost
@@ -237,12 +235,6 @@
     ansible.builtin.copy:
       src: /src/configs/sudoers.lecture
       dest: /etc/sudoers.lecture
-
-#   - name: copy wallpaper
-#     ansible.builtin.copy:
-#       src: /build/src/configs/kde/Bothered
-#       dest: /usr/share/wallpapers/Bothered
-#       remote_src: true
 
   - name: copy sddm config
     ansible.builtin.copy:
