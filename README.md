@@ -5,7 +5,7 @@ The goal of this distribution is to push the limits of an annoying user experien
 It is based on Ubuntu LTS 22.04 and comes with features you would normally not find in other distributions, such as having **Microsoft Edge** as default browser and **Telemetry enabled** by default wherever possible.
 This is not meant to be taken seriously, as this is a learning project.
 
-Hope you have a **misserable** experience! 
+Remember, anything annoying is likely intended, hope you have a **misserable** experience! 
 
 
 ## Broad overview of features
@@ -58,3 +58,4 @@ To build this project, run `ansible-playbook build.yaml --ask-become-pass`.  You
 ### Build dependencies
   * debootstrap
   * grub
+  * mktorrent

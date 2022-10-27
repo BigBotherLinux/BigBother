@@ -65,10 +65,12 @@
           - grub-gfxpayload-lists
           - grub-pc
           - grub-pc-bin
+          - grub-efi-amd64-bin
+          - grub-efi-amd64-signed
           - grub2-common
           - kde-standard
           - syslinux-common
-          - isolinux
+         # - isolinux
           - calamares
           - kde-config-sddm
           - sddm-theme-breeze
@@ -89,7 +91,7 @@
         state: directory
       loop: 
         - '/etc/NetworkManager/'
-        - '/src/isolinux/'
+        #- '/src/isolinux/'
         - '/etc/skel/.config/autostart/'
         - '/etc/network/interfaces.d/'
         
@@ -144,6 +146,11 @@
       ansible.builtin.copy:
         dest: "/etc/modprobe.d/blacklist-floppy.conf"
         content: "blacklist floppy"
+
+    - name: Copy grub defaults
+      ansible.builtin.template:
+        src: /src/grub_defaults.conf.j2
+        dest: /etc/default/grub
     
     - name: Copy grub config
       ansible.builtin.template:
@@ -158,15 +165,15 @@
         group: root
         mode: '0755'
 
-    - name: Copy isolinux 
-      ansible.builtin.copy:
-        src: /usr/lib/ISOLINUX/isolinux.bin
-        dest: /src/isolinux/isolinux.bin
+    # - name: Copy isolinux 
+    #   ansible.builtin.copy:
+    #     src: /usr/lib/ISOLINUX/isolinux.bin
+    #     dest: /src/isolinux/isolinux.bin
 
-    - name: Copy syslinux modules
-      ansible.builtin.copy:
-        src: /usr/lib/syslinux/modules/bios/
-        dest: /src/isolinux/
+    # - name: Copy syslinux modules
+    #   ansible.builtin.copy:
+    #     src: /usr/lib/syslinux/modules/bios/
+    #     dest: /src/isolinux/
 
     - name: Copy Calamares config
       ansible.builtin.copy:
@@ -289,4 +296,14 @@
       ansible.builtin.file:
         path: /etc/initramfs-tools/conf.d/default-boot-to-casper.conf
         state: absent
+
+  - name: Apt Cleanup
+    ansible.builtin.apt:
+      clean: true
+
+  - name: Cleanup /tmp
+    ansible.builtin.file:
+      path: /tmp/*
+      state: absent
+
 

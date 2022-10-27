@@ -4,11 +4,14 @@ ubuntu_mirror: "http://no.archive.ubuntu.com/ubuntu/"
 ubuntu_version: "jammy"
 ubuntu_version_number: '22.04'
 
+# Trackers
+torrent_trackers: ["http://tracker.openbittorrent.com:80/announce","udp://tracker.openbittorrent.com:6969/announce","udp://9.rarbg.com:2810/announce","udp://tracker.opentrackr.org:1337/announce"]
+
 # Distro config
 distro_name: "Big Bother"
 #name in small letters, no space
 distro_short_name: "bigbother"
-distro_version: "123"
+distro_version: "5.1"
 
 # Target config
 architecture: "amd64"

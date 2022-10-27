@@ -37,8 +37,6 @@ function cleanup()
 {
     echo "########################################"
     echo "Running cleanup"
-    apt clean
-    rm -rf /tmp/* ~/.bash_history
     dpkg-divert --rename --remove /sbin/initctl
     dpkg-query -W --showformat='${Package} ${Version}\n' > /src/filesystem.manifest
     cp -v /src/filesystem.manifest /src/filesystem.manifest-desktop

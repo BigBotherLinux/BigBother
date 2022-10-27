@@ -183,26 +183,21 @@
         - casper
         - isolinux
         - install
-        - boot
         - boot/grub
+        - boot/EFI
       
     - name: Copy linux kernel
       ansible.builtin.command:
         cmd: "cp {{ chroot_folder }}/boot/vmlinuz {{ iso_folder }}/casper/vmlinuz"
+    
+    - name: Give read permissions on kernel
+      become: yes
+      ansible.builtin.command:
+        cmd: "chmod +r {{ iso_folder }}/casper/vmlinuz"
       
     - name: Copy initrd
       ansible.builtin.command:
-        cmd: "cp {{ chroot_folder }}/src/initrd {{ iso_folder }}/casper/initrd"
-    
-    # - name: Copy linux kernel
-    #   ansible.builtin.copy:
-    #     src: "{{ chroot_folder }}/boot/vmlinuz"
-    #     dest: "{{ iso_folder }}/casper/vmlinuz"
-
-    # - name: Copy initrd
-    #   ansible.builtin.copy:
-    #     src: "{{ chroot_folder }}/src/initrd"
-    #     dest: "{{ iso_folder }}/casper/initrd"      
+        cmd: "cp {{ chroot_folder }}/src/initrd {{ iso_folder }}/casper/initrd"     
     
     - name: Copy memtest86+ binary
       ansible.builtin.copy:
@@ -234,12 +229,17 @@
       ansible.builtin.template:
         src: src/iso_grub.cfg.j2
         dest: "{{ iso_folder }}/boot/grub/grub.cfg"
+
+    # - name: Generate UEFI Image
+    #   ansible.builtin.command:
+    #     cmd: grub-mkstandalone --format=x86_64-efi --output=/boot/EFI/bootx64.efi --locales="" --fonts="" boot/grub/grub.cfg=isolinux/grub.cfg
+    #     chdir: "{{ iso_folder }}"
         
     - name: Create diskdefines file
       ansible.builtin.copy:
         dest: "{{ iso_folder }}/README.diskdefines"
         content: |
-          #define DISKNAME  Ubuntu from scratch
+          #define DISKNAME  BigBother
           #define TYPE  binary
           #define TYPEbinary  1
           #define ARCH  amd64
@@ -248,72 +248,6 @@
           #define DISKNUM1  1
           #define TOTALNUM  0
           #define TOTALNUM0  1
-
-    - name: Generate ISO
-      tags: isotest
-      block:
-      - name: Generate UEFI Image
-        ansible.builtin.command:
-          cmd: grub-mkstandalone --format=x86_64-efi --output=isolinux/bootx64.efi --locales="" --fonts="" boot/grub/grub.cfg=isolinux/grub.cfg
-          chdir: "{{ iso_folder }}"
-
-      - name: Create FAT16 UEFI boot disk Image
-        block:
-          - name: Ensure img file exists and empty
-            ansible.builtin.command:
-              cmd: dd if=/dev/zero of={{ iso_folder }}/isolinux/efiboot.img bs=1M count=10
-          
-          - name: Make filesystem on image
-            ansible.builtin.command:
-              cmd: mkfs.vfat {{ iso_folder }}/isolinux/efiboot.img
-          
-          - name: Make dirs inside image
-            ansible.builtin.shell:
-              cmd: LC_CTYPE=C mmd -i efiboot.img efi efi/boot
-              chdir: "{{ iso_folder }}/isolinux/"
-
-          - name: Make dirs inside image
-            ansible.builtin.shell:
-              cmd: LC_CTYPE=C mcopy -i efiboot.img ./bootx64.efi ::efi/boot/
-              chdir: "{{ iso_folder }}/isolinux/"
-      
-      - name: Write bios config
-        ansible.builtin.copy:
-          dest: "{{iso_folder}}/isolinux/isolinux.cfg"
-          content: |
-            UI vesamenu.c32
-
-            MENU TITLE Boot Menu
-            DEFAULT linux
-            TIMEOUT 600
-            MENU RESOLUTION 640 480
-            MENU COLOR border       30;44   #40ffffff #a0000000 std
-            MENU COLOR title        1;36;44 #9033ccff #a0000000 std
-            MENU COLOR sel          7;37;40 #e0ffffff #20ffffff all
-            MENU COLOR unsel        37;44   #50ffffff #a0000000 std
-            MENU COLOR help         37;40   #c0ffffff #a0000000 std
-            MENU COLOR timeout_msg  37;40   #80ffffff #00000000 std
-            MENU COLOR timeout      1;37;40 #c0ffffff #00000000 std
-            MENU COLOR msg07        37;40   #90ffffff #a0000000 std
-            MENU COLOR tabmsg       31;40   #30ffffff #00000000 std
-
-            LABEL linux
-            MENU LABEL Try Ubuntu FS
-            MENU DEFAULT
-            KERNEL /casper/vmlinuz
-            APPEND initrd=/casper/initrd boot=casper
-
-            LABEL linux
-            MENU LABEL Try Ubuntu FS (nomodeset)
-            MENU DEFAULT
-            KERNEL /casper/vmlinuz
-            APPEND initrd=/casper/initrd boot=casper nomodeset
-
-      - name: Copy isolinux
-        ansible.builtin.copy:
-          src: "{{ chroot_folder }}/src/isolinux/"
-          dest: "{{ iso_folder }}/isolinux/"
-
 
 - name: Package ISO
   hosts: localhost
@@ -347,8 +281,24 @@
           sha256_{{ sha256.stat.checksum }}
           sha512_{{ sha512.stat.checksum }}
 
-    - name: add README to tar
+    - name: add README
       ansible.builtin.copy:
         dest: "{{ build_folder }}/{{ distro_short_name }}{{ distro_version }}/README.md"
         src: README.md
         remote_src: true
+    
+    - name: pack to tar
+      ansible.builtin.command:
+        cmd: "tar -cf {{ distro_short_name }}{{ distro_version }}.tar BigBother.iso README.md check.sum"
+        chdir: "{{ build_folder }}/{{ distro_short_name }}{{ distro_version }}"
+
+    - name: ensure torrent not already existing
+      ansible.builtin.file:
+        path: "{{ build_folder }}/{{ distro_short_name }}{{ distro_version }}/{{ distro_short_name }}{{ distro_version }}.tar.torrent"
+        state: absent
+
+    - name: Create torrent file
+      tags: test1
+      ansible.builtin.command:
+        cmd: "mktorrent -a {{ torrent_trackers | join(' -a ')}} {{ distro_short_name }}{{ distro_version }}.tar" 
+        chdir: "{{ build_folder }}/{{ distro_short_name }}{{ distro_version }}"
