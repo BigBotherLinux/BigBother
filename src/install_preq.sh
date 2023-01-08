@@ -29,6 +29,7 @@ function removePackages()
 {
     echo "########################################"
     echo "Removing packages: "$1
+    apt clean
     apt purge $1 -y
 }
 
