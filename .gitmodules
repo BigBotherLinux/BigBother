@@ -1,0 +1,3 @@
+[submodule "arch-bootstrap"]
+	path = arch-bootstrap
+	url = https://github.com/tokland/arch-bootstrap

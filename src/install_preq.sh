@@ -2,7 +2,10 @@
 function setenvironment()
 {
     export HOME=/root
-    export LC_ALL=C
+    #export LC_ALL=C
+    echo "hello"
+    #pacman -Sy ansible --noconfirm
+    ansible-playbook /src/test.yaml 2>&1
 }
 
 function prerequisite()
@@ -51,9 +54,10 @@ function cleanup()
 function main()
 {
     setenvironment
-    prerequisite
-    runAnsible
-    cleanup
+    #prerequisite
+    #runAnsible
+    #cleanup
+    echo "done"
 }
 
-main >> /build/log/build.txt
+main
