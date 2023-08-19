@@ -1,3 +1,6 @@
 [submodule "arch-bootstrap"]
 	path = arch-bootstrap
 	url = https://github.com/tokland/arch-bootstrap
+[submodule "calamares"]
+	path = calamares
+	url = git@github.com:hauskens/calamares-nixos-extensions.git
