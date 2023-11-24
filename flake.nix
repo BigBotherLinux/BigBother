@@ -1,5 +1,7 @@
+# Build with nix build .\?submodules=1\#iso
+
 {
-  description = "A very basic flake";
+  description = "BigBrother NixOS ISO";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
@@ -16,10 +18,13 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixos-generators, ... }:
-  with import nixpkgs { system = "x86_64-linux"; };
+  outputs = { self, nixpkgs, nixos-generators, ... }@inputs:
+  with import nixpkgs { system = "x86_64-linux"; config.allowUnfree = true; isoImage.squashfsCompression = "gzip -Xcompression-level 1";};
 {
-      defaultPackage.x86_64-linux = stdenv.mkDerivation {
+    packages.x86_64-linux = {
+      ## Custom calamares build
+      bigbother_calamares = stdenv.mkDerivation {
+        name = "calamares-nixos-extensions";
         pname = "calamares-nixos-extensions";
         version = "0.3.12";
 
@@ -32,6 +37,8 @@
           cp -r ./calamares/config/* $out/share/calamares/
           cp -r ./calamares/branding $out/share/calamares/
           cp ./calamares/modules/nixos/bigbother-config.nix $out/share/calamares/bigbother-config.nix
+          cp ./calamares/modules/nixos/flake.nix $out/share/calamares/flake.nix
+          cp ./calamares/modules/nixos/flake.lock $out/share/calamares/flake.lock
           runHook postInstall
         '';
 
@@ -43,60 +50,40 @@
           platforms = platforms.linux;
         };
       };
-    
-    # packages.x86_64-linux = {
-    #   iso = nixos-generators.nixosGenerate {
-    #     system = "x86_64-linux";
-    #     modules = [
-    #       # you can include your own nixos configuration here, i.e.
-    #       # ./configuration.nix
-    #       ./os.nix
-    #       (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix")
-    #       (nixpkgs + "/nixos/modules/installer/cd-dvd/channel.nix")
-    #       #(import ./calamares/modules/nixos/bigbother-config.nix { username = "test1"; fullname = "test1full"; nixversion = "23.05"; pkgs = nixpkgs; })
-    #     ];
-    #     format = "install-iso";
-        
+      
+      nixosConfigurations.nixpc = 
+       {
+        bigbotherpc = nixpkgs.lib.nixosSystem {
+          specialArgs = {inherit inputs system;};
+          modules = [
+            ./calamares/modules/nixos/bigbother-config.nix
+            #./os.nix
+          ];
+        };
+      };
 
-    #     # optional arguments:
-    #     # explicit nixpkgs and lib:
-    #     # pkgs = nixpkgs.legacyPackages.x86_64-linux;
-    #     # lib = nixpkgs.legacyPackages.x86_64-linux.lib;
-    #     # additional arguments to pass to modules:
-    #     # specialArgs = { myExtraArg = "foobar"; };
-        
-    #     # you can also define your own custom formats
-    #     # customFormats = { "myFormat" = <myFormatModule>; ... };
-    #     # format = "myFormat";
-    #   };
-    # };
+      ## Iso generation
+      iso = 
+      let 
+        custom_calamares = self.packages.x86_64-linux.bigbother_calamares;
+      in 
+      nixos-generators.nixosGenerate {
+        system = "x86_64-linux";
+        modules = [
+          (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix")
+          (nixpkgs + "/nixos/modules/installer/cd-dvd/channel.nix")
+          ({ pkgs, ... }: {
+            environment.systemPackages = [ custom_calamares ];
+            nixpkgs.config.packageOverrides = localPkgs: {
+              calamares-nixos-extensions = custom_calamares;
+            };
+          })
+          (import ./calamares/modules/nixos/bigbother-config.nix { inherit pkgs; })
+          #(import ./os.nix { inherit pkgs config; })
+        ];
+ 
+        format = "install-iso";
+      };
+    };
   };
-
-  # let
-  #   #localCalamares = import ./bigbother-calamares.nix { inherit (pkgs) stdenv lib; };
-  #   nixos-version = "23.05";
-  # in
-  # {
-
-
-  #   os = {
-  #   # nixpkgs.config.packageOverrides = pkgs: {
-  #   #   calamares-nixos-extensions = localCalamares;
-  #   # };
-  #   imports = [
-  #     <nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix>
-  #     # Provide an initial copy of the NixOS channel so that the user
-  #     # doesn't need to run "nix-channel --update" first.
-  #     <nixpkgs/nixos/modules/installer/cd-dvd/channel.nix>
-
-  #     # Import the main config for the installer
-  #     #(import ./calamares/modules/nixos/bigbother-config.nix { username = "test1"; fullname = "test1full"; nixversion = nixos-version; pkgs = inputs.nixpkgs ; home-manager = inputs.home-manager; })
-  #   ];
-
-  #   services.xserver.layout = "no";
-  #   isoImage.squashfsCompression = "gzip -Xcompression-level 1";
-  #   nixpkgs.config.allowUnfree = true;.
-  #   system.stateVersion = nixos-version;
-  # };
-  # };
 }
