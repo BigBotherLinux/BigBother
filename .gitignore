@@ -1,5 +1,5 @@
 build
 *.torrent
 result
-*.qcow
+*.qcow2
 calamares
