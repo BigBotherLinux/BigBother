@@ -10,7 +10,7 @@
     ./modules/version.nix
   ];
   bigbother.osInfo.enable = true;
-
+  boot.plymouth.logo = ./logo.png;
   environment = { 
     systemPackages = with pkgs; [ 
       microsoft-edge
