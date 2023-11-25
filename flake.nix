@@ -19,7 +19,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixos-generators, calamares-bb, home-manager, ... }: {
+  outputs = { self, nixpkgs, nixos-generators, calamares-bb, home-manager, plasma-manager, ... }: {
 
 
     nixosModules.bigbotherinstaller = {config, ...}: {
@@ -45,6 +45,7 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users.nixos = import ./home.nix;
+          #home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager ];
         }
       ];    
     };
@@ -59,6 +60,7 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users.nixos = import ./home.nix;
+          #home-manager.sharedModules = [ plasma-manager.homeManagerModules.plasma-manager ];
         }
         ({ pkgs, ... }: {
             environment.systemPackages = [ calamares-bb.packages.x86_64-linux.calamares-nixos-extensions ];
