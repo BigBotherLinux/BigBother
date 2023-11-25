@@ -1,2 +1,5 @@
-build
+dist
 *.torrent
+result
+*.qcow2
+calamares
