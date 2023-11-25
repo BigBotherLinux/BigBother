@@ -1,6 +1,8 @@
 # BigBother
 ## An annoying, yet functional linux distribution
 
+**Still work in progress**
+
 The goal of this distribution is to push the limits of an annoying user experience, while still remaining fully functional.
 
 It is based on NixOS using flakes and comes with features you would normally not find in other distributions, such as having **Microsoft Edge** as default browser and **Telemetry enabled** by default wherever possible.
@@ -26,9 +28,7 @@ More in depth details about the features are found [here](#features)
 ## Getting started
 **⚠️INSTALL AT YOUR OWN RISK⚠️**
 
-**Torrent not available yet**
-
-~~Check the [github releases](https://github.com/BigBotherLinux/BigBother/releases) for torrent file which will include the ISO. Boot up the ISO, preferably in an Virtual Machine.~~
+Check the [github releases](https://github.com/BigBotherLinux/BigBother/releases) for torrent file which will include the ISO. Boot up the ISO, preferably in an Virtual Machine.
 
 You can [build from source](#building-from-source) with nix if you are interested.
 
@@ -88,6 +88,7 @@ This is a list of features not yet implemented.
 
 - Set up a script or a alias for updating or installing packages. User will have to dig into the nix config themselves, but at least they could get some pointers on where to begin.
 - Find out a way to set up a theme(the nix way).
+- Automate torrent deployment with mktorrent, maybe as part of iso generation
 
 
 ## Building from source
@@ -119,6 +120,15 @@ nix-shell -p qemu --command "qemu-system-x86_64 -enable-kvm -m 8000 -cdrom resul
 After installation, shut down the machine and start it without the iso mounted:
 ```bash
 nix-shell -p qemu --command "qemu-system-x86_64 -enable-kvm -m 8000 -hda test.qcow2 -boot d -smp 4"
+```
+
+## Distributing iso with torrent
+
+```bash
+mkdir -p dist/$version
+cp result iso-readme.txt dist/$version/isoname.iso
+cp iso-readme.txt dist/$version/no-need-to-readme.txt
+mktorrent -a udp://fosstorrents.com:6969/announce -a http://fosstorrents.com:6969/announce -c "BigBother Linux distro <https://github.com/BigBotherLinux/BigBother>" --name "BigBother v$version installer iso" -o dist/BigBotherv$version.torrent dist/$version
 ```
 
 ## About this project
