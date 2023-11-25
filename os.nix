@@ -1,27 +1,77 @@
-{ config, pkgs, ... }:
-# To build this, run:
-# nix-build '<nixpkgs/nixos>' -A config.system.build.isoImage -I nixos-config=os.nix -I nixpkgs=channel:nixos-23.05
-#let
-#  localCalamares = import ./bigbother-calamares.nix { inherit (pkgs) stdenv lib; };
-#  nixos-version = "23.05";
-#in
+{ config, pkgs, username, ... }:
 {
-
-#  nixpkgs.config.packageOverrides = pkgs: {
-#    calamares-nixos-extensions = localCalamares;
-#  };
-#  imports = [
-    #<nixpkgs/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix>
-    # Provide an initial copy of the NixOS channel so that the user
-    # doesn't need to run "nix-channel --update" first.
-    #<nixpkgs/nixos/modules/installer/cd-dvd/channel.nix>
-
-    # Import the main config for the installer
-#    (import ./calamares/modules/nixos/bigbother-config.nix { username = "test1"; fullname = "test1full"; nixversion = nixos-version; inherit pkgs; })
-#  ];
-
-  services.xserver.layout = "no";
-  isoImage.squashfsCompression = "gzip -Xcompression-level 1";
   nixpkgs.config.allowUnfree = true;
-#  system.stateVersion = nixos-version;
+
+  nix.settings = {
+    experimental-features = [ "nix-command" "flakes"];
+  };
+
+  imports = [
+    ./modules/version.nix
+  ];
+  bigbother.osInfo.enable = true;
+
+  environment = { 
+    systemPackages = with pkgs; [ 
+      microsoft-edge
+      lsb-release
+    ];
+    # just learn vim lol
+    interactiveShellInit = ''
+      alias nano='vim'
+    '';
+    etc = {
+    "/bb-sudoers.lecture".text = ''
+      You are trying to run a command with root privileges, hopefully you know what you're about to do.
+    '';
+    };
+  };
+
+  # change badpass message and add lecture on sudo
+  security.sudo.extraConfig = ''
+    Defaults  badpass_message = "Wrong password, maybe try to type it correctly?"
+    Defaults  lecture = always
+    Defaults  lecture_file = /etc/bb-sudoers.lecture
+  '';
+
+  # do not remember last logged in user
+  services.xserver.displayManager.sddm.settings.Users = {
+    RememberLastUser = false;
+    RememberLastSession = false;
+    MinimumUid = "10000";
+  };
+
+  # Accidental boot protection
+  boot.loader.grub = {
+    extraEntries = ''
+    menuentry "Accidental boot protection" {
+
+      echo "Accidental boot avoided, shutting down."
+      sleep 3
+      clear
+      echo "Accidental boot avoided, shutting down.."
+      sleep 1
+      clear
+      echo "Accidental boot avoided, shutting down..."
+      sleep 3
+      clear
+      echo "Accidental boot avoided, shutting down...."
+      sleep 2
+      clear
+      echo "Accidental boot avoided, shutting down....."
+      sleep 5
+      clear
+      echo "Accidental boot avoided, shutting down......"
+      sleep 2
+      clear
+      echo "Accidental boot avoided, shutting down......."
+      sleep 1
+      halt
+    }
+    '';
+    extraConfig = "set theme=($drive2)${pkgs.breeze-grub}/grub/themes/breeze/theme.txt";
+    splashImage = null;
+    extraEntriesBeforeNixOS = true;
+  };
+
 }

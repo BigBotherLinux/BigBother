@@ -1,10 +1,14 @@
-{ home-manager, config, pkgs, username , ... }:
+{ config, pkgs, ... }:
 {
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.users."${username}" = {
-    programs.home-manager.enable = true;
-    programs.zsh.enable = true;
-    home.stateVersion = "22.11";
+  programs = { 
+    home-manager.enable = true;
+    #nano.enable = false; # just learn vim lol
+    vim.enable = true;
   };
+  home = {
+      packages = with pkgs; [
+        neofetch
+      ];
+      stateVersion = "23.05";
+    };
 }

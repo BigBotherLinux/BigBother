@@ -1,7 +1,26 @@
-{ pkgs, ... }: {
-  environment.systemPackages = [ calamares-bb.packages.x86_64-linux.calamares-nixos-extensions ];
-    nixpkgs.config.packageOverrides = localPkgs: {
-    calamares-nixos-extensions = calamares-bb.packages.x86_64-linux.calamares-nixos-extensions;
+{ config, pkgs, ... }: {
+
+  environment.systemPackages = [ 
+    pkgs.neofetch 
+    pkgs.btop 
+  ]; 
+  
+  nixpkgs.config.packageOverrides = pkgs: {
+    firefox = pkgs.microsoft-edge;  
   };
-  environment.etc.test2.source = "${self}/os.nix";
+  environment.plasma5.excludePackages = with pkgs.libsForQt5; [
+    elisa
+    gwenview
+    okular
+    oxygen
+    khelpcenter
+    plasma-browser-integration
+    print-manager
+    kwalletmanager
+  ];
+
+  networking.hostName = "bigbother";
+
+  services.xserver.layout = "no";
+
 }

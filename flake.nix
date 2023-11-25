@@ -1,4 +1,4 @@
-# Build with nix build .\?submodules=1\#iso
+# Build with nix build .\#nixosConfigurations.bigbotherpc.config.formats.isogen
 
 {
   description = "BigBrother NixOS ISO";
@@ -8,7 +8,8 @@
 
     home-manager.url = "github:nix-community/home-manager/release-23.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
+    #calamares-bb.url = "git+file:///home/hausken/Projects/BigBother/calamares";
+    calamares-bb.url = "github:hauskens/calamares-nixos-extensions";
     plasma-manager.url = "github:pjones/plasma-manager";
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
@@ -18,72 +19,59 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixos-generators, ... }@inputs:
-  with import nixpkgs { system = "x86_64-linux"; config.allowUnfree = true; isoImage.squashfsCompression = "gzip -Xcompression-level 1";};
-{
-    packages.x86_64-linux = {
-      ## Custom calamares build
-      bigbother_calamares = stdenv.mkDerivation {
-        name = "calamares-nixos-extensions";
-        pname = "calamares-nixos-extensions";
-        version = "0.3.12";
+  outputs = { self, nixpkgs, nixos-generators, calamares-bb, home-manager, ... }: {
 
-        src = self;
 
-        installPhase = ''
-          runHook preInstall
-          mkdir -p $out/{lib,share}/calamares
-          cp -r ./calamares/modules $out/lib/calamares/
-          cp -r ./calamares/config/* $out/share/calamares/
-          cp -r ./calamares/branding $out/share/calamares/
-          cp ./calamares/modules/nixos/bigbother-config.nix $out/share/calamares/bigbother-config.nix
-          cp ./calamares/modules/nixos/flake.nix $out/share/calamares/flake.nix
-          cp ./calamares/modules/nixos/flake.lock $out/share/calamares/flake.lock
-          runHook postInstall
-        '';
-
-        meta = with lib; {
-          description = "Calamares modules for NixOS";
-          homepage = "https://github.com/NixOS/calamares-nixos-extensions";
-          license = with licenses; [ gpl3Plus bsd2 cc-by-40 cc-by-sa-40 cc0 ];
-          maintainers = with maintainers; [ vlinkz ];
-          platforms = platforms.linux;
-        };
-      };
+    nixosModules.bigbotherinstaller = {config, ...}: {
+      imports = [
+        nixos-generators.nixosModules.all-formats
+      ];
+      nixpkgs.hostPlatform = "x86_64-linux";
       
-      nixosConfigurations.nixpc = 
-       {
-        bigbotherpc = nixpkgs.lib.nixosSystem {
-          specialArgs = {inherit inputs system;};
-          modules = [
-            ./calamares/modules/nixos/bigbother-config.nix
-            #./os.nix
-          ];
-        };
+      formatConfigs.isogen = {config, modulesPath, ...}: {
+        imports = ["${toString modulesPath}/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix"];
+        isoImage.squashfsCompression = "zstd -Xcompression-level 3";
+        formatAttr = "isoImage";
+        fileExtension = ".iso";
       };
+    };
 
-      ## Iso generation
-      iso = 
-      let 
-        custom_calamares = self.packages.x86_64-linux.bigbother_calamares;
-      in 
-      nixos-generators.nixosGenerate {
-        system = "x86_64-linux";
-        modules = [
-          (nixpkgs + "/nixos/modules/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix")
-          (nixpkgs + "/nixos/modules/installer/cd-dvd/channel.nix")
-          ({ pkgs, ... }: {
-            environment.systemPackages = [ custom_calamares ];
+    nixosConfigurations.bigbotherpc = nixpkgs.lib.nixosSystem {
+      modules = [
+        ./os.nix
+        ./configuration.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.nixos = import ./home.nix;
+        }
+      ];    
+    };
+      
+    nixosConfigurations.bigbotherinstaller = nixpkgs.lib.nixosSystem {
+      modules = [
+        self.nixosModules.bigbotherinstaller
+        ./os.nix
+        ./installer.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.nixos = import ./home.nix;
+        }
+        ({ pkgs, ... }: {
+            environment.systemPackages = [ calamares-bb.packages.x86_64-linux.calamares-nixos-extensions ];
             nixpkgs.config.packageOverrides = localPkgs: {
-              calamares-nixos-extensions = custom_calamares;
+              calamares-nixos-extensions = calamares-bb.packages.x86_64-linux.calamares-nixos-extensions;
             };
+            environment.etc."bigbother/os.nix".source = "${self}/os.nix";
+            environment.etc."bigbother/flake.nix".source = "${self}/flake.nix";
+            environment.etc."bigbother/flake.lock".source = "${self}/flake.lock";
+            environment.etc."bigbother/home.nix".source = "${self}/home.nix";
+            environment.etc."bigbother/modules".source = "${self}/modules/";
           })
-          (import ./calamares/modules/nixos/bigbother-config.nix { inherit pkgs; })
-          #(import ./os.nix { inherit pkgs config; })
-        ];
- 
-        format = "install-iso";
-      };
+      ];    
     };
   };
 }
