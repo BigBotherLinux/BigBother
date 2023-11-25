@@ -1,1 +1,0 @@
-This is an iso for the Linux distro BigBother, read more about it here: https://github.com/BigBotherLinux/BigBother

@@ -1,7 +1,7 @@
 # Build with nix build .\#nixosConfigurations.bigbotherpc.config.formats.isogen
 
 {
-  description = "BigBrother NixOS ISO";
+  description = "BigBrother Distro";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
@@ -75,5 +75,40 @@
           })
       ];    
     };
+    packages.x86_64-linux.makeTorrent = nixpkgs.legacyPackages.x86_64-linux.stdenv.mkDerivation {
+    name = "make-torrent";
+    buildInputs = [ nixpkgs.legacyPackages.x86_64-linux.mktorrent ];
+
+    # Use the output of the bigbotherinstaller as the source
+    src = self.nixosConfigurations.bigbotherinstaller.config.formats.isogen;
+
+    unpackPhase = "true";
+
+    version = "1.1";
+    trackers = [ 
+      "udp://fosstorrents.com:6969/announce" 
+      "http://fosstorrents.com:6969/announce" 
+      "udp://tracker.opentrackr.org:1337/announce"
+      "udp://tracker.openbittorrent.com:6969/announce"
+      "http://tracker.openbittorrent.com:80/announce"
+      "udp://93.158.213.92:1337/announce"
+      ];
+    comment ="BigBother Linux distro <https://github.com/BigBotherLinux/BigBother>";
+    iso_readme = "This is an iso for the Linux distro BigBother, read more about it here: https://github.com/BigBotherLinux/BigBother";
+
+
+    installPhase = ''
+      mkdir -p $out
+      cp $src $out/BigBother-v$version.iso
+      echo "$iso_readme" > $out/no-need-to-readme.txt
+
+      tracker_args=""
+      for tracker in ''${trackers[@]}; do
+        tracker_args="$tracker_args -a $tracker"
+      done
+
+      mktorrent $tracker_args -c "$comment" --name "BigBother v$version installer iso" -o $out/BigBotherv$version.torrent $out
+    '';
+  };
   };
 }

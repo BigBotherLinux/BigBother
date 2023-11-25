@@ -124,11 +124,12 @@ nix-shell -p qemu --command "qemu-system-x86_64 -enable-kvm -m 8000 -hda test.qc
 
 ## Distributing iso with torrent
 
+This will build the iso and create a torrent file. 
+
+Copy the `result` folder somewhere, to start seeding make sure to select the download folder above the folder you copied.
+
 ```bash
-mkdir -p dist/$version
-cp result iso-readme.txt dist/$version/isoname.iso
-cp iso-readme.txt dist/$version/no-need-to-readme.txt
-mktorrent -a udp://fosstorrents.com:6969/announce -a http://fosstorrents.com:6969/announce -c "BigBother Linux distro <https://github.com/BigBotherLinux/BigBother>" --name "BigBother v$version installer iso" -o dist/BigBotherv$version.torrent dist/$version
+nix build .#packages.x86_64-linux.makeTorrent
 ```
 
 ## About this project
