@@ -76,7 +76,8 @@ Contributions are also welcome with these guidelines:
 - Features should not cause data loss or be destructive
 - It should **not** spark joy
 
-![Inspirational comic strip](https://feelafraidcomic.com/comics/2011-05-13-welcome-to-hell.png)
+<img src="https://feelafraidcomic.com/comics/2011-05-13-welcome-to-hell.png" width="375" height="563">
+
 [feelafraidcomic.com](https://feelafraidcomic.com/60.php) - [@feel_afraid](https://twitter.com/feel_afraid)
 
 ## Feature wishlist
