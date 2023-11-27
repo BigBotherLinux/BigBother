@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "bigbother-theme": {
+      "inputs": {
+        "home-manager": "home-manager",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1701120624,
+        "narHash": "sha256-6Sbfif3kKzZ+S8cWi0TEP/t3GKl1PYIKq8CjuMFGKnE=",
+        "owner": "BigBotherLinux",
+        "repo": "bigbother-theme",
+        "rev": "8fc4d42f1b4b14150407b2a3810312bde6ea3fc8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "BigBotherLinux",
+        "repo": "bigbother-theme",
+        "type": "github"
+      }
+    },
     "calamares-bb": {
       "inputs": {
         "nixpkgs": "nixpkgs"
@@ -19,6 +40,28 @@
       }
     },
     "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "bigbother-theme",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1700392168,
+        "narHash": "sha256-v5LprEFx3u4+1vmds9K0/i7sHjT0IYGs7u9v54iz/OA=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "28535c3a34d79071f2ccb68671971ce0c0984d7e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "ref": "release-23.05",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "home-manager_2": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -93,11 +136,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1700851152,
-        "narHash": "sha256-3PWITNJZyA3jz5IGREJRfSykM6xSLmD8u5A3WpBCyDM=",
+        "lastModified": 1700989516,
+        "narHash": "sha256-oKbmPa2wpTHh9XB3+zIx97uMZGNnp97GPliKKG2/plo=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "1216a5ba22a93a4a3a3bfdb4bff0f4727c576fcc",
+        "rev": "d2e4de209881b38392933fabf303cde3454b0b4c",
         "type": "github"
       },
       "original": {
@@ -109,8 +152,9 @@
     },
     "root": {
       "inputs": {
+        "bigbother-theme": "bigbother-theme",
         "calamares-bb": "calamares-bb",
-        "home-manager": "home-manager",
+        "home-manager": "home-manager_2",
         "nixos-generators": "nixos-generators",
         "nixpkgs": "nixpkgs_2"
       }

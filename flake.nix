@@ -21,14 +21,18 @@
       #url = "git+file:///home/hausken/Projects/BigBother/calamares"; # for testing calamares changes locally.
     };
 
-    # plasma-manager.url = "github:pjones/plasma-manager";
-    # plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
-    # plasma-manager.inputs.home-manager.follows = "home-manager";
+    bigbother-theme = {
+      url = "github:BigBotherLinux/bigbother-theme";
+      #url = "git+file:///home/hausken/Projects/BigBother/bigbother-theme"; # for testing calamares changes locally.
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-generators, calamares-bb, home-manager, ... }: 
+  outputs = { self, nixpkgs, nixos-generators, calamares-bb, home-manager, bigbother-theme, ... }: 
   let 
     version = "1.2";
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
   in
   {
     nixosModules.bigbotherinstaller = {config, ...}: {
@@ -51,6 +55,14 @@
         ./os.nix
         ./configuration.nix
         home-manager.nixosModules.home-manager
+        ({ pkgs, ... }: { 
+          home-manager.sharedModules = [ bigbother-theme.homeManagerModules.gust-cursor-theme  ];  
+
+          nixpkgs.config.packageOverrides = localPkgs: {
+            # TODO: Find a way to import this in a nicer way...
+            gust-cursor-theme = bigbother-theme.packages.${system}.gust-cursor-theme;
+          };
+        })
       ];    
     };
       
@@ -62,9 +74,15 @@
         ./installer.nix
         home-manager.nixosModules.home-manager
         ({ pkgs, ... }: {
-            environment.systemPackages = [ calamares-bb.packages.x86_64-linux.calamares-nixos-extensions ];
+            environment.systemPackages = [ 
+              calamares-bb.packages.x86_64-linux.calamares-nixos-extensions 
+            ];
+            home-manager.sharedModules = [ bigbother-theme.homeManagerModules.gust-cursor-theme  ];  
+            
             nixpkgs.config.packageOverrides = localPkgs: {
               calamares-nixos-extensions = calamares-bb.packages.x86_64-linux.calamares-nixos-extensions;
+              # TODO: Find a way to import this in a nicer way...
+              gust-cursor-theme = bigbother-theme.packages.${system}.gust-cursor-theme;
             };
 
             # Copy the files needed for the installer to the ISO, Calamares will copy these onto the system
@@ -97,7 +115,6 @@
       comment ="BigBother Linux distro <https://github.com/BigBotherLinux/BigBother>";
       iso_readme = "This is an iso for the Linux distro BigBother, read more about it here: https://github.com/BigBotherLinux/BigBother";
 
-
       installPhase = ''
         mkdir -p $out/BigBother-v$version-installer-iso
         cp $src $out/BigBother-v$version-installer-iso/BigBother-v$version.iso
@@ -111,5 +128,58 @@
         mktorrent $tracker_args -c "$comment" --name "BigBother-v$version-installer-iso" -o $out/BigBotherv$version.torrent $out/BigBother-v$version-installer-iso
       '';
     };
+
+
+    # To install this package:
+    # TODO: Move this into it's own module
+        # ({ pkgs, ... }: {
+        #     environment.systemPackages = [ 
+        #       self.packages.x86_64-linux.welcome-app
+        #     ];
+        #     # Autostart configuration
+        #     services.xserver.displayManager.sessionCommands = pkgs.lib.mkForce ''
+        #       mkdir -p $HOME/.config/autostart
+        #       cat >$HOME/.config/autostart/welcome-app.desktop <<EOF
+        #       [Desktop Entry]
+        #       Type=Application
+        #       Exec=${self.packages.x86_64-linux.welcome-app}/bin/welcome-app
+        #       Name=Welcome App
+        #       Comment=Welcome screen for BigBrother Distro
+        #       EOF
+        #     '';
+        #   })
+
+    packages.x86_64-linux.welcome-app = pkgs.python3Packages.buildPythonApplication rec {
+      pname = "welcome-app";
+      version = "1.0";
+
+      src = ./welcome-screen;
+      
+      propagatedBuildInputs = with pkgs.python3Packages; [
+          pyqt5
+          pkgs.qt5.qtbase 
+          pkgs.qt5.qtx11extras 
+          pkgs.qt5.qtwayland
+          
+        ];
+      dontWrapQtApps = true; # Prevent double-wrapping
+
+      nativeBuildInputs = with pkgs; [
+        qt5.wrapQtAppsHook  # This hook automatically wraps Qt applications
+      ];
+
+      installPhase = ''
+        mkdir -p $out/bin
+        mkdir -p $out/static
+        cp main.py $out/bin/${pname}
+        cp logo.png $out/static/logo.png
+        chmod +x $out/bin/${pname}
+      '';
+      postInstall = ''
+        wrapQtApp $out/bin/${pname}
+      '';
+    };
+
+    
   };
 }

@@ -16,6 +16,7 @@ The simple answer is: **Don't.**
 If you are still not conviced, here are some of the features in this distro:
 
 - Microsoft Edge as default browser
+- The cursor's active click point has been shifted
 - Accidental boot protection
 - Steep learning curve if you want install or update the system
 - Telemetry enabled by default
@@ -55,6 +56,7 @@ The login screen (SDDM) is customized to never remember the username, so the use
 ![Login screen](images/login-screen.png)
 
 ### Desktop Environment tweaks
+- Mouse cursor's click point is shifted to bottom right corner instead of the default top left.
 - ~~KDE Telemetry is enabled~~
 - ~~Volume slider is in increments of 3. This part only works when using a volume knob or media keys.~~
 - ~~Double clicking on the top bar will minimize the window instead of maximizing it.~~
@@ -82,15 +84,16 @@ Contributions are also welcome with these guidelines:
 
 ## Feature wishlist
 This is a list of features not yet implemented. 
-- A cursor theme, where the pointer is not alligned with the textature.
-
-
-### TODO
-
-- Set up a script or a alias for updating or installing packages. User will have to dig into the nix config themselves, but at least they could get some pointers on where to begin.
+- Wallpaper
+- "Start" button icon
 - Find out a way to set up a theme(the nix way).
-- Automate torrent deployment with mktorrent, maybe as part of iso generation
-
+- Create a welcome-screen
+- Grub boot loader icon (both in installer and normal boot)
+- Fork neofetch to add this distro to recognized systems
+- Go over calamares module settings
+- Get Plasma-manager to work so plasma settings can be configured
+- Set up a script or a alias for updating or installing packages. User will have to dig into the nix config themselves, but at least they could get some pointers on where to begin.
+- Go over licenses to ensure all is ok
 
 ## Building from source
 The entire build is done with **nix**, build has only been tested from a NixOS machine, but should probably work fine with other nix-shell environments.
@@ -138,3 +141,4 @@ This project has been a personal learning experience, and should not be taken se
 
 After taking the [Nix pills](https://nixos.org/guides/nix-pills/) i got motivated to rewrite this project as a distro based on NixOS. Rebuilding the ISO has been so much easier now and i can feel pretty confident that if the iso boots the user will also be able to install it with the same configurations since the flake.lock is injected into the generated iso.
 
+Special thanks to ChatGPT for being a great companion when troubleshooting and developing this.
