@@ -24,7 +24,7 @@ If you are still not conviced, here are some of the features in this distro:
 - Nano is aliased to VIM
 - Sudo is customized to insult you on incorrect password attempts
 
-More in depth details about the features are found [here](#features)
+More in depth details about the features are found [here](#features) ⚠️ Spoiler warning ⚠️
 
 ## Getting started
 **⚠️INSTALL AT YOUR OWN RISK⚠️**
@@ -50,6 +50,21 @@ Failing to choose something else within 5 sec it will automatically shut down th
 Select this option to boot the system
 ![Accidentail boot protection](images/boot-protection.png)
  Otherwise a unintended boot is prevented.
+
+### Desktop theme
+This is still work in progress and will become a global theme at some point.
+
+#### Cursor
+The default cursor named "Gust" is a fork of the KDE cursor "Breeze". It is modified to have the cursor click spot on bottom right corner instead of top left. 
+
+#### Wallpaper
+Wallpaper named "Crowded" is included in wallpaper settings (not default yet..)
+
+It scales to most screen resolutions, so the cursor background should be the same size as the user's cursor regardless of the user's screen size.
+
+![Wallpaper Preview](images/wallpaper-preview.png)
+
+
 ### Customizations to the login screen
 The login screen (SDDM) is customized to never remember the username, so the user will have to type both the username and password to log in. 
 

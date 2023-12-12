@@ -28,9 +28,9 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixos-generators, calamares-bb, home-manager, bigbother-theme, ... }: 
+  outputs = { self, nixpkgs, nixos-generators, ... }@inputs: 
   let 
-    version = "1.2";
+    version = "1.4";
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
   in
@@ -51,47 +51,22 @@
 
     # This is the configuration used when calamares installer installs the system.
     nixosConfigurations.bigbotherpc = nixpkgs.lib.nixosSystem {
+      specialArgs = {inherit inputs system self;};
       modules = [
         ./os.nix
         ./configuration.nix
-        home-manager.nixosModules.home-manager
-        ({ pkgs, ... }: { 
-          home-manager.sharedModules = [ bigbother-theme.homeManagerModules.gust-cursor-theme  ];  
-
-          nixpkgs.config.packageOverrides = localPkgs: {
-            # TODO: Find a way to import this in a nicer way...
-            gust-cursor-theme = bigbother-theme.packages.${system}.gust-cursor-theme;
-          };
-        })
+        inputs.home-manager.nixosModules.home-manager
       ];    
     };
       
     # This is the configuration used inside the ISO
     nixosConfigurations.bigbotherinstaller = nixpkgs.lib.nixosSystem {
+      specialArgs = {inherit inputs system self;};
       modules = [
         self.nixosModules.bigbotherinstaller
+        inputs.home-manager.nixosModules.home-manager
+        ./modules/installer.nix
         ./os.nix
-        ./installer.nix
-        home-manager.nixosModules.home-manager
-        ({ pkgs, ... }: {
-            environment.systemPackages = [ 
-              calamares-bb.packages.x86_64-linux.calamares-nixos-extensions 
-            ];
-            home-manager.sharedModules = [ bigbother-theme.homeManagerModules.gust-cursor-theme  ];  
-            
-            nixpkgs.config.packageOverrides = localPkgs: {
-              calamares-nixos-extensions = calamares-bb.packages.x86_64-linux.calamares-nixos-extensions;
-              # TODO: Find a way to import this in a nicer way...
-              gust-cursor-theme = bigbother-theme.packages.${system}.gust-cursor-theme;
-            };
-
-            # Copy the files needed for the installer to the ISO, Calamares will copy these onto the system
-            environment.etc."bigbother/os.nix".source = "${self}/os.nix";
-            environment.etc."bigbother/flake.nix".source = "${self}/flake.nix";
-            environment.etc."bigbother/flake.lock".source = "${self}/flake.lock";
-            environment.etc."bigbother/home.nix".source = "${self}/home.nix";
-            environment.etc."bigbother/modules".source = "${self}/modules/";
-          })
       ];    
     };
 
@@ -149,36 +124,36 @@
         #     '';
         #   })
 
-    packages.x86_64-linux.welcome-app = pkgs.python3Packages.buildPythonApplication rec {
-      pname = "welcome-app";
-      version = "1.0";
+    # packages.x86_64-linux.welcome-app = pkgs.python3Packages.buildPythonApplication rec {
+    #   pname = "welcome-app";
+    #   version = "1.0";
 
-      src = ./welcome-screen;
+    #   src = ./welcome-screen;
       
-      propagatedBuildInputs = with pkgs.python3Packages; [
-          pyqt5
-          pkgs.qt5.qtbase 
-          pkgs.qt5.qtx11extras 
-          pkgs.qt5.qtwayland
+    #   propagatedBuildInputs = with pkgs.python3Packages; [
+    #       pyqt5
+    #       pkgs.qt5.qtbase 
+    #       pkgs.qt5.qtx11extras 
+    #       pkgs.qt5.qtwayland
           
-        ];
-      dontWrapQtApps = true; # Prevent double-wrapping
+    #     ];
+    #   dontWrapQtApps = true; # Prevent double-wrapping
 
-      nativeBuildInputs = with pkgs; [
-        qt5.wrapQtAppsHook  # This hook automatically wraps Qt applications
-      ];
+    #   nativeBuildInputs = with pkgs; [
+    #     qt5.wrapQtAppsHook  # This hook automatically wraps Qt applications
+    #   ];
 
-      installPhase = ''
-        mkdir -p $out/bin
-        mkdir -p $out/static
-        cp main.py $out/bin/${pname}
-        cp logo.png $out/static/logo.png
-        chmod +x $out/bin/${pname}
-      '';
-      postInstall = ''
-        wrapQtApp $out/bin/${pname}
-      '';
-    };
+    #   installPhase = ''
+    #     mkdir -p $out/bin
+    #     mkdir -p $out/static
+    #     cp main.py $out/bin/${pname}
+    #     cp logo.png $out/static/logo.png
+    #     chmod +x $out/bin/${pname}
+    #   '';
+    #   postInstall = ''
+    #     wrapQtApp $out/bin/${pname}
+    #   '';
+    # };
 
     
   };

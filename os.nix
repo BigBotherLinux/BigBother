@@ -1,11 +1,11 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, system, ... }:
 {
 
   imports = [
     ./modules/version.nix
   ];
   bigbother.osInfo.enable = true; # version numbers in lsb-release
-
+  
 
   # we need it specifically for hyper-v, 
   # im not sure if nixos-generate-config would have picked this up, so maybe it is only needed in the iso
@@ -22,9 +22,19 @@
   # Enable home manager for the user
   # FYI: calamares will go in to this file and do a string replace on the username. 
   # It searches for 'users.nixos' and replaces it with 'users.<username>'
+  home-manager.sharedModules = [ inputs.bigbother-theme.homeManagerModules.bigbother-theme  ];  
+  home-manager.extraSpecialArgs = { inherit inputs; };
+
+  nixpkgs.config.packageOverrides = localPkgs: {
+    calamares-nixos-extensions = inputs.calamares-bb.packages.${system}.calamares-nixos-extensions;
+    gust-cursor-theme = inputs.bigbother-theme.packages.${system}.gust-cursor-theme;
+    bb-wallpaper = inputs.bigbother-theme.packages.${system}.bb-wallpaper;
+  };
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.users.nixos = import ./home.nix;
+
+  
 
   environment = { 
     systemPackages = with pkgs; [ 

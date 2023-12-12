@@ -1,12 +1,11 @@
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 {
   programs = { 
     home-manager.enable = true;
     #nano.enable = false; # just learn vim lol
     vim.enable = true;
-    gust-cursor-theme = {
+    bigbother-theme = {
       enable = true;  
-      #package = bigbother-theme.packages.x86_64-linux.gust-cursor-theme;
     };
   };
   home = {

@@ -18,7 +18,7 @@ let
     BUILD_ID = cfg.version;
     PRETTY_NAME = "BigBother ${cfg.release} (${cfg.codeName})";
     LOGO = "nix-snowflake-white";
-    HOME_URL = "https://snowflakeos.org"; #TODO CHANGE THIS
+    HOME_URL = "https://github.com/BigBotherLinux/BigBother"; #TODO CHANGE THIS
     DOCUMENTATION_URL = "";
     SUPPORT_URL = "";
     BUG_REPORT_URL = "";
