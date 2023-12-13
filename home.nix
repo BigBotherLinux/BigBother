@@ -7,6 +7,10 @@
     bigbother-theme = {
       enable = true;  
     };
+    plasma = {
+      enable = true;
+      # plasma-apply-desktoptheme --list-themes
+    };
   };
   home = {
       packages = with pkgs; [

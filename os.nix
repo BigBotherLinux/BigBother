@@ -6,7 +6,6 @@
   ];
   bigbother.osInfo.enable = true; # version numbers in lsb-release
   
-
   # we need it specifically for hyper-v, 
   # im not sure if nixos-generate-config would have picked this up, so maybe it is only needed in the iso
   virtualisation.hypervGuest.enable = true; 
@@ -19,11 +18,6 @@
 
   boot.plymouth.logo = ./logo.png;
 
-  # Enable home manager for the user
-  # FYI: calamares will go in to this file and do a string replace on the username. 
-  # It searches for 'users.nixos' and replaces it with 'users.<username>'
-  home-manager.sharedModules = [ inputs.bigbother-theme.homeManagerModules.bigbother-theme  ];  
-  home-manager.extraSpecialArgs = { inherit inputs; };
 
   nixpkgs.config.packageOverrides = localPkgs: {
     calamares-nixos-extensions = inputs.calamares-bb.packages.${system}.calamares-nixos-extensions;
@@ -32,6 +26,11 @@
   };
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
+  home-manager.sharedModules = [ inputs.bigbother-theme.homeManagerModules.bigbother-theme inputs.plasma-manager.homeManagerModules.plasma-manager ];  
+  home-manager.extraSpecialArgs = { inherit inputs; };
+  # Enable home manager for the user
+  # FYI: calamares will go in to this file and do a string replace on the username. 
+  # It searches for 'users.nixos' and replaces it with 'users.<username>'
   home-manager.users.nixos = import ./home.nix;
 
   

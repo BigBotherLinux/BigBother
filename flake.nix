@@ -26,17 +26,23 @@
       #url = "git+file:///home/hausken/Projects/BigBother/bigbother-theme"; # for testing calamares changes locally.
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    plasma-manager = {
+      url = "github:pjones/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
   };
 
   outputs = { self, nixpkgs, nixos-generators, ... }@inputs: 
   let 
-    version = "1.4";
+    version = "1.5";
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
   in
   {
     nixosModules.bigbotherinstaller = {config, ...}: {
-      nixpkgs.hostPlatform = "x86_64-linux";
+      nixpkgs.hostPlatform = system;
       imports = [
         nixos-generators.nixosModules.all-formats
       ];
@@ -55,6 +61,7 @@
       modules = [
         ./os.nix
         ./configuration.nix
+        ./modules/bb-functions.nix
         inputs.home-manager.nixosModules.home-manager
       ];    
     };
@@ -67,13 +74,14 @@
         inputs.home-manager.nixosModules.home-manager
         ./modules/installer.nix
         ./os.nix
+        ./modules/bb-functions.nix
       ];    
     };
 
     # Generate iso and torrent
-    packages.x86_64-linux.makeTorrent = nixpkgs.legacyPackages.x86_64-linux.stdenv.mkDerivation {
+    packages.${system}.makeTorrent = nixpkgs.legacyPackages.${system}.stdenv.mkDerivation {
       name = "make-torrent";
-      buildInputs = [ nixpkgs.legacyPackages.x86_64-linux.mktorrent ];
+      buildInputs = [ nixpkgs.legacyPackages.${system}.mktorrent ];
 
       src = self.nixosConfigurations.bigbotherinstaller.config.formats.isogen; # Use the output of the bigbotherinstaller as the source
       unpackPhase = "true"; # Don't unpack the iso, we just want to use it as a source
@@ -155,6 +163,7 @@
     #   '';
     # };
 
+    
     
   };
 }

@@ -24,7 +24,7 @@ If you are still not conviced, here are some of the features in this distro:
 - Nano is aliased to VIM
 - Sudo is customized to insult you on incorrect password attempts
 
-More in depth details about the features are found [here](#features) ⚠️ Spoiler warning ⚠️
+More in depth details about the features are found [here](#features)
 
 ## Getting started
 **⚠️INSTALL AT YOUR OWN RISK⚠️**
@@ -38,6 +38,8 @@ You can [build from source](#building-from-source) with nix if you are intereste
 There is nothing wrong in seeking help, however i doubt you will find it here.
 
 ## Features 
+⚠️ Spoiler warning ⚠️ 
+
 ### Customized installer
 The ISO contains a customized and branded installer which is a [fork of this calamares extension](https://github.com/NixOS/calamares-nixos-extensions)
 
@@ -64,6 +66,8 @@ It scales to most screen resolutions, so the cursor background should be the sam
 
 ![Wallpaper Preview](images/wallpaper-preview.png)
 
+### TrackPoint drift simulation
+*TrackPoint drift simulation* gently nudges your cursor in one direction to simulate the nostalgic experience of having the TrackPoint mice stuck between one of the keys. 
 
 ### Customizations to the login screen
 The login screen (SDDM) is customized to never remember the username, so the user will have to type both the username and password to log in. 
@@ -71,7 +75,6 @@ The login screen (SDDM) is customized to never remember the username, so the use
 ![Login screen](images/login-screen.png)
 
 ### Desktop Environment tweaks
-- Mouse cursor's click point is shifted to bottom right corner instead of the default top left.
 - ~~KDE Telemetry is enabled~~
 - ~~Volume slider is in increments of 3. This part only works when using a volume knob or media keys.~~
 - ~~Double clicking on the top bar will minimize the window instead of maximizing it.~~
@@ -99,14 +102,11 @@ Contributions are also welcome with these guidelines:
 
 ## Feature wishlist
 This is a list of features not yet implemented. 
-- Wallpaper
 - "Start" button icon
 - Find out a way to set up a theme(the nix way).
 - Create a welcome-screen
 - Grub boot loader icon (both in installer and normal boot)
-- Fork neofetch to add this distro to recognized systems
 - Go over calamares module settings
-- Get Plasma-manager to work so plasma settings can be configured
 - Set up a script or a alias for updating or installing packages. User will have to dig into the nix config themselves, but at least they could get some pointers on where to begin.
 - Go over licenses to ensure all is ok
 
