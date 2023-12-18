@@ -50,6 +50,9 @@
       formatConfigs.isogen = {config, modulesPath, ...}: {
         imports = ["${toString modulesPath}/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix"];
         isoImage.squashfsCompression = "zstd -Xcompression-level 3";
+        # Custom iso splash image
+        isoImage.splashImage = "${inputs.bigbother-theme.packages.${system}.bb-wallpaper}/contents/images/800x600.png";
+        isoImage.efiSplashImage = "${inputs.bigbother-theme.packages.${system}.bb-wallpaper}/contents/images/1920x1080.png";
         formatAttr = "isoImage";
         fileExtension = ".iso";
       };
