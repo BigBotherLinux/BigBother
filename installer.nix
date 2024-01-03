@@ -5,7 +5,8 @@
     pkgs.neofetch 
     pkgs.btop 
   ];
-  
+
+  # TODO: Maybe a more elegfant way to do this?
   nixpkgs.config.packageOverrides = pkgs: {
     firefox = pkgs.microsoft-edge;  
   };

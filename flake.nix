@@ -18,12 +18,10 @@
 
     calamares-bb = {
       url = "github:hauskens/calamares-nixos-extensions";
-      #url = "git+file:///home/hausken/Projects/BigBother/calamares"; # for testing calamares changes locally.
     };
-
+    
     bigbother-theme = {
-      url = "github:BigBotherLinux/bigbother-theme";
-      #url = "git+file:///home/hausken/Projects/BigBother/bigbother-theme"; # for testing calamares changes locally.
+      url = "github:BigBotherLinux/kde-theme";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -32,6 +30,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
+    xremap.url = "github:xremap/nix-flake";
   };
 
   outputs = { self, nixpkgs, nixos-generators, ... }@inputs: 
@@ -51,8 +51,8 @@
         imports = ["${toString modulesPath}/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix"];
         isoImage.squashfsCompression = "zstd -Xcompression-level 3";
         # Custom iso splash image
-        isoImage.splashImage = "${inputs.bigbother-theme.packages.${system}.bb-wallpaper}/contents/images/800x600.png";
-        isoImage.efiSplashImage = "${inputs.bigbother-theme.packages.${system}.bb-wallpaper}/contents/images/1920x1080.png";
+        isoImage.splashImage = inputs.bigbother-theme + "/images/splashImage.png";
+        #isoImage.efiSplashImage = "${inputs.bigbother-theme.packages.${system}.bb-wallpaper}/contents/images/1920x1080.png";
         formatAttr = "isoImage";
         fileExtension = ".iso";
       };
@@ -64,7 +64,6 @@
       modules = [
         ./os.nix
         ./configuration.nix
-        ./modules/bb-functions.nix
         inputs.home-manager.nixosModules.home-manager
       ];    
     };
@@ -75,10 +74,9 @@
       modules = [
         self.nixosModules.bigbotherinstaller
         inputs.home-manager.nixosModules.home-manager
-        ./modules/installer.nix
+        ./installer.nix
         ./os.nix
-        ./modules/bb-functions.nix
-      ];    
+      ]; 
     };
 
     # Generate iso and torrent
