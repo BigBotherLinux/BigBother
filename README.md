@@ -170,7 +170,7 @@ After taking the [Nix pills](https://nixos.org/guides/nix-pills/) i got motivate
 
 ## Special thanks
 
-- [@jfb_fit - Instagram](https://www.instagram.com/jfb_fit/) for making the logo
+- [Instagram @jfb_fit](https://www.instagram.com/jfb_fit/) for making the logo
 - [SnowflakeOS](https://github.com/snowflakelinux/) for inspiration and versioning implementation
 - [calamares nixos extension](https://github.com/NixOS/calamares-nixos-extensions) for fork and inspiration
 - [Arc KDE theme](https://github.com/PapirusDevelopmentTeam/arc-kde) for inspiration on global theme implementation
