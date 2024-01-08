@@ -1,5 +1,3 @@
-# Build with nix build .\#nixosConfigurations.bigbotherpc.config.formats.isogen
-
 {
   description = "BigBrother Distro";
   
@@ -18,6 +16,7 @@
 
     calamares-bb = {
       url = "github:hauskens/calamares-nixos-extensions";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     
     bigbother-theme = {
@@ -36,7 +35,7 @@
 
   outputs = { self, nixpkgs, nixos-generators, ... }@inputs: 
   let 
-    version = "1.7";
+    version = "1.8";
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
   in
@@ -52,7 +51,8 @@
         isoImage.squashfsCompression = "zstd -Xcompression-level 3";
         # Custom iso splash image
         isoImage.splashImage = inputs.bigbother-theme + "/images/splashImage.png";
-        #isoImage.efiSplashImage = "${inputs.bigbother-theme.packages.${system}.bb-wallpaper}/contents/images/1920x1080.png";
+        isoImage.efiSplashImage = inputs.bigbother-theme + "/images/splashImage.png";
+        isoImage.grubTheme = inputs.bigbother-theme + "/grub2-theme";
         formatAttr = "isoImage";
         fileExtension = ".iso";
       };

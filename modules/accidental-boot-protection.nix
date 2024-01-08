@@ -13,6 +13,7 @@ in
   config = lib.mkIf cfg.enable {
   # Accidental boot protection
   boot.loader.grub = {
+    splashImage = inputs.bigbother-theme + "/images/logo.png";
     extraEntries = ''
     menuentry "Accidental boot protection" {
       
@@ -40,9 +41,8 @@ in
       halt
     }
     '';
-    extraConfig = "set theme=($drive2)${pkgs.breeze-grub}/grub/themes/breeze/theme.txt";
-    splashImage = null; # TODO: Add some branding here
     extraEntriesBeforeNixOS = true;
   };
+  boot.kernelParams = [ "nomodeset" ];
   };
 }

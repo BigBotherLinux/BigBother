@@ -1,11 +1,11 @@
 # BigBother
 ## An annoying, yet functional linux distribution
 
-**Still work in progress**
+**Just a hobby project**
 
 The goal of this distribution is to push the limits of an annoying user experience, while still remaining fully functional.
 
-It is based on NixOS using flakes and comes with features you would normally not find in other distributions, such as having **Microsoft Edge** as default browser and **Telemetry enabled** by default wherever possible.
+It is based on NixOS using flakes and comes with features you would normally not find in other distributions, such as having **Microsoft Edge** as default browser and a genuinely inconvenient features.
 
 Anything annoying is likely intended (except how slow edge is at first time startup lol). 
 
@@ -16,26 +16,75 @@ The simple answer is: **Don't.**
 If you are still not conviced, here are some of the features in this distro:
 
 - Microsoft Edge as default browser
-- The cursor's active click point has been shifted
-- Accidental boot protection
+- Nano is aliased to VIM
+- The cursor's active click point has been [shifted](#cursor)
+- Cursor will [slowly drift](#trackpoint-drift-simulation) in a direction
+- [Accidental boot protection](#accidental-boot-protection)
 - Steep learning curve if you want install or update the system
 - Telemetry enabled by default
-- Login screen configured to not remember username
-- Nano is aliased to VIM
+- [Login screen](#customizations-to-the-login-screen) configured to not remember username
 - Sudo is customized to insult you on incorrect password attempts
 
-More in depth details about the features are found [here](#features)
+Much more in depth details about the features are found [here](#features)
 
 ## Getting started
 **⚠️INSTALL AT YOUR OWN RISK⚠️**
 
+You should preferably run this in a virtual machine, not on physical hardware. 
 Some of the implementations have too much permissions and is considered to be insecure.
 
-Check the [github releases](https://github.com/BigBotherLinux/BigBother/releases) for torrent file which will include the ISO. Boot up the ISO, preferably in an Virtual Machine.
+### Get the ISO
 
-You can [build from source](#building-from-source) with nix if you are interested.
+Check the [github releases](https://github.com/BigBotherLinux/BigBother/releases) for torrent file which will include the latest ISO.
 
-## Need help?
+You can [build from source](#building-from-source) with nix if you are interested, as builds are reproducable.
+
+### Running iso on Hyper-V
+There are some settings you need to change to be able to run this in Hyper-V on Windows.
+
+- When creating virtual machine, **Generation 1** is preferred
+- If running **Generation 2** virtual machine, you need to disable secure boot
+- Right after starting the iso you will be prompted with some options, **select the 2nd option (nomodeset)**
+
+### Running the iso on QEMU
+
+If you for some weird reason don't use Nix, simply run the quoted commands instead of using `nix-shell -p qemu --command`. 
+Modify these commands if you want different memory/cpu setup, you're a grown up, im sure you'll figure it out.
+
+#### Create virtual disk
+```bash
+nix-shell -p qemu --command "qemu-img create test.qcow2 -f qcow2 40G"
+```
+#### BIOS - Preferred
+Start virtual machine (with iso):
+```bash
+nix-shell -p qemu --command "qemu-system-x86_64 -enable-kvm -m 6000 -cdrom ISO-IMAGE-HERE.iso -hda test.qcow2 -boot d -smp 4"
+```
+
+
+After installation, shut down the machine and start it without the iso mounted:
+```bash
+nix-shell -p qemu --command "qemu-system-x86_64 -enable-kvm -m 6000 -hda test.qcow2 -boot d -smp 4"
+```
+
+#### UEFI
+
+Non-Nix users need to find out a way to link to their own EFI files here, glhf.
+
+Start virtual machine (with iso):
+```bash
+nix-shell -p qemu --command "qemu-system-x86_64 -bios $(nix build --print-out-paths --no-link nixpkgs#OVMF.fd)/FV/OVMF.fd -enable-kvm -m 6000 -cdrom ISO-IMAGE-HERE.iso -hda test.qcow2 -boot d -smp 4"
+```
+
+
+After installation, shut down the machine and start it without the iso mounted:
+```bash
+nix-shell -p qemu --command "qemu-system-x86_64 -bios $(nix build --print-out-paths --no-link nixpkgs#OVMF.fd)/FV/OVMF.fd -enable-kvm -m 6000 -hda test.qcow2 -boot d -smp 4"
+```
+
+
+
+### Need help?
 
 There is nothing wrong in seeking help, however i doubt you will find it here.
 
@@ -134,24 +183,6 @@ nix build .\#nixosConfigurations.bigbotherinstaller.config.formats.isogen
 
 There will be a symlink `result` in the root folder where you ran the command which is a link to the generated iso.
 
-## Testing the image with QEMU
-
-Create virtual disk:
-```bash
-nix-shell -p qemu --command "qemu-img create test.qcow2 -f qcow2 40G"
-```
-
-Start virtual machine (with iso):
-```bash
-nix-shell -p qemu --command "qemu-system-x86_64 -enable-kvm -m 8000 -cdrom result -hda test.qcow2 -boot d -smp 4"
-```
-
-
-After installation, shut down the machine and start it without the iso mounted:
-```bash
-nix-shell -p qemu --command "qemu-system-x86_64 -enable-kvm -m 8000 -hda test.qcow2 -boot d -smp 4"
-```
-
 ## Distributing iso with torrent
 
 This will build the iso and create a torrent file. 
@@ -170,7 +201,7 @@ After taking the [Nix pills](https://nixos.org/guides/nix-pills/) i got motivate
 
 ## Special thanks
 
-- [Instagram @jfb_fit](https://www.instagram.com/jfb_fit/) for making the logo
+- Instagram @jfb_fit for making the logo
 - [SnowflakeOS](https://github.com/snowflakelinux/) for inspiration and versioning implementation
 - [calamares nixos extension](https://github.com/NixOS/calamares-nixos-extensions) for fork and inspiration
 - [Arc KDE theme](https://github.com/PapirusDevelopmentTeam/arc-kde) for inspiration on global theme implementation
