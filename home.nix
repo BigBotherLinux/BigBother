@@ -16,6 +16,11 @@
       configFile."kwinrc"."ElectricBorders"."TopRight" = "LockScreen";
       configFile."kwinrc"."Windows"."ElectricBorderDelay" = 0;
       configFile."ksplashrc"."KSplash"."Engine" = "none";
+      configFile."kdeglobals"."General"."font" = "Underpass,10,-1,5,50,0,0,0,0,0";
+      configFile."kdeglobals"."General"."fixed" = "Underpass,10,-1,5,50,0,0,0,0,0";
+      configFile."kdeglobals"."General"."smallestReadableFont" = "Underpass,8,-1,5,50,0,0,0,0,0";
+      configFile."kdeglobals"."General"."toolBarFont" = "Underpass,12,-1,5,50,0,0,0,0,0";
+      configFile."kdeglobals"."General"."menuFont" = "Underpass,10,-1,5,50,0,0,0,0,0";
       workspace.wallpaper = "${inputs.bigbother-theme.packages.x86_64-linux.bb-kde-theme}/share/wallpapers/Crowded";
     };
   };
@@ -25,8 +30,8 @@
       cursorTheme=Gust
     '';
   home = {
-    packages = with pkgs; [
-      neofetch
+    packages = [
+      pkgs.neofetch
     ];
     stateVersion = "23.05";
   };

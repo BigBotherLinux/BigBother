@@ -43,6 +43,5 @@ in
     '';
     extraEntriesBeforeNixOS = true;
   };
-  boot.kernelParams = [ "nomodeset" ];
   };
 }

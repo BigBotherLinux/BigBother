@@ -28,6 +28,11 @@
   nixpkgs.config.packageOverrides = localPkgs: {
     calamares-nixos-extensions = inputs.calamares-bb.packages.${system}.calamares-nixos-extensions;
   };
+
+  fonts.fonts = [
+    inputs.underpass-font.packages.${system}.underpass-font
+  ];
+
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;

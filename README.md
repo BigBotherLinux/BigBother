@@ -17,6 +17,7 @@ If you are still not conviced, here are some of the features in this distro:
 
 - Microsoft Edge as default browser
 - Nano is aliased to VIM
+- System font [only supports lowercase letters](#system-font)
 - The cursor's active click point has been [shifted](#cursor)
 - Cursor will [slowly drift](#trackpoint-drift-simulation) in a direction
 - [Accidental boot protection](#accidental-boot-protection)
@@ -40,7 +41,7 @@ Check the [github releases](https://github.com/BigBotherLinux/BigBother/releases
 You can [build from source](#building-from-source) with nix if you are interested, as builds are reproducable.
 
 ### Running iso on Hyper-V
-There are some settings you need to change to be able to run this in Hyper-V on Windows.
+There are some settings you need to change to be able to run this in Hyper-V on Windows, otherwise the [installer will not start](#installer-not-starting)
 
 - When creating virtual machine, **Generation 1** is preferred
 - If running **Generation 2** virtual machine, you need to disable secure boot
@@ -83,10 +84,14 @@ nix-shell -p qemu --command "qemu-system-x86_64 -bios $(nix build --print-out-pa
 ```
 
 
-
 ### Need help?
 
 There is nothing wrong in seeking help, however i doubt you will find it here.
+
+#### Installer not starting
+
+If you get logged into a screen like this, try the second boot option (nomodeset)
+![Screenshot of installer not starting](images/installer-issue.png)
 
 ## Features 
 ⚠️ Trigger warning ⚠️ 
@@ -109,6 +114,11 @@ Sometimes prevents space key from being used, ensuring your text has that cozy, 
 ### Desktop theme service
 This distro comes with a preferred theme, therefore a service is created to ensure **correct** theme is used on startup.
 
+### System font
+[Underpass](https://github.com/BigBotherLinux/Underpass) is the system's default font and is forked off [Overpass](https://github.com/BigBotherLinux/Underpass).
+
+In this font, all capital letters are replaced with lowercase letters (i.e `A = a`).
+
 ### Cursor
 The default cursor named "Gust" is a fork of the KDE cursor "Breeze". It is modified to have the cursor click spot on bottom right corner instead of top left. 
 
@@ -120,6 +130,7 @@ New:
 
 ![new cursor](images/cursor-shift-new.png)
 
+
 ### TrackPoint drift simulation
 *TrackPoint drift simulation* gently nudges your cursor in one direction to simulate the nostalgic experience of having the TrackPoint mice stuck between one of the keys. 
 
@@ -127,7 +138,6 @@ New:
 Wallpaper named "Crowded" is included, it scales to most screen resolutions, so the cursor background should be the same size as the user's cursor regardless of the user's screen size.
 
 ![Wallpaper Preview](images/wallpaper-preview.png)
-
 
 ### VM mouse containment
 Putting cursor at the edges of the screen will lock the computer, this is especially usefull for people running this inside a virtual machine when they move the cursor outside of the virtual machine.
