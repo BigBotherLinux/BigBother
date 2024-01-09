@@ -40,7 +40,7 @@
 
   outputs = { self, nixpkgs, nixos-generators, ... }@inputs: 
   let 
-    version = "1.8";
+    version = "1.9";
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
   in
