@@ -9,6 +9,9 @@ It is based on NixOS using flakes and comes with features you would normally not
 
 Anything annoying is likely intended (except how slow edge is at first time startup lol). 
 
+
+![Wallpaper Preview](images/wallpaper-preview.png)
+
 ## Why use this distro?
 
 The simple answer is: **Don't.**
