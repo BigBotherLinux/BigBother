@@ -3,7 +3,6 @@
   environment.systemPackages = [ 
     inputs.calamares-bb.packages.${system}.calamares-nixos-extensions 
     pkgs.neofetch 
-    pkgs.btop 
   ];
 
   # TODO: Maybe a more elegfant way to do this?

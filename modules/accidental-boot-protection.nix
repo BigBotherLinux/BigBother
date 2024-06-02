@@ -13,7 +13,7 @@ in
   config = lib.mkIf cfg.enable {
   # Accidental boot protection
   boot.loader.grub = {
-    splashImage = inputs.bigbother-theme + "/images/logo.png";
+    #splashImage = inputs.bigbother-theme + "/images/logo.png";
     extraEntries = ''
     menuentry "Accidental boot protection" {
       
