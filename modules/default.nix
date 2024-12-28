@@ -7,5 +7,6 @@
     ./sudo.nix
     ./sddm.nix
     ./theme.nix
+    ./pixel-peep.nix
   ];
 }

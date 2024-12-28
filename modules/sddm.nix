@@ -10,7 +10,7 @@ in
   
   config = lib.mkIf cfg.enable {
    # Login screen: do not remember last logged in user
-  services.xserver.displayManager.sddm.settings.Users = {
+  services.displayManager.sddm.settings.Users = {
     RememberLastUser = false;
     RememberLastSession = false;
     MinimumUid = "10000";
