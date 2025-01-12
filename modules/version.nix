@@ -1,14 +1,23 @@
 # yoink -> https://github.com/snowflakelinux/snowflake-modules/blob/main/modules/version.nix
 
-{ lib, config, options, pkgs, ... }:
+{
+  lib,
+  config,
+  options,
+  pkgs,
+  ...
+}:
 let
   cfg = config.system.nixos;
   needsEscaping = s: null != builtins.match "[a-zA-Z0-9]+" s;
-  escapeIfNeccessary = s: if needsEscaping s then s else ''"${lib.escape [ "\$" "\"" "\\" "\`" ] s}"'';
-  attrsToText = attrs:
+  escapeIfNeccessary =
+    s: if needsEscaping s then s else ''"${lib.escape [ "\$" "\"" "\\" "\`" ] s}"'';
+  attrsToText =
+    attrs:
     lib.concatStringsSep "\n" (
       lib.mapAttrsToList (n: v: ''${n}=${escapeIfNeccessary (toString v)}'') attrs
-    ) + "\n";
+    )
+    + "\n";
   osReleaseContents = {
     NAME = "BigBother";
     ID = "bigbother";
@@ -18,7 +27,7 @@ let
     BUILD_ID = cfg.version;
     PRETTY_NAME = "BigBother ${cfg.release} (${cfg.codeName})";
     LOGO = "nix-snowflake-white";
-    HOME_URL = "https://github.com/BigBotherLinux/BigBother"; #TODO CHANGE THIS
+    HOME_URL = "https://github.com/BigBotherLinux/BigBother"; # TODO CHANGE THIS
     DOCUMENTATION_URL = "";
     SUPPORT_URL = "";
     BUG_REPORT_URL = "";
@@ -36,12 +45,12 @@ in
   config = lib.mkIf config.bigbother.osInfo.enable {
     environment.etc."os-release".text = lib.mkForce (attrsToText osReleaseContents);
     environment.etc."lsb-release".text = lib.mkForce (attrsToText {
-        LSB_VERSION = "${cfg.release} (${cfg.codeName})";
-        DISTRIB_ID = "bigbother";
-        DISTRIB_RELEASE = cfg.release;
-        DISTRIB_CODENAME = lib.toLower cfg.codeName;
-        DISTRIB_DESCRIPTION = "Big Bother ${cfg.release} (${cfg.codeName})";
-      });
+      LSB_VERSION = "${cfg.release} (${cfg.codeName})";
+      DISTRIB_ID = "bigbother";
+      DISTRIB_RELEASE = cfg.release;
+      DISTRIB_CODENAME = lib.toLower cfg.codeName;
+      DISTRIB_DESCRIPTION = "Big Bother ${cfg.release} (${cfg.codeName})";
+    });
     boot.initrd.systemd.contents."/etc/os-release".source = lib.mkForce initrdRelease;
     boot.initrd.systemd.contents."/etc/initrd-release".source = lib.mkForce initrdRelease;
 

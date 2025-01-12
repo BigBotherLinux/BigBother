@@ -1,4 +1,4 @@
-{ lib, config, options, pkgs, ... }:
+{ ... }:
 {
   imports = [
     ./mouse-drift.nix

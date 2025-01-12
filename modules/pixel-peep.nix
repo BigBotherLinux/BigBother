@@ -1,17 +1,22 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 with lib;
 {
-  options.bigbother.pixelPeep = { 
+  options.bigbother.pixelPeep = {
     enable = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Enable the pixel peep systemd user service and timer.";
+      type = types.bool;
+      default = false;
+      description = "Enable the pixel peep systemd user service and timer.";
     };
     storageLocation = mkOption {
-        type = types.str;
-        default = "~/pixel-peep";
-        description = "Location of where it should store the screenshots";
+      type = types.str;
+      default = "~/pixel-peep";
+      description = "Location of where it should store the screenshots";
     };
   };
 
