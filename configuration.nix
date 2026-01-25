@@ -67,32 +67,23 @@
       inputs.plasma-manager.homeManagerModules.plasma-manager
     ];
     extraSpecialArgs = { inherit inputs; };
-
-    # Enable home manager for the user
-    # FYI: calamares will go in to this file and do a string replace on the username.
-    # It searches for 'users.nixos' and replaces it with 'users.<username>'
-    users.test = import ./home.nix;
   };
 
-  users.users.test = {
-    group = "nixos";
-    initialPassword = "nixos";
-    isNormalUser = true;
-  };
   users.groups.nixos = { };
 
   services = {
     desktopManager.plasma6.enable = true;
     displayManager = {
       sddm.enable = true;
-      autoLogin.enable = true;
-      autoLogin.user = "test";
+      # autoLogin.enable = true;
+      # autoLogin.user = "test";
     };
   };
 
   environment = {
     systemPackages = with pkgs; [
       microsoft-edge
+      git
       inputs.bigbother-theme.packages.${pkgs.system}.bb-kde-theme
     ];
 
