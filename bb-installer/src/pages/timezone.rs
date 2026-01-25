@@ -14,19 +14,17 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
     let timezones = get_common_timezones();
 
-    ScrollArea::vertical()
-        .max_height(350.0)
-        .show(ui, |ui| {
-            for (tz_id, tz_name) in timezones {
-                let is_selected = state.user_config.timezone == tz_id;
+    ScrollArea::vertical().max_height(350.0).show(ui, |ui| {
+        for (tz_id, tz_name) in timezones {
+            let is_selected = state.user_config.timezone == tz_id;
 
-                let response = ui.selectable_label(is_selected, format!("{} - {}", tz_id, tz_name));
+            let response = ui.selectable_label(is_selected, format!("{} - {}", tz_id, tz_name));
 
-                if response.clicked() {
-                    state.user_config.timezone = tz_id.to_string();
-                }
+            if response.clicked() {
+                state.user_config.timezone = tz_id.to_string();
             }
-        });
+        }
+    });
 
     ui.add_space(20.0);
 
@@ -37,6 +35,6 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
     ui.add_space(10.0);
     ui.label(theme::muted_text(
-        "Note: Time zone selection helps synchronize your activities with our monitoring schedule."
+        "Note: Time zone selection helps synchronize your activities with our monitoring schedule.",
     ));
 }

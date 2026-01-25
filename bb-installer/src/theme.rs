@@ -18,13 +18,31 @@ pub fn configure_fonts(ctx: &egui::Context) {
     let mut style = (*ctx.style()).clone();
 
     style.text_styles = [
-        (TextStyle::Heading, FontId::new(28.0, FontFamily::Proportional)),
+        (
+            TextStyle::Heading,
+            FontId::new(28.0, FontFamily::Proportional),
+        ),
         (TextStyle::Body, FontId::new(16.0, FontFamily::Proportional)),
-        (TextStyle::Monospace, FontId::new(14.0, FontFamily::Monospace)),
-        (TextStyle::Button, FontId::new(16.0, FontFamily::Proportional)),
-        (TextStyle::Small, FontId::new(12.0, FontFamily::Proportional)),
-        (TextStyle::Name("title".into()), FontId::new(36.0, FontFamily::Proportional)),
-        (TextStyle::Name("subtitle".into()), FontId::new(20.0, FontFamily::Proportional)),
+        (
+            TextStyle::Monospace,
+            FontId::new(14.0, FontFamily::Monospace),
+        ),
+        (
+            TextStyle::Button,
+            FontId::new(16.0, FontFamily::Proportional),
+        ),
+        (
+            TextStyle::Small,
+            FontId::new(12.0, FontFamily::Proportional),
+        ),
+        (
+            TextStyle::Name("title".into()),
+            FontId::new(36.0, FontFamily::Proportional),
+        ),
+        (
+            TextStyle::Name("subtitle".into()),
+            FontId::new(20.0, FontFamily::Proportional),
+        ),
     ]
     .into();
 
@@ -134,21 +152,17 @@ pub fn muted_text(text: &str) -> egui::RichText {
 }
 
 pub fn warning_text(text: &str) -> egui::RichText {
-    egui::RichText::new(text)
-        .color(WARNING_YELLOW)
+    egui::RichText::new(text).color(WARNING_YELLOW)
 }
 
 pub fn error_text(text: &str) -> egui::RichText {
-    egui::RichText::new(text)
-        .color(ACCENT_RED)
+    egui::RichText::new(text).color(ACCENT_RED)
 }
 
 pub fn accent_button(ui: &mut egui::Ui, text: &str) -> egui::Response {
-    let button = egui::Button::new(
-        egui::RichText::new(text).color(Color32::WHITE)
-    )
-    .fill(ACCENT_RED)
-    .stroke(Stroke::new(1.0, ACCENT_RED_HOVER));
+    let button = egui::Button::new(egui::RichText::new(text).color(Color32::WHITE))
+        .fill(ACCENT_RED)
+        .stroke(Stroke::new(1.0, ACCENT_RED_HOVER));
 
     ui.add(button)
 }

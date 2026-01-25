@@ -5,7 +5,9 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
         ui.label(theme::title_text("Input Device Registration"));
         ui.add_space(5.0);
-        ui.label(theme::muted_text("Configure your keyboard for optimal keystroke capture"));
+        ui.label(theme::muted_text(
+            "Configure your keyboard for optimal keystroke capture",
+        ));
     });
 
     ui.add_space(20.0);
@@ -14,19 +16,18 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
     let layouts = get_keyboard_layouts();
 
-    ScrollArea::vertical()
-        .max_height(350.0)
-        .show(ui, |ui| {
-            for (layout_id, layout_name) in layouts {
-                let is_selected = state.user_config.keyboard_layout == layout_id;
+    ScrollArea::vertical().max_height(350.0).show(ui, |ui| {
+        for (layout_id, layout_name) in layouts {
+            let is_selected = state.user_config.keyboard_layout == layout_id;
 
-                let response = ui.selectable_label(is_selected, format!("{} - {}", layout_id, layout_name));
+            let response =
+                ui.selectable_label(is_selected, format!("{} - {}", layout_id, layout_name));
 
-                if response.clicked() {
-                    state.user_config.keyboard_layout = layout_id.to_string();
-                }
+            if response.clicked() {
+                state.user_config.keyboard_layout = layout_id.to_string();
             }
-        });
+        }
+    });
 
     ui.add_space(20.0);
 

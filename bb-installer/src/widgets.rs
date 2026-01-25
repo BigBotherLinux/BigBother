@@ -1,16 +1,17 @@
 //! Custom BigBother widgets for that authentic surveillance feel
 
-use eframe::egui::{self, Color32, Pos2, Rect, Response, Sense, Stroke, Ui, Vec2};
 use crate::theme::{self, ACCENT_RED, BG_WIDGET, TEXT_MUTED, TEXT_PRIMARY, TEXT_SECONDARY};
+use eframe::egui::{self, Color32, Pos2, Rect, Response, Sense, Stroke, Ui, Vec2};
 
 pub fn surveillance_eye(ui: &mut Ui, size: f32) -> Response {
     let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), Sense::hover());
 
     // Get the mouse position relative to the entire screen
     let screen_rect = ui.ctx().screen_rect();
-    let mouse_pos = ui.ctx().input(|i| i.pointer.hover_pos()).unwrap_or_else(|| {
-        screen_rect.center()
-    });
+    let mouse_pos = ui
+        .ctx()
+        .input(|i| i.pointer.hover_pos())
+        .unwrap_or_else(|| screen_rect.center());
 
     if ui.is_rect_visible(rect) {
         let painter = ui.painter();
@@ -23,7 +24,11 @@ pub fn surveillance_eye(ui: &mut Ui, size: f32) -> Response {
 
         // Outer dark shadow/glow for depth
         let shadow_radius = size * 0.42;
-        painter.circle_filled(center, shadow_radius, Color32::from_rgba_unmultiplied(0, 0, 0, 60));
+        painter.circle_filled(
+            center,
+            shadow_radius,
+            Color32::from_rgba_unmultiplied(0, 0, 0, 60),
+        );
 
         // Eye white (sclera) - slightly yellowed, sickly
         let eye_radius = size * 0.38;
@@ -81,7 +86,8 @@ pub fn surveillance_eye(ui: &mut Ui, size: f32) -> Response {
         // Pupil size varies - larger when "focused" on you (closer cursor)
         let base_pupil = size * 0.06;
         let focused_pupil = size * 0.11;
-        let pupil_radius = base_pupil + (focused_pupil - base_pupil) * focus_factor + pulse * size * 0.008;
+        let pupil_radius =
+            base_pupil + (focused_pupil - base_pupil) * focus_factor + pulse * size * 0.008;
 
         // Pupil tracking - moves toward cursor
         let max_offset = iris_radius - pupil_radius - size * 0.02;
@@ -145,7 +151,10 @@ pub fn surveillance_eye(ui: &mut Ui, size: f32) -> Response {
                     Pos2::new(center.x - lid_width, lid_y),
                     Pos2::new(center.x + lid_width, lid_y),
                 ],
-                Stroke::new(3.0, Color32::from_rgba_unmultiplied(15, 12, 20, shadow_alpha)),
+                Stroke::new(
+                    3.0,
+                    Color32::from_rgba_unmultiplied(15, 12, 20, shadow_alpha),
+                ),
             );
         }
         // Bottom eyelid shadow (lighter)
@@ -159,7 +168,10 @@ pub fn surveillance_eye(ui: &mut Ui, size: f32) -> Response {
                     Pos2::new(center.x - lid_width, lid_y),
                     Pos2::new(center.x + lid_width, lid_y),
                 ],
-                Stroke::new(2.5, Color32::from_rgba_unmultiplied(15, 12, 20, shadow_alpha)),
+                Stroke::new(
+                    2.5,
+                    Color32::from_rgba_unmultiplied(15, 12, 20, shadow_alpha),
+                ),
             );
         }
 
@@ -228,13 +240,7 @@ pub fn progress_bar_surveillance(ui: &mut Ui, progress: f32, glitchy: bool) -> R
     response
 }
 
-pub fn disk_card(
-    ui: &mut Ui,
-    name: &str,
-    size: &str,
-    model: &str,
-    selected: bool,
-) -> Response {
+pub fn disk_card(ui: &mut Ui, name: &str, size: &str, model: &str, selected: bool) -> Response {
     let desired_size = Vec2::new(ui.available_width(), 70.0);
     let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
 
@@ -262,10 +268,7 @@ pub fn disk_card(
         painter.rect(rect, 6.0, bg_color, stroke);
 
         // Disk icon area
-        let icon_rect = Rect::from_min_size(
-            rect.min + Vec2::new(15.0, 15.0),
-            Vec2::splat(40.0),
-        );
+        let icon_rect = Rect::from_min_size(rect.min + Vec2::new(15.0, 15.0), Vec2::splat(40.0));
         painter.rect_filled(icon_rect, 4.0, Color32::from_rgb(60, 60, 80));
         painter.text(
             icon_rect.center(),
@@ -348,7 +351,11 @@ pub fn feature_toggle(
         );
 
         let toggle_bg = if *enabled {
-            if locked { Color32::from_rgb(100, 60, 60) } else { ACCENT_RED }
+            if locked {
+                Color32::from_rgb(100, 60, 60)
+            } else {
+                ACCENT_RED
+            }
         } else {
             Color32::from_rgb(60, 60, 80)
         };
@@ -406,7 +413,9 @@ pub fn feature_toggle(
 
 pub fn tiny_button(ui: &mut Ui, text: &str) -> Response {
     let font_id = egui::FontId::proportional(9.0);
-    let galley = ui.painter().layout_no_wrap(text.to_string(), font_id.clone(), TEXT_PRIMARY);
+    let galley = ui
+        .painter()
+        .layout_no_wrap(text.to_string(), font_id.clone(), TEXT_PRIMARY);
     let text_size = galley.size();
     let desired_size = text_size + Vec2::new(6.0, 4.0);
 
@@ -477,8 +486,12 @@ pub fn preview_mode_banner(ui: &mut Ui) {
         .inner_margin(egui::Margin::same(8.0))
         .show(ui, |ui| {
             ui.horizontal(|ui| {
-                ui.label(egui::RichText::new("PREVIEW MODE").color(Color32::from_rgb(100, 150, 200)));
-                ui.label(theme::muted_text("- Running without root, installation disabled"));
+                ui.label(
+                    egui::RichText::new("PREVIEW MODE").color(Color32::from_rgb(100, 150, 200)),
+                );
+                ui.label(theme::muted_text(
+                    "- Running without root, installation disabled",
+                ));
             });
         });
 }

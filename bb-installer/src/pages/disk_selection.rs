@@ -5,7 +5,9 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
         ui.label(theme::title_text("Storage Requisition"));
         ui.add_space(5.0);
-        ui.label(theme::muted_text("Select a device for BigBother deployment"));
+        ui.label(theme::muted_text(
+            "Select a device for BigBother deployment",
+        ));
     });
 
     ui.add_space(20.0);
@@ -36,7 +38,9 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
     if state.available_disks.is_empty() {
         ui.add_space(20.0);
-        ui.label(theme::muted_text("No suitable devices found. Click 'Scan for devices' to refresh."));
+        ui.label(theme::muted_text(
+            "No suitable devices found. Click 'Scan for devices' to refresh.",
+        ));
     } else {
         egui::ScrollArea::vertical()
             .max_height(250.0)
@@ -72,6 +76,6 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
     ui.add_space(10.0);
     ui.label(theme::muted_text(
-        "All previous data will be... archived for historical purposes."
+        "All previous data will be... archived for historical purposes.",
     ));
 }

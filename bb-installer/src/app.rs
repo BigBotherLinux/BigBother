@@ -34,7 +34,11 @@ impl eframe::App for BigBotherInstaller {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Top panel with title and eye
         egui::TopBottomPanel::top("header")
-            .frame(egui::Frame::none().fill(BG_PANEL).inner_margin(egui::Margin::symmetric(20.0, 10.0)))
+            .frame(
+                egui::Frame::none()
+                    .fill(BG_PANEL)
+                    .inner_margin(egui::Margin::symmetric(20.0, 10.0)),
+            )
             .show(ctx, |ui| {
                 ui.horizontal(|ui| {
                     // Small surveillance eye
@@ -43,8 +47,17 @@ impl eframe::App for BigBotherInstaller {
                     ui.add_space(15.0);
 
                     ui.vertical(|ui| {
-                        ui.label(RichText::new("BigBother").size(22.0).strong().color(TEXT_PRIMARY));
-                        ui.label(RichText::new(self.state.current_page.title()).size(14.0).color(TEXT_SECONDARY));
+                        ui.label(
+                            RichText::new("BigBother")
+                                .size(22.0)
+                                .strong()
+                                .color(TEXT_PRIMARY),
+                        );
+                        ui.label(
+                            RichText::new(self.state.current_page.title())
+                                .size(14.0)
+                                .color(TEXT_SECONDARY),
+                        );
                     });
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -54,7 +67,7 @@ impl eframe::App for BigBotherInstaller {
                                 RichText::new("⚠ PREVIEW MODE")
                                     .size(12.0)
                                     .color(Color32::from_rgb(255, 200, 0))
-                                    .strong()
+                                    .strong(),
                             );
                             ui.add_space(10.0);
                         }
@@ -62,14 +75,22 @@ impl eframe::App for BigBotherInstaller {
                         // Progress indicator
                         let current = self.state.current_page.index();
                         let total = Page::total();
-                        ui.label(theme::muted_text(&format!("Step {} of {}", current + 1, total)));
+                        ui.label(theme::muted_text(&format!(
+                            "Step {} of {}",
+                            current + 1,
+                            total
+                        )));
                     });
                 });
             });
 
         // Bottom panel with navigation
         egui::TopBottomPanel::bottom("navigation")
-            .frame(egui::Frame::none().fill(BG_PANEL).inner_margin(egui::Margin::symmetric(20.0, 15.0)))
+            .frame(
+                egui::Frame::none()
+                    .fill(BG_PANEL)
+                    .inner_margin(egui::Margin::symmetric(20.0, 15.0)),
+            )
             .show(ctx, |ui| {
                 ui.horizontal(|ui| {
                     // Progress dots
@@ -84,14 +105,17 @@ impl eframe::App for BigBotherInstaller {
                         };
 
                         let size = if i == current_idx { 8.0 } else { 6.0 };
-                        let (rect, _) = ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::hover());
+                        let (rect, _) =
+                            ui.allocate_exact_size(egui::vec2(size, size), egui::Sense::hover());
                         ui.painter().circle_filled(rect.center(), size / 2.0, color);
                         ui.add_space(4.0);
                     }
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         // Next/Install button
-                        if self.state.current_page != Page::Installing && self.state.current_page != Page::Complete {
+                        if self.state.current_page != Page::Installing
+                            && self.state.current_page != Page::Complete
+                        {
                             let is_summary = self.state.current_page == Page::Summary;
                             let button_text = if is_summary {
                                 if self.state.preview_mode {
@@ -105,11 +129,26 @@ impl eframe::App for BigBotherInstaller {
 
                             let can_proceed = self.state.can_proceed();
 
-                            let button = egui::Button::new(
-                                RichText::new(button_text).color(if can_proceed { Color32::WHITE } else { TEXT_MUTED })
-                            )
-                            .fill(if can_proceed { ACCENT_RED } else { Color32::from_rgb(60, 50, 50) })
-                            .stroke(Stroke::new(1.0, if can_proceed { ACCENT_RED } else { Color32::from_rgb(80, 70, 70) }));
+                            let button = egui::Button::new(RichText::new(button_text).color(
+                                if can_proceed {
+                                    Color32::WHITE
+                                } else {
+                                    TEXT_MUTED
+                                },
+                            ))
+                            .fill(if can_proceed {
+                                ACCENT_RED
+                            } else {
+                                Color32::from_rgb(60, 50, 50)
+                            })
+                            .stroke(Stroke::new(
+                                1.0,
+                                if can_proceed {
+                                    ACCENT_RED
+                                } else {
+                                    Color32::from_rgb(80, 70, 70)
+                                },
+                            ));
 
                             if ui.add_enabled(can_proceed, button).clicked() {
                                 if is_summary {
@@ -126,9 +165,10 @@ impl eframe::App for BigBotherInstaller {
 
                         // Back button
                         if self.state.current_page.prev().is_some()
-                            && theme::secondary_button(ui, "Back").clicked() {
-                                self.state.prev_page();
-                            }
+                            && theme::secondary_button(ui, "Back").clicked()
+                        {
+                            self.state.prev_page();
+                        }
                     });
                 });
             });
@@ -138,7 +178,7 @@ impl eframe::App for BigBotherInstaller {
             .frame(
                 egui::Frame::none()
                     .fill(BG_DARK)
-                    .inner_margin(egui::Margin::symmetric(40.0, 30.0))
+                    .inner_margin(egui::Margin::symmetric(40.0, 30.0)),
             )
             .show(ctx, |ui| {
                 // Terms page handles its own scrolling

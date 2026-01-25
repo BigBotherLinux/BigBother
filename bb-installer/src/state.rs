@@ -144,11 +144,11 @@ pub struct UserConfig {
 #[derive(Debug, Clone)]
 pub struct PasswordTheater {
     // Sliders (all meaningless, but affect the mini-game!)
-    pub entropy_coefficient: f32,        // 0.0 - 1.0 -> affects launch angle
-    pub memory_half_life_days: f32,      // 1 - 365 -> affects initial velocity
-    pub quantum_uncertainty: f32,        // 0.0 - 1.0 -> affects gravity
-    pub character_diversity_index: f32,  // 0.0 - 1.0 -> affects ball size
-    pub brute_force_resistance: f32,     // 0.0 - 1.0 -> affects wind
+    pub entropy_coefficient: f32,   // 0.0 - 1.0 -> affects launch angle
+    pub memory_half_life_days: f32, // 1 - 365 -> affects initial velocity
+    pub quantum_uncertainty: f32,   // 0.0 - 1.0 -> affects gravity
+    pub character_diversity_index: f32, // 0.0 - 1.0 -> affects ball size
+    pub brute_force_resistance: f32, // 0.0 - 1.0 -> affects wind
 
     // Radio selections (all meaningless)
     pub password_philosophy: PasswordPhilosophy,
@@ -176,25 +176,25 @@ pub struct PasswordGame {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum GameState {
-    Ready,      // Waiting for player to launch
-    Flying,     // Ball is in the air
-    Scored,     // Ball hit the goal
-    Missed,     // Ball missed the goal
+    Ready,  // Waiting for player to launch
+    Flying, // Ball is in the air
+    Scored, // Ball hit the goal
+    Missed, // Ball missed the goal
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RevealStep {
-    Philosophy,       // First: ask about password philosophy
-    MemorableSource,  // Second: ask about memorable source
-    FinalReveal,      // Third: show the "1234" password
+    Philosophy,      // First: ask about password philosophy
+    MemorableSource, // Second: ask about memorable source
+    FinalReveal,     // Third: show the "1234" password
 }
 
 impl Default for PasswordGame {
     fn default() -> Self {
         Self {
             state: GameState::Ready,
-            ball_x: 30.0,   // Starting X position
-            ball_y: 150.0,  // Starting Y position (bottom-ish)
+            ball_x: 30.0,  // Starting X position
+            ball_y: 150.0, // Starting Y position (bottom-ish)
             velocity_x: 0.0,
             velocity_y: 0.0,
             start_time: None,
@@ -269,7 +269,10 @@ impl PasswordGame {
         }
 
         // Check if ball went out of bounds
-        if self.ball_y > game_height + 50.0 || self.ball_x > game_width + 50.0 || self.ball_x < -50.0 {
+        if self.ball_y > game_height + 50.0
+            || self.ball_x > game_width + 50.0
+            || self.ball_x < -50.0
+        {
             self.state = GameState::Missed;
             return false;
         }
@@ -434,7 +437,6 @@ impl FeatureConfig {
     }
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum InstallStatus {
     NotStarted,
@@ -566,10 +568,18 @@ impl InstallerState {
         if username.chars().any(|c| c.is_uppercase()) {
             return Some("UPPERCASE DETECTED - Please use lowercase for easier tracking");
         }
-        if !username.chars().next().map(|c| c.is_ascii_lowercase()).unwrap_or(false) {
+        if !username
+            .chars()
+            .next()
+            .map(|c| c.is_ascii_lowercase())
+            .unwrap_or(false)
+        {
             return Some("Must begin with a letter");
         }
-        if !username.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_' || c == '-') {
+        if !username
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_' || c == '-')
+        {
             return Some("Invalid characters detected (use a-z, 0-9, _, -)");
         }
         None
@@ -583,7 +593,10 @@ impl InstallerState {
         if hostname.len() > 63 {
             return Some("Designation too long (maximum 63 characters)");
         }
-        if !hostname.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+        if !hostname
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-')
+        {
             return Some("Invalid characters (use a-z, 0-9, -)");
         }
         if hostname.starts_with('-') || hostname.ends_with('-') {

@@ -13,6 +13,8 @@ pub fn render(ui: &mut egui::Ui) {
 
         ui.add_space(10.0);
 
-        ui.label(theme::subtitle_text("Our source is open. Your curtains should be too.."));
+        ui.label(theme::subtitle_text(
+            "Our source is open. Your curtains should be too..",
+        ));
     });
 }

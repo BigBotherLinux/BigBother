@@ -1,4 +1,7 @@
-use crate::{state::{InstallStatus, InstallerState}, theme, widgets};
+use crate::{
+    state::{InstallStatus, InstallerState},
+    theme, widgets,
+};
 use eframe::egui;
 
 pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
@@ -43,6 +46,8 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
         ui.add_space(30.0);
 
-        ui.label(theme::muted_text("\"Embrace the gaze of BigBother and let it rest upon you.\""));
+        ui.label(theme::muted_text(
+            "\"Embrace the gaze of BigBother and let it rest upon you.\"",
+        ));
     });
 }

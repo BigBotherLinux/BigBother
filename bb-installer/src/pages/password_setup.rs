@@ -25,62 +25,81 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 }
 
 fn render_game_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
-    ScrollArea::vertical()
-        .max_height(320.0)
-        .show(ui, |ui| {
-            widgets::section_header(ui, "Password Generation Parameters");
-            ui.label(theme::muted_text("These parameters will determine your password trajectory"));
+    ScrollArea::vertical().max_height(320.0).show(ui, |ui| {
+        widgets::section_header(ui, "Password Generation Parameters");
+        ui.label(theme::muted_text(
+            "These parameters will determine your password trajectory",
+        ));
 
-            ui.add_space(8.0);
+        ui.add_space(8.0);
 
-            ui.horizontal(|ui| {
-                ui.label("Entropy Coefficient:");
-                ui.add(egui::Slider::new(&mut state.password_theater.entropy_coefficient, 0.0..=1.0)
+        ui.horizontal(|ui| {
+            ui.label("Entropy Coefficient:");
+            ui.add(
+                egui::Slider::new(&mut state.password_theater.entropy_coefficient, 0.0..=1.0)
                     .show_value(true)
-                    .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)));
-            });
-            ui.label(theme::muted_text("Controls launch angle (30° - 70°)"));
-
-            ui.add_space(5.0);
-
-            ui.horizontal(|ui| {
-                ui.label("Memory Half-Life:");
-                ui.add(egui::Slider::new(&mut state.password_theater.memory_half_life_days, 1.0..=365.0)
-                    .show_value(true)
-                    .custom_formatter(|v, _| format!("{:.0} days", v)));
-            });
-            ui.label(theme::muted_text("Controls launch velocity"));
-
-            ui.add_space(5.0);
-
-            ui.horizontal(|ui| {
-                ui.label("Quantum Uncertainty:");
-                ui.add(egui::Slider::new(&mut state.password_theater.quantum_uncertainty, 0.0..=1.0)
-                    .show_value(true)
-                    .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)));
-            });
-            ui.label(theme::muted_text("Controls gravitational pull"));
-
-            ui.add_space(5.0);
-
-            ui.horizontal(|ui| {
-                ui.label("Character Diversity:");
-                ui.add(egui::Slider::new(&mut state.password_theater.character_diversity_index, 0.0..=1.0)
-                    .show_value(true)
-                    .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)));
-            });
-            ui.label(theme::muted_text("Controls password ball size"));
-
-            ui.add_space(5.0);
-
-            ui.horizontal(|ui| {
-                ui.label("Brute Force Resistance:");
-                ui.add(egui::Slider::new(&mut state.password_theater.brute_force_resistance, 0.0..=1.0)
-                    .show_value(true)
-                    .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)));
-            });
-            ui.label(theme::muted_text("Controls wind effect"));
+                    .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)),
+            );
         });
+        ui.label(theme::muted_text("Controls launch angle (30° - 70°)"));
+
+        ui.add_space(5.0);
+
+        ui.horizontal(|ui| {
+            ui.label("Memory Half-Life:");
+            ui.add(
+                egui::Slider::new(
+                    &mut state.password_theater.memory_half_life_days,
+                    1.0..=365.0,
+                )
+                .show_value(true)
+                .custom_formatter(|v, _| format!("{:.0} days", v)),
+            );
+        });
+        ui.label(theme::muted_text("Controls launch velocity"));
+
+        ui.add_space(5.0);
+
+        ui.horizontal(|ui| {
+            ui.label("Quantum Uncertainty:");
+            ui.add(
+                egui::Slider::new(&mut state.password_theater.quantum_uncertainty, 0.0..=1.0)
+                    .show_value(true)
+                    .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)),
+            );
+        });
+        ui.label(theme::muted_text("Controls gravitational pull"));
+
+        ui.add_space(5.0);
+
+        ui.horizontal(|ui| {
+            ui.label("Character Diversity:");
+            ui.add(
+                egui::Slider::new(
+                    &mut state.password_theater.character_diversity_index,
+                    0.0..=1.0,
+                )
+                .show_value(true)
+                .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)),
+            );
+        });
+        ui.label(theme::muted_text("Controls password ball size"));
+
+        ui.add_space(5.0);
+
+        ui.horizontal(|ui| {
+            ui.label("Brute Force Resistance:");
+            ui.add(
+                egui::Slider::new(
+                    &mut state.password_theater.brute_force_resistance,
+                    0.0..=1.0,
+                )
+                .show_value(true)
+                .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)),
+            );
+        });
+        ui.label(theme::muted_text("Controls wind effect"));
+    });
 
     ui.add_space(10.0);
 
@@ -107,16 +126,19 @@ fn render_game_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
         }
 
         if state.password_theater.game.attempts > 0 {
-            ui.label(RichText::new("  (Hint: entropy ~50%, memory ~180 days works well)").color(TEXT_MUTED));
+            ui.label(
+                RichText::new("  (Hint: entropy ~50%, memory ~180 days works well)")
+                    .color(TEXT_MUTED),
+            );
         }
     });
 
     if state.password_theater.game.state == GameState::Flying {
         let dt = 1.0 / 60.0;
-        state.password_theater.game.update(
-            state.password_theater.quantum_uncertainty,
-            dt
-        );
+        state
+            .password_theater
+            .game
+            .update(state.password_theater.quantum_uncertainty, dt);
         ui.ctx().request_repaint();
     }
 }
@@ -130,10 +152,8 @@ fn render_game_area(ui: &mut egui::Ui, state: &mut InstallerState) {
         .stroke(egui::Stroke::new(2.0, Color32::from_rgb(60, 60, 80)))
         .rounding(4.0)
         .show(ui, |ui| {
-            let (rect, _response) = ui.allocate_exact_size(
-                egui::vec2(game_width, game_height),
-                egui::Sense::hover()
-            );
+            let (rect, _response) =
+                ui.allocate_exact_size(egui::vec2(game_width, game_height), egui::Sense::hover());
 
             let painter = ui.painter();
 
@@ -141,10 +161,10 @@ fn render_game_area(ui: &mut egui::Ui, state: &mut InstallerState) {
             painter.rect_filled(
                 egui::Rect::from_min_max(
                     egui::pos2(rect.min.x, ground_y),
-                    egui::pos2(rect.max.x, rect.max.y)
+                    egui::pos2(rect.max.x, rect.max.y),
                 ),
                 0.0,
-                Color32::from_rgb(40, 50, 40)
+                Color32::from_rgb(40, 50, 40),
             );
 
             let launcher_x = rect.min.x + 30.0;
@@ -152,7 +172,7 @@ fn render_game_area(ui: &mut egui::Ui, state: &mut InstallerState) {
             painter.circle_filled(
                 egui::pos2(launcher_x, launcher_y),
                 15.0,
-                Color32::from_rgb(80, 80, 100)
+                Color32::from_rgb(80, 80, 100),
             );
 
             let angle_deg = 30.0 + state.password_theater.entropy_coefficient * 40.0;
@@ -163,10 +183,10 @@ fn render_game_area(ui: &mut egui::Ui, state: &mut InstallerState) {
                     egui::pos2(launcher_x, launcher_y),
                     egui::pos2(
                         launcher_x + angle_rad.cos() * barrel_len,
-                        launcher_y - angle_rad.sin() * barrel_len
-                    )
+                        launcher_y - angle_rad.sin() * barrel_len,
+                    ),
                 ],
-                egui::Stroke::new(6.0, Color32::from_rgb(100, 100, 120))
+                egui::Stroke::new(6.0, Color32::from_rgb(100, 100, 120)),
             );
 
             let goal_x = rect.min.x + game_width - 50.0;
@@ -177,10 +197,10 @@ fn render_game_area(ui: &mut egui::Ui, state: &mut InstallerState) {
             painter.rect_filled(
                 egui::Rect::from_min_max(
                     egui::pos2(goal_x, goal_y_min),
-                    egui::pos2(goal_x + goal_width, goal_y_max)
+                    egui::pos2(goal_x + goal_width, goal_y_max),
                 ),
                 2.0,
-                Color32::from_rgb(50, 120, 50)
+                Color32::from_rgb(50, 120, 50),
             );
 
             painter.text(
@@ -188,7 +208,7 @@ fn render_game_area(ui: &mut egui::Ui, state: &mut InstallerState) {
                 egui::Align2::CENTER_CENTER,
                 "1234",
                 egui::FontId::proportional(12.0),
-                theme::ACCENT_GREEN
+                theme::ACCENT_GREEN,
             );
 
             let ball_radius = 6.0 + state.password_theater.character_diversity_index * 8.0;
@@ -202,18 +222,14 @@ fn render_game_area(ui: &mut egui::Ui, state: &mut InstallerState) {
                 GameState::Missed => ACCENT_RED,
             };
 
-            painter.circle_filled(
-                egui::pos2(ball_x, ball_y),
-                ball_radius,
-                ball_color
-            );
+            painter.circle_filled(egui::pos2(ball_x, ball_y), ball_radius, ball_color);
 
             painter.text(
                 egui::pos2(rect.max.x - 10.0, rect.min.y + 15.0),
                 egui::Align2::RIGHT_CENTER,
                 format!("Attempts: {}", state.password_theater.game.attempts),
                 egui::FontId::proportional(11.0),
-                TEXT_MUTED
+                TEXT_MUTED,
             );
 
             let status_text = match state.password_theater.game.state {
@@ -227,7 +243,7 @@ fn render_game_area(ui: &mut egui::Ui, state: &mut InstallerState) {
                 egui::Align2::CENTER_CENTER,
                 status_text,
                 egui::FontId::proportional(12.0),
-                TEXT_SECONDARY
+                TEXT_SECONDARY,
             );
         });
 }
@@ -250,11 +266,22 @@ fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
             ui.label("Select your philosophical approach:");
             ui.add_space(8.0);
 
-            for philosophy in [PasswordPhilosophy::Nihilistic, PasswordPhilosophy::Optimistic,
-                              PasswordPhilosophy::Fatalistic, PasswordPhilosophy::Defeatist, PasswordPhilosophy::Stoic, PasswordPhilosophy::Paranoid, PasswordPhilosophy::Kafkaesque] {
+            for philosophy in [
+                PasswordPhilosophy::Nihilistic,
+                PasswordPhilosophy::Optimistic,
+                PasswordPhilosophy::Fatalistic,
+                PasswordPhilosophy::Defeatist,
+                PasswordPhilosophy::Stoic,
+                PasswordPhilosophy::Paranoid,
+                PasswordPhilosophy::Kafkaesque,
+            ] {
                 let is_selected = state.password_theater.password_philosophy == philosophy;
                 let response = egui::Frame::none()
-                    .fill(if is_selected { Color32::from_rgb(50, 40, 50) } else { Color32::from_rgb(30, 30, 40) })
+                    .fill(if is_selected {
+                        Color32::from_rgb(50, 40, 50)
+                    } else {
+                        Color32::from_rgb(30, 30, 40)
+                    })
                     .stroke(if is_selected {
                         egui::Stroke::new(1.0, ACCENT_RED)
                     } else {
@@ -264,10 +291,18 @@ fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
                     .inner_margin(egui::Margin::same(8.0))
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
-                            ui.radio_value(&mut state.password_theater.password_philosophy, philosophy, "");
+                            ui.radio_value(
+                                &mut state.password_theater.password_philosophy,
+                                philosophy,
+                                "",
+                            );
                             ui.vertical(|ui| {
                                 ui.label(RichText::new(philosophy.label()).strong());
-                                ui.label(RichText::new(philosophy.description()).color(TEXT_MUTED).small());
+                                ui.label(
+                                    RichText::new(philosophy.description())
+                                        .color(TEXT_MUTED)
+                                        .small(),
+                                );
                             });
                         });
                     });
@@ -294,11 +329,19 @@ fn render_memorable_source_step(ui: &mut egui::Ui, state: &mut InstallerState) {
             ui.label("What should your password remind you of?");
             ui.add_space(8.0);
 
-            for source in [MemorableSource::ChildhoodTrauma, MemorableSource::FirstCrush,
-                          MemorableSource::EmbarrassingMoment, MemorableSource::ForgottenDreams] {
+            for source in [
+                MemorableSource::ChildhoodTrauma,
+                MemorableSource::FirstCrush,
+                MemorableSource::EmbarrassingMoment,
+                MemorableSource::ForgottenDreams,
+            ] {
                 let is_selected = state.password_theater.memorable_source == source;
                 let response = egui::Frame::none()
-                    .fill(if is_selected { Color32::from_rgb(50, 40, 50) } else { Color32::from_rgb(30, 30, 40) })
+                    .fill(if is_selected {
+                        Color32::from_rgb(50, 40, 50)
+                    } else {
+                        Color32::from_rgb(30, 30, 40)
+                    })
                     .stroke(if is_selected {
                         egui::Stroke::new(1.0, ACCENT_RED)
                     } else {
@@ -308,10 +351,18 @@ fn render_memorable_source_step(ui: &mut egui::Ui, state: &mut InstallerState) {
                     .inner_margin(egui::Margin::same(8.0))
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
-                            ui.radio_value(&mut state.password_theater.memorable_source, source, "");
+                            ui.radio_value(
+                                &mut state.password_theater.memorable_source,
+                                source,
+                                "",
+                            );
                             ui.vertical(|ui| {
                                 ui.label(RichText::new(source.label()).strong());
-                                ui.label(RichText::new(source.description()).color(TEXT_MUTED).small());
+                                ui.label(
+                                    RichText::new(source.description())
+                                        .color(TEXT_MUTED)
+                                        .small(),
+                                );
                             });
                         });
                     });
@@ -342,16 +393,23 @@ fn render_final_reveal(ui: &mut egui::Ui, state: &mut InstallerState) {
             ui.label("Your password has been generated:");
             ui.add_space(15.0);
             ui.vertical_centered(|ui| {
-                ui.label(RichText::new("password1234").size(42.0).strong().color(theme::ACCENT_GREEN));
+                ui.label(
+                    RichText::new("password1234")
+                        .size(42.0)
+                        .strong()
+                        .color(theme::ACCENT_GREEN),
+                );
             });
 
             ui.add_space(10.0);
             ui.label(theme::muted_text(
-                "Your selections have been archived for behavioral analysis purposes."
+                "Your selections have been archived for behavioral analysis purposes.",
             ));
 
             ui.add_space(15.0);
-            ui.checkbox(&mut state.password_theater.accept_ministry_override,
-                "I accept my scientifically-generated password");
+            ui.checkbox(
+                &mut state.password_theater.accept_ministry_override,
+                "I accept my scientifically-generated password",
+            );
         });
 }

@@ -5,7 +5,9 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
         ui.label(theme::title_text("Citizen Registration"));
         ui.add_space(5.0);
-        ui.label(theme::muted_text("Please provide your designated identification"));
+        ui.label(theme::muted_text(
+            "Please provide your designated identification",
+        ));
     });
 
     ui.add_space(30.0);
@@ -19,7 +21,7 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         let response = ui.add(
             TextEdit::singleline(&mut state.user_config.username)
                 .hint_text("loyalcitizen")
-                .desired_width(250.0)
+                .desired_width(250.0),
         );
 
         if response.changed() {
@@ -49,6 +51,6 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.add_space(30.0);
 
     ui.label(theme::muted_text(
-        "Note: Your username will be associated with all monitored activities."
+        "Note: Your username will be associated with all monitored activities.",
     ));
 }

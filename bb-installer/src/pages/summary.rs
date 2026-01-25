@@ -5,7 +5,9 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
         ui.label(theme::title_text("Pre-Installation Briefing"));
         ui.add_space(5.0);
-        ui.label(theme::muted_text("Review your configuration before submission"));
+        ui.label(theme::muted_text(
+            "Review your configuration before submission",
+        ));
     });
 
     ui.add_space(20.0);
@@ -29,20 +31,26 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     widgets::section_header(ui, "System Configuration");
 
     if let Some(disk) = state.get_selected_disk() {
-        widgets::info_row(ui, "Target Disk:", &format!("{} ({})", disk.path, disk.size_human()));
+        widgets::info_row(
+            ui,
+            "Target Disk:",
+            &format!("{} ({})", disk.path, disk.size_human()),
+        );
     } else if state.preview_mode {
         widgets::info_row(ui, "Target Disk:", "(Preview mode - no disk selected)");
     }
 
-
     ui.add_space(20.0);
 
     if !state.preview_mode {
-        widgets::warning_banner(ui, "Proceeding will ERASE ALL DATA on the selected disk. This action cannot be undone.");
+        widgets::warning_banner(
+            ui,
+            "Proceeding will ERASE ALL DATA on the selected disk. This action cannot be undone.",
+        );
     }
 
     ui.add_space(10.0);
     ui.label(theme::muted_text(
-        "By clicking 'Install', you confirm your eternal loyalty to BigBother."
+        "By clicking 'Install', you confirm your eternal loyalty to BigBother.",
     ));
 }

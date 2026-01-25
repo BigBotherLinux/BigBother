@@ -11,7 +11,10 @@ mod timezone;
 mod user_setup;
 mod welcome;
 
-use crate::{install::start_installation, state::{InstallerState, InstallStatus, Page}};
+use crate::{
+    install::start_installation,
+    state::{InstallStatus, InstallerState, Page},
+};
 use std::sync::Arc;
 
 pub fn render_page(ui: &mut eframe::egui::Ui, state: &mut InstallerState) {
@@ -44,12 +47,27 @@ pub fn start_install_if_ready(state: &mut InstallerState) {
 
 fn simulate_installation(progress: Arc<std::sync::Mutex<crate::state::InstallProgress>>) {
     let steps = [
-        (InstallStatus::Partitioning, "Simulating partition creation..."),
-        (InstallStatus::Formatting, "Simulating filesystem formatting..."),
+        (
+            InstallStatus::Partitioning,
+            "Simulating partition creation...",
+        ),
+        (
+            InstallStatus::Formatting,
+            "Simulating filesystem formatting...",
+        ),
         (InstallStatus::Mounting, "Simulating mount operations..."),
-        (InstallStatus::CopyingFlake, "Simulating flake deployment..."),
-        (InstallStatus::GeneratingConfig, "Simulating config generation..."),
-        (InstallStatus::RunningNixosInstall, "Simulating nixos-install (this would take a while in real life)..."),
+        (
+            InstallStatus::CopyingFlake,
+            "Simulating flake deployment...",
+        ),
+        (
+            InstallStatus::GeneratingConfig,
+            "Simulating config generation...",
+        ),
+        (
+            InstallStatus::RunningNixosInstall,
+            "Simulating nixos-install (this would take a while in real life)...",
+        ),
         (InstallStatus::Finalizing, "Simulating finalization..."),
         (InstallStatus::Complete, "Simulation complete!"),
     ];

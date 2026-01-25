@@ -127,7 +127,11 @@ fn set_error(progress: &Arc<Mutex<InstallProgress>>, error: &str) {
     }
 }
 
-fn run_command(cmd: &str, args: &[&str], progress: &Arc<Mutex<InstallProgress>>) -> Result<(), String> {
+fn run_command(
+    cmd: &str,
+    args: &[&str],
+    progress: &Arc<Mutex<InstallProgress>>,
+) -> Result<(), String> {
     log_message(progress, &format!("$ {} {}", cmd, args.join(" ")));
 
     let mut child = Command::new(cmd)
@@ -145,10 +149,16 @@ fn run_command(cmd: &str, args: &[&str], progress: &Arc<Mutex<InstallProgress>>)
         }
     }
 
-    let status = child.wait().map_err(|e| format!("Failed to wait for {}: {}", cmd, e))?;
+    let status = child
+        .wait()
+        .map_err(|e| format!("Failed to wait for {}: {}", cmd, e))?;
 
     if !status.success() {
-        return Err(format!("{} failed with exit code: {:?}", cmd, status.code()));
+        return Err(format!(
+            "{} failed with exit code: {:?}",
+            cmd,
+            status.code()
+        ));
     }
 
     Ok(())
@@ -219,7 +229,10 @@ fn install_system(
     progress: &Arc<Mutex<InstallProgress>>,
 ) {
     log_message(progress, "=== BigBother Installation Starting ===");
-    log_message(progress, &format!("Target device: {} ({})", disk.path, disk.size_human()));
+    log_message(
+        progress,
+        &format!("Target device: {} ({})", disk.path, disk.size_human()),
+    );
     log_message(progress, "");
 
     // Step 1: Partition disk
@@ -285,7 +298,11 @@ fn install_system(
         return;
     }
 
-    if let Err(e) = run_command("cp", &["-r", &format!("{}/.", flake_path), dest_flake], progress) {
+    if let Err(e) = run_command(
+        "cp",
+        &["-r", &format!("{}/.", flake_path), dest_flake],
+        progress,
+    ) {
         set_error(progress, &format!("Failed to copy flake: {}", e));
         return;
     }
@@ -305,14 +322,19 @@ fn install_system(
     set_status(progress, InstallStatus::RunningNixosInstall);
     log_message(progress, "");
     log_message(progress, "=== Running nixos-install ===");
-    log_message(progress, "This may take a while. BigBother is watching your progress.");
+    log_message(
+        progress,
+        "This may take a while. BigBother is watching your progress.",
+    );
     log_message(progress, "");
 
     let install_result = run_command(
         "nixos-install",
         &[
-            "--flake", &format!("{}#bb", dest_flake),
-            "--root", "/mnt",
+            "--flake",
+            &format!("{}#bb", dest_flake),
+            "--root",
+            "/mnt",
             "--no-root-passwd",
         ],
         progress,
@@ -335,7 +357,10 @@ fn install_system(
     log_message(progress, "");
     log_message(progress, "=== Installation Complete ===");
     log_message(progress, "BigBother welcomes you, citizen.");
-    log_message(progress, "Please reboot to begin your new life under our watchful care.");
+    log_message(
+        progress,
+        "Please reboot to begin your new life under our watchful care.",
+    );
 }
 
 fn partition_disk(device: &str, progress: &Arc<Mutex<InstallProgress>>) -> Result<(), String> {
