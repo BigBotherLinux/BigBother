@@ -1,7 +1,9 @@
 use crate::{theme, widgets};
 use eframe::egui;
 
-pub fn render(ui: &mut egui::Ui) {
+use crate::state::InstallerState;
+
+pub fn render(ui: &mut egui::Ui, _state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
         ui.add_space(40.0);
 

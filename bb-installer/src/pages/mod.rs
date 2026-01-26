@@ -8,6 +8,7 @@ mod password_setup;
 mod summary;
 mod terms;
 mod timezone;
+mod disclaimer;
 mod user_setup;
 mod welcome;
 
@@ -19,7 +20,8 @@ use std::sync::Arc;
 
 pub fn render_page(ui: &mut eframe::egui::Ui, state: &mut InstallerState) {
     match state.current_page {
-        Page::Welcome => welcome::render(ui),
+        Page::Welcome => welcome::render(ui, state),
+        Page::Disclaimer => disclaimer::render(ui, state),
         Page::TermsOfSubmission => terms::render(ui, state),
         Page::UserSetup => user_setup::render(ui, state),
         Page::PasswordSetup => password_setup::render(ui, state),

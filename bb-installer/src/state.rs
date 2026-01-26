@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 #[derive(Debug, Clone, PartialEq)]
 pub enum Page {
     Welcome,
+    Disclaimer,
     TermsOfSubmission,
     UserSetup,
     PasswordSetup,
@@ -22,34 +23,36 @@ impl Page {
     pub fn index(&self) -> usize {
         match self {
             Page::Welcome => 0,
-            Page::TermsOfSubmission => 1,
-            Page::UserSetup => 2,
-            Page::PasswordSetup => 3,
-            Page::TimezoneSelection => 4,
-            Page::KeyboardSelection => 5,
-            Page::DiskSelection => 6,
-            Page::FeatureSelection => 7,
-            Page::HostnameSetup => 8,
-            Page::Summary => 9,
-            Page::Installing => 10,
-            Page::Complete => 11,
+            Page::Disclaimer => 1,
+            Page::TermsOfSubmission => 2,
+            Page::UserSetup => 3,
+            Page::PasswordSetup => 4,
+            Page::TimezoneSelection => 5,
+            Page::KeyboardSelection => 6,
+            Page::DiskSelection => 7,
+            Page::FeatureSelection => 8,
+            Page::HostnameSetup => 9,
+            Page::Summary => 10,
+            Page::Installing => 11,
+            Page::Complete => 12,
         }
     }
 
     pub fn from_index(index: usize) -> Option<Page> {
         match index {
             0 => Some(Page::Welcome),
-            1 => Some(Page::TermsOfSubmission),
-            2 => Some(Page::UserSetup),
-            3 => Some(Page::PasswordSetup),
-            4 => Some(Page::TimezoneSelection),
-            5 => Some(Page::KeyboardSelection),
-            6 => Some(Page::DiskSelection),
-            7 => Some(Page::FeatureSelection),
-            8 => Some(Page::HostnameSetup),
-            9 => Some(Page::Summary),
-            10 => Some(Page::Installing),
-            11 => Some(Page::Complete),
+            1 => Some(Page::Disclaimer),
+            2 => Some(Page::TermsOfSubmission),
+            3 => Some(Page::UserSetup),
+            4 => Some(Page::PasswordSetup),
+            5 => Some(Page::TimezoneSelection),
+            6 => Some(Page::KeyboardSelection),
+            7 => Some(Page::DiskSelection),
+            8 => Some(Page::FeatureSelection),
+            9 => Some(Page::HostnameSetup),
+            10 => Some(Page::Summary),
+            11 => Some(Page::Installing),
+            12 => Some(Page::Complete),
             _ => None,
         }
     }
@@ -61,6 +64,7 @@ impl Page {
     pub fn title(&self) -> &'static str {
         match self {
             Page::Welcome => "Welcome to BigBother",
+            Page::Disclaimer => "Disclaimer",
             Page::TermsOfSubmission => "Terms of Submission",
             Page::UserSetup => "Citizen Registration",
             Page::PasswordSetup => "Password Security Theater",
@@ -77,7 +81,8 @@ impl Page {
 
     pub fn next(&self) -> Option<Page> {
         match self {
-            Page::Welcome => Some(Page::TermsOfSubmission),
+            Page::Welcome => Some(Page::Disclaimer),
+            Page::Disclaimer => Some(Page::TermsOfSubmission),
             Page::TermsOfSubmission => Some(Page::UserSetup),
             Page::UserSetup => Some(Page::PasswordSetup),
             Page::PasswordSetup => Some(Page::TimezoneSelection),
@@ -95,7 +100,8 @@ impl Page {
     pub fn prev(&self) -> Option<Page> {
         match self {
             Page::Welcome => None,
-            Page::TermsOfSubmission => Some(Page::Welcome),
+            Page::Disclaimer => Some(Page::Welcome),
+            Page::TermsOfSubmission => Some(Page::Disclaimer),
             Page::UserSetup => Some(Page::TermsOfSubmission),
             Page::PasswordSetup => Some(Page::UserSetup),
             Page::TimezoneSelection => Some(Page::PasswordSetup),
@@ -504,6 +510,9 @@ pub struct InstallerState {
     pub current_page: Page,
     pub is_root: bool,
     pub preview_mode: bool,
+    pub disclaimer_format_accepted: bool,
+    pub disclaimer_unfree_accepted: bool,
+    pub disclaimer_surveillance_accepted: bool,
     pub terms_accepted: bool,
     pub user_config: UserConfig,
     pub feature_config: FeatureConfig,
@@ -513,6 +522,8 @@ pub struct InstallerState {
     pub install_progress: Arc<Mutex<InstallProgress>>,
     pub flake_path: String,
     pub decline_attempts: u32,
+    /// The first valid username entered - will be "already taken"
+    pub taken_username: Option<String>,
 }
 
 impl InstallerState {
@@ -525,6 +536,9 @@ impl InstallerState {
             current_page: starting_page,
             is_root,
             preview_mode: !is_root,
+            disclaimer_format_accepted: false,
+            disclaimer_unfree_accepted: false,
+            disclaimer_surveillance_accepted: false,
             terms_accepted: false,
             user_config: UserConfig::default(),
             feature_config: FeatureConfig::new(),
@@ -534,14 +548,28 @@ impl InstallerState {
             install_progress: Arc::new(Mutex::new(InstallProgress::default())),
             flake_path: "/etc/bb-flake".to_string(),
             decline_attempts: 0,
+            taken_username: None,
         }
     }
 
     pub fn can_proceed(&self) -> bool {
         match self.current_page {
             Page::Welcome => true,
-            Page::TermsOfSubmission => self.terms_accepted,
-            Page::UserSetup => self.validate_username().is_none(),
+            Page::Disclaimer => {
+                self.disclaimer_format_accepted
+                    && self.disclaimer_unfree_accepted
+                    && self.disclaimer_surveillance_accepted
+            }
+            Page::TermsOfSubmission => {
+                self.terms_accepted
+                    && self.disclaimer_format_accepted
+                    && self.disclaimer_unfree_accepted
+                    && self.disclaimer_surveillance_accepted
+            }
+            Page::UserSetup => {
+                self.validate_username().is_none()
+                    && self.taken_username.as_ref() != Some(&self.user_config.username)
+            }
             Page::PasswordSetup => self.password_theater.accept_ministry_override,
             Page::TimezoneSelection => !self.user_config.timezone.is_empty(),
             Page::KeyboardSelection => !self.user_config.keyboard_layout.is_empty(),
@@ -557,16 +585,39 @@ impl InstallerState {
     pub fn validate_username(&self) -> Option<&'static str> {
         let username = &self.user_config.username;
         if username.is_empty() {
-            return Some("Citizen identification required");
+            return Some("Username required");
         }
-        if username.len() < 3 {
-            return Some("Identification too short (minimum 3 characters)");
+        if username.len() > 14 {
+            return Some("Too long (maximum 14 characters)");
         }
-        if username.len() > 32 {
-            return Some("Identification too long (maximum 32 characters)");
+        let digit_count = username.chars().filter(|c| c.is_ascii_digit()).count();
+        if digit_count < 1 {
+            return Some("Must contain at least 1 number");
+        }
+        if username.len() < 5 {
+            return Some("Too short (minimum 5 characters)");
+        }
+        if digit_count > 1 {
+            return Some("Must have no more than 1 number");
+        }
+        if username.chars().filter_map(|c| c.to_digit(10)).any(|d| d < 8) {
+            return Some("Number looks weak, must be larger than 7");
+        }
+        if username.chars().last().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+            return Some("Your number cannot be at the end, thats just too predictable..");
+        }
+        if username.to_lowercase().contains("test") {
+            return Some("Username contains 'test', please choose a different username");
+        }
+        if username.chars().filter(|c| c.is_alphabetic()).all(|c| c.is_uppercase()) {
+            return Some("All letters are uppercase, are you angry over something?");
         }
         if username.chars().any(|c| c.is_uppercase()) {
-            return Some("UPPERCASE DETECTED - Please use lowercase for easier tracking");
+            return Some("Username cannot contain uppercase letters");
+        }
+        let special_char_count = username.chars().filter(|c| !c.is_ascii_alphabetic() && !c.is_ascii_digit()).count();
+        if special_char_count > 0 {
+            return Some("This is not a password, remove those special characters...");
         }
         if !username
             .chars()

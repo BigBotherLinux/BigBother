@@ -2,7 +2,7 @@ use crate::{state::InstallerState, theme, widgets};
 use eframe::egui::{self, RichText, ScrollArea};
 
 pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
-    let total_height = ui.available_height();
+    let total_height = ui.available_height() - 50.0;
     let content_width = 600.0_f32.min(ui.available_width() - 40.0);
 
     // Use a top-down layout filling the available space
@@ -73,12 +73,10 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
             ui.add_space(15.0);
 
             // Bottom controls
-            ui.horizontal(|ui| {
+            ui.vertical_centered(|ui| {
                 ui.checkbox(&mut state.terms_accepted, "");
                 ui.label("I accept these terms and Submit to BigBother");
-            });
 
-            ui.add_space(10.0);
 
             ui.horizontal(|ui| {
                 let decline_text = match state.decline_attempts {
@@ -100,6 +98,7 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
                         state.terms_accepted = true;
                     }
                 }
+            });
             });
         },
     );
