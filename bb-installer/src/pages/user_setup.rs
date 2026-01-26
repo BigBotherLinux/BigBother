@@ -35,10 +35,12 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         if response.gained_focus() {
             if let Some(mut text_state) = egui::TextEdit::load_state(ui.ctx(), response.id) {
                 let text_len = state.user_config.username.chars().count();
-                text_state.cursor.set_char_range(Some(egui::text::CCursorRange::two(
-                    egui::text::CCursor::new(0),
-                    egui::text::CCursor::new(text_len),
-                )));
+                text_state
+                    .cursor
+                    .set_char_range(Some(egui::text::CCursorRange::two(
+                        egui::text::CCursor::new(0),
+                        egui::text::CCursor::new(text_len),
+                    )));
                 text_state.store(ui.ctx(), response.id);
             }
         }

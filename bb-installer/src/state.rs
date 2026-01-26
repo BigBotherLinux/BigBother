@@ -510,6 +510,9 @@ pub struct InstallerState {
     pub current_page: Page,
     pub is_root: bool,
     pub preview_mode: bool,
+    /// Production mode - only true if BB_PROD=true environment variable is set.
+    /// When false, all disk operations and commands are simulated (printed only).
+    pub production_mode: bool,
     pub disclaimer_format_accepted: bool,
     pub disclaimer_unfree_accepted: bool,
     pub disclaimer_surveillance_accepted: bool,
@@ -532,10 +535,16 @@ impl InstallerState {
     }
 
     pub fn new_with_page(is_root: bool, starting_page: Page) -> Self {
+        // Production mode only enabled if BB_PROD=true is explicitly set
+        let production_mode = std::env::var("BB_PROD")
+            .map(|v| v == "true")
+            .unwrap_or(false);
+
         Self {
             current_page: starting_page,
             is_root,
             preview_mode: !is_root,
+            production_mode,
             disclaimer_format_accepted: false,
             disclaimer_unfree_accepted: false,
             disclaimer_surveillance_accepted: false,
@@ -600,22 +609,38 @@ impl InstallerState {
         if digit_count > 1 {
             return Some("Must have no more than 1 number");
         }
-        if username.chars().filter_map(|c| c.to_digit(10)).any(|d| d < 8) {
+        if username
+            .chars()
+            .filter_map(|c| c.to_digit(10))
+            .any(|d| d < 8)
+        {
             return Some("Number looks weak, must be larger than 7");
         }
-        if username.chars().last().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+        if username
+            .chars()
+            .last()
+            .map(|c| c.is_ascii_digit())
+            .unwrap_or(false)
+        {
             return Some("Your number cannot be at the end, thats just too predictable..");
         }
         if username.to_lowercase().contains("test") {
             return Some("Username contains 'test', please choose a different username");
         }
-        if username.chars().filter(|c| c.is_alphabetic()).all(|c| c.is_uppercase()) {
+        if username
+            .chars()
+            .filter(|c| c.is_alphabetic())
+            .all(|c| c.is_uppercase())
+        {
             return Some("All letters are uppercase, are you angry over something?");
         }
         if username.chars().any(|c| c.is_uppercase()) {
             return Some("Username cannot contain uppercase letters");
         }
-        let special_char_count = username.chars().filter(|c| !c.is_ascii_alphabetic() && !c.is_ascii_digit()).count();
+        let special_char_count = username
+            .chars()
+            .filter(|c| !c.is_ascii_alphabetic() && !c.is_ascii_digit())
+            .count();
         if special_char_count > 0 {
             return Some("This is not a password, remove those special characters...");
         }

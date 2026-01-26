@@ -131,8 +131,17 @@ fn run_command(
     cmd: &str,
     args: &[&str],
     progress: &Arc<Mutex<InstallProgress>>,
+    production_mode: bool,
 ) -> Result<(), String> {
     log_message(progress, &format!("$ {} {}", cmd, args.join(" ")));
+
+    if !production_mode {
+        log_message(
+            progress,
+            "  [DRY-RUN] Command not executed (BB_PROD != true)",
+        );
+        return Ok(());
+    }
 
     let mut child = Command::new(cmd)
         .args(args)
@@ -162,6 +171,51 @@ fn run_command(
     }
 
     Ok(())
+}
+
+fn write_file(
+    path: &str,
+    content: &str,
+    progress: &Arc<Mutex<InstallProgress>>,
+    production_mode: bool,
+) -> Result<(), String> {
+    log_message(progress, &format!("Writing file: {}", path));
+
+    // Always log the content preview
+    let preview: String = content.lines().take(20).collect::<Vec<_>>().join("\n");
+    log_message(progress, "--- File content preview ---");
+    for line in preview.lines() {
+        log_message(progress, &format!("  {}", line));
+    }
+    if content.lines().count() > 20 {
+        log_message(progress, "  ... (truncated)");
+    }
+    log_message(progress, "--- End preview ---");
+
+    if !production_mode {
+        log_message(progress, "  [DRY-RUN] File not written (BB_PROD != true)");
+        return Ok(());
+    }
+
+    fs::write(path, content).map_err(|e| format!("Failed to write {}: {}", path, e))
+}
+
+fn create_dir(
+    path: &str,
+    progress: &Arc<Mutex<InstallProgress>>,
+    production_mode: bool,
+) -> Result<(), String> {
+    log_message(progress, &format!("Creating directory: {}", path));
+
+    if !production_mode {
+        log_message(
+            progress,
+            "  [DRY-RUN] Directory not created (BB_PROD != true)",
+        );
+        return Ok(());
+    }
+
+    fs::create_dir_all(path).map_err(|e| format!("Failed to create {}: {}", path, e))
 }
 
 pub fn generate_installer_nix(state: &InstallerState) -> String {
@@ -216,9 +270,16 @@ pub fn start_installation(state: &InstallerState) {
     let progress = Arc::clone(&state.install_progress);
     let flake_path = state.flake_path.clone();
     let installer_nix_content = generate_installer_nix(state);
+    let production_mode = state.production_mode;
 
     thread::spawn(move || {
-        install_system(&disk, &flake_path, &installer_nix_content, &progress);
+        install_system(
+            &disk,
+            &flake_path,
+            &installer_nix_content,
+            &progress,
+            production_mode,
+        );
     });
 }
 
@@ -227,8 +288,15 @@ fn install_system(
     flake_path: &str,
     installer_nix_content: &str,
     progress: &Arc<Mutex<InstallProgress>>,
+    production_mode: bool,
 ) {
     log_message(progress, "=== BigBother Installation Starting ===");
+    if !production_mode {
+        log_message(progress, "");
+        log_message(progress, "*** DRY-RUN MODE (BB_PROD != true) ***");
+        log_message(progress, "*** No actual changes will be made ***");
+        log_message(progress, "");
+    }
     log_message(
         progress,
         &format!("Target device: {} ({})", disk.path, disk.size_human()),
@@ -239,7 +307,7 @@ fn install_system(
     set_status(progress, InstallStatus::Partitioning);
     log_message(progress, "Creating partition table...");
 
-    if let Err(e) = partition_disk(&disk.path, progress) {
+    if let Err(e) = partition_disk(&disk.path, progress, production_mode) {
         set_error(progress, &format!("Partitioning failed: {}", e));
         return;
     }
@@ -258,12 +326,22 @@ fn install_system(
         (efi_part, root_part)
     };
 
-    if let Err(e) = run_command("mkfs.fat", &["-F", "32", "-n", "BOOT", &efi_part], progress) {
+    if let Err(e) = run_command(
+        "mkfs.fat",
+        &["-F", "32", "-n", "BOOT", &efi_part],
+        progress,
+        production_mode,
+    ) {
         set_error(progress, &format!("Failed to format EFI partition: {}", e));
         return;
     }
 
-    if let Err(e) = run_command("mkfs.ext4", &["-L", "nixos", "-F", &root_part], progress) {
+    if let Err(e) = run_command(
+        "mkfs.ext4",
+        &["-L", "nixos", "-F", &root_part],
+        progress,
+        production_mode,
+    ) {
         set_error(progress, &format!("Failed to format root partition: {}", e));
         return;
     }
@@ -272,18 +350,23 @@ fn install_system(
     set_status(progress, InstallStatus::Mounting);
     log_message(progress, "Mounting filesystems...");
 
-    if let Err(e) = run_command("mount", &[&root_part, "/mnt"], progress) {
+    if let Err(e) = run_command("mount", &[&root_part, "/mnt"], progress, production_mode) {
         set_error(progress, &format!("Failed to mount root: {}", e));
         return;
     }
 
     // Create and mount boot directory
-    if let Err(e) = fs::create_dir_all("/mnt/boot") {
+    if let Err(e) = create_dir("/mnt/boot", progress, production_mode) {
         set_error(progress, &format!("Failed to create /mnt/boot: {}", e));
         return;
     }
 
-    if let Err(e) = run_command("mount", &[&efi_part, "/mnt/boot"], progress) {
+    if let Err(e) = run_command(
+        "mount",
+        &[&efi_part, "/mnt/boot"],
+        progress,
+        production_mode,
+    ) {
         set_error(progress, &format!("Failed to mount boot: {}", e));
         return;
     }
@@ -293,7 +376,7 @@ fn install_system(
     log_message(progress, "Deploying BigBother configuration...");
 
     let dest_flake = "/mnt/etc/nixos";
-    if let Err(e) = fs::create_dir_all(dest_flake) {
+    if let Err(e) = create_dir(dest_flake, progress, production_mode) {
         set_error(progress, &format!("Failed to create {}: {}", dest_flake, e));
         return;
     }
@@ -302,23 +385,44 @@ fn install_system(
         "cp",
         &["-r", &format!("{}/.", flake_path), dest_flake],
         progress,
+        production_mode,
     ) {
         set_error(progress, &format!("Failed to copy flake: {}", e));
         return;
     }
 
-    // Step 5: Generate installer.nix
+    // Step 5: Generate hardware configuration
     set_status(progress, InstallStatus::GeneratingConfig);
+    log_message(progress, "Generating hardware configuration...");
+
+    if let Err(e) = run_command(
+        "nixos-generate-config",
+        &["--root", "/mnt", "--no-filesystems"],
+        progress,
+        production_mode,
+    ) {
+        set_error(
+            progress,
+            &format!("Failed to generate hardware config: {}", e),
+        );
+        return;
+    }
+
+    // Step 6: Generate installer.nix with user configuration
     log_message(progress, "Generating citizen configuration...");
 
     let installer_path = format!("{}/installer.nix", dest_flake);
-    if let Err(e) = fs::write(&installer_path, installer_nix_content) {
+    if let Err(e) = write_file(
+        &installer_path,
+        installer_nix_content,
+        progress,
+        production_mode,
+    ) {
         set_error(progress, &format!("Failed to write installer.nix: {}", e));
         return;
     }
-    log_message(progress, &format!("Written: {}", installer_path));
 
-    // Step 6: Run nixos-install
+    // Step 7: Run nixos-install
     set_status(progress, InstallStatus::RunningNixosInstall);
     log_message(progress, "");
     log_message(progress, "=== Running nixos-install ===");
@@ -338,6 +442,7 @@ fn install_system(
             "--no-root-passwd",
         ],
         progress,
+        production_mode,
     );
 
     if let Err(e) = install_result {
@@ -345,25 +450,38 @@ fn install_system(
         return;
     }
 
-    // Step 7: Finalize
+    // Step 8: Finalize
     set_status(progress, InstallStatus::Finalizing);
     log_message(progress, "");
     log_message(progress, "Finalizing installation...");
 
     // Unmount
-    let _ = run_command("umount", &["-R", "/mnt"], progress);
+    let _ = run_command("umount", &["-R", "/mnt"], progress, production_mode);
 
     set_status(progress, InstallStatus::Complete);
     log_message(progress, "");
     log_message(progress, "=== Installation Complete ===");
-    log_message(progress, "BigBother welcomes you, citizen.");
-    log_message(
-        progress,
-        "Please reboot to begin your new life under our watchful care.",
-    );
+    if !production_mode {
+        log_message(progress, "");
+        log_message(progress, "*** DRY-RUN completed successfully ***");
+        log_message(
+            progress,
+            "*** Set BB_PROD=true to perform actual installation ***",
+        );
+    } else {
+        log_message(progress, "BigBother welcomes you, citizen.");
+        log_message(
+            progress,
+            "Please reboot to begin your new life under our watchful care.",
+        );
+    }
 }
 
-fn partition_disk(device: &str, progress: &Arc<Mutex<InstallProgress>>) -> Result<(), String> {
+fn partition_disk(
+    device: &str,
+    progress: &Arc<Mutex<InstallProgress>>,
+    production_mode: bool,
+) -> Result<(), String> {
     // Create GPT partition table with:
     // - 512MB EFI System Partition
     // - Rest as Linux root
@@ -371,26 +489,42 @@ fn partition_disk(device: &str, progress: &Arc<Mutex<InstallProgress>>) -> Resul
     log_message(progress, "Creating GPT partition table...");
 
     // Use parted for partitioning
-    run_command("parted", &["-s", device, "mklabel", "gpt"], progress)?;
+    run_command(
+        "parted",
+        &["-s", device, "mklabel", "gpt"],
+        progress,
+        production_mode,
+    )?;
 
     log_message(progress, "Creating EFI partition (512MB)...");
     run_command(
         "parted",
         &["-s", device, "mkpart", "ESP", "fat32", "1MiB", "513MiB"],
         progress,
+        production_mode,
     )?;
-    run_command("parted", &["-s", device, "set", "1", "esp", "on"], progress)?;
+    run_command(
+        "parted",
+        &["-s", device, "set", "1", "esp", "on"],
+        progress,
+        production_mode,
+    )?;
 
     log_message(progress, "Creating root partition...");
     run_command(
         "parted",
         &["-s", device, "mkpart", "nixos", "ext4", "513MiB", "100%"],
         progress,
+        production_mode,
     )?;
 
     // Wait for partition devices to appear
     log_message(progress, "Waiting for partition devices...");
-    std::thread::sleep(std::time::Duration::from_secs(2));
+    if production_mode {
+        std::thread::sleep(std::time::Duration::from_secs(2));
+    } else {
+        log_message(progress, "  [DRY-RUN] Would wait 2 seconds for devices");
+    }
 
     Ok(())
 }

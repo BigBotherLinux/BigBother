@@ -1,4 +1,5 @@
 mod complete;
+mod disclaimer;
 mod disk_selection;
 mod features;
 mod hostname;
@@ -8,7 +9,6 @@ mod password_setup;
 mod summary;
 mod terms;
 mod timezone;
-mod disclaimer;
 mod user_setup;
 mod welcome;
 

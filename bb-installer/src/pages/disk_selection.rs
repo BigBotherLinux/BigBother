@@ -8,6 +8,10 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         ui.label(theme::muted_text(
             "Select a device for BigBother deployment",
         ));
+        ui.add_space(5.0);
+        ui.label(theme::muted_text(
+            "We didnt really bother implementing partitioning or encryption, so you just have to format the entire thing.",
+        ));
     });
 
     ui.add_space(20.0);
