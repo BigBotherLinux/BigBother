@@ -14,9 +14,8 @@ mod welcome;
 
 use crate::{
     install::start_installation,
-    state::{InstallStatus, InstallerState, Page},
+    state::{InstallerState, Page},
 };
-use std::sync::Arc;
 
 pub fn render_page(ui: &mut eframe::egui::Ui, state: &mut InstallerState) {
     match state.current_page {
@@ -37,48 +36,7 @@ pub fn render_page(ui: &mut eframe::egui::Ui, state: &mut InstallerState) {
 }
 
 pub fn start_install_if_ready(state: &mut InstallerState) {
-    if state.preview_mode {
-        let progress = Arc::clone(&state.install_progress);
-        std::thread::spawn(move || {
-            simulate_installation(progress);
-        });
-    } else {
-        start_installation(state);
-    }
-}
-
-fn simulate_installation(progress: Arc<std::sync::Mutex<crate::state::InstallProgress>>) {
-    let steps = [
-        (
-            InstallStatus::Partitioning,
-            "Simulating partition creation...",
-        ),
-        (
-            InstallStatus::Formatting,
-            "Simulating filesystem formatting...",
-        ),
-        (InstallStatus::Mounting, "Simulating mount operations..."),
-        (
-            InstallStatus::CopyingFlake,
-            "Simulating flake deployment...",
-        ),
-        (
-            InstallStatus::GeneratingConfig,
-            "Simulating config generation...",
-        ),
-        (
-            InstallStatus::RunningNixosInstall,
-            "Simulating nixos-install (this would take a while in real life)...",
-        ),
-        (InstallStatus::Finalizing, "Simulating finalization..."),
-        (InstallStatus::Complete, "Simulation complete!"),
-    ];
-
-    for (status, message) in steps {
-        if let Ok(mut p) = progress.lock() {
-            p.status = status;
-            p.output_log.push(format!("[PREVIEW] {}", message));
-        }
-        std::thread::sleep(std::time::Duration::from_millis(800));
-    }
+    // Always use start_installation - it will dry-run if BB_PROD != "true"
+    // This ensures we always show the actual commands that would be executed
+    start_installation(state);
 }

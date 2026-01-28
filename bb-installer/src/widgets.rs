@@ -200,7 +200,7 @@ pub fn progress_bar_surveillance(ui: &mut Ui, progress: f32, glitchy: bool) -> R
 
         // Calculate progress with optional glitch
         let displayed_progress = if glitchy {
-            let glitch = ((time * 2.0).sin() * 0.05) as f32;
+            let glitch = ((time * 0.1).sin() * 0.05) as f32;
             (progress + glitch).clamp(0.0, 1.0)
         } else {
             progress.clamp(0.0, 1.0)
@@ -212,16 +212,6 @@ pub fn progress_bar_surveillance(ui: &mut Ui, progress: f32, glitchy: bool) -> R
             Vec2::new(rect.width() * displayed_progress, rect.height()),
         );
         painter.rect_filled(progress_rect, 4.0, ACCENT_RED);
-
-        // Scanning line effect
-        let scan_x = rect.min.x + (((time * 0.5) % 1.0) as f32 * rect.width());
-        if scan_x < progress_rect.max.x {
-            painter.vline(
-                scan_x,
-                rect.y_range(),
-                Stroke::new(2.0, Color32::from_white_alpha(100)),
-            );
-        }
 
         // Percentage text
         let text = format!("{:.0}%", displayed_progress * 100.0);
@@ -265,7 +255,7 @@ pub fn disk_card(ui: &mut Ui, name: &str, size: &str, model: &str, selected: boo
             Stroke::new(1.0, Color32::from_rgb(50, 50, 70))
         };
 
-        painter.rect(rect, 6.0, bg_color, stroke);
+        painter.rect(rect, egui::CornerRadius::same(6), bg_color, stroke, egui::StrokeKind::Outside);
 
         // Disk icon area
         let icon_rect = Rect::from_min_size(rect.min + Vec2::new(15.0, 15.0), Vec2::splat(40.0));
@@ -465,11 +455,11 @@ pub fn info_row(ui: &mut Ui, label: &str, value: &str) {
 }
 
 pub fn warning_banner(ui: &mut Ui, text: &str) {
-    egui::Frame::none()
+    egui::Frame::new()
         .fill(Color32::from_rgb(60, 50, 30))
         .stroke(Stroke::new(1.0, Color32::from_rgb(150, 130, 50)))
-        .rounding(4.0)
-        .inner_margin(egui::Margin::same(12.0))
+        .corner_radius(4)
+        .inner_margin(egui::Margin::same(12))
         .show(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.label("\u{26A0}");
@@ -479,11 +469,11 @@ pub fn warning_banner(ui: &mut Ui, text: &str) {
 }
 
 pub fn preview_mode_banner(ui: &mut Ui) {
-    egui::Frame::none()
+    egui::Frame::new()
         .fill(Color32::from_rgb(40, 50, 60))
         .stroke(Stroke::new(1.0, Color32::from_rgb(80, 120, 160)))
-        .rounding(4.0)
-        .inner_margin(egui::Margin::same(8.0))
+        .corner_radius(4)
+        .inner_margin(egui::Margin::same(8))
         .show(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.label(

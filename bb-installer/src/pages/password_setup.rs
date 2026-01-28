@@ -261,7 +261,7 @@ fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
         // .fill(Color32::from_rgb(35, 35, 45))
         // .stroke(egui::Stroke::new(1.0, Color32::from_rgb(80, 80, 100)))
         // .rounding(6.0)
-        .inner_margin(egui::Margin::same(15.0))
+        .inner_margin(egui::Margin::same(15))
         .show(ui, |ui| {
             ui.label("Select your philosophical approach:");
             ui.add_space(8.0);
@@ -276,7 +276,7 @@ fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
                 PasswordPhilosophy::Kafkaesque,
             ] {
                 let is_selected = state.password_theater.password_philosophy == philosophy;
-                let response = egui::Frame::none()
+                let response = egui::Frame::new()
                     .fill(if is_selected {
                         Color32::from_rgb(50, 40, 50)
                     } else {
@@ -287,8 +287,8 @@ fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
                     } else {
                         egui::Stroke::new(1.0, Color32::from_rgb(50, 50, 60))
                     })
-                    .rounding(4.0)
-                    .inner_margin(egui::Margin::same(8.0))
+                    .corner_radius(4)
+                    .inner_margin(egui::Margin::same(8))
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
                             ui.radio_value(
@@ -324,7 +324,7 @@ fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
 
 fn render_memorable_source_step(ui: &mut egui::Ui, state: &mut InstallerState) {
     egui::Frame::none()
-        .inner_margin(egui::Margin::same(15.0))
+        .inner_margin(egui::Margin::same(15))
         .show(ui, |ui| {
             ui.label("What should your password remind you of?");
             ui.add_space(8.0);
@@ -336,7 +336,7 @@ fn render_memorable_source_step(ui: &mut egui::Ui, state: &mut InstallerState) {
                 MemorableSource::ForgottenDreams,
             ] {
                 let is_selected = state.password_theater.memorable_source == source;
-                let response = egui::Frame::none()
+                let response = egui::Frame::new()
                     .fill(if is_selected {
                         Color32::from_rgb(50, 40, 50)
                     } else {
@@ -347,8 +347,8 @@ fn render_memorable_source_step(ui: &mut egui::Ui, state: &mut InstallerState) {
                     } else {
                         egui::Stroke::new(1.0, Color32::from_rgb(50, 50, 60))
                     })
-                    .rounding(4.0)
-                    .inner_margin(egui::Margin::same(8.0))
+                    .corner_radius(4)
+                    .inner_margin(egui::Margin::same(8))
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
                             ui.radio_value(
@@ -387,8 +387,8 @@ fn render_memorable_source_step(ui: &mut egui::Ui, state: &mut InstallerState) {
 }
 
 fn render_final_reveal(ui: &mut egui::Ui, state: &mut InstallerState) {
-    egui::Frame::none()
-        .inner_margin(egui::Margin::same(15.0))
+    egui::Frame::new()
+        .inner_margin(egui::Margin::same(15))
         .show(ui, |ui| {
             ui.label("Your password has been generated:");
             ui.add_space(15.0);

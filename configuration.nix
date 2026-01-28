@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   inputs,
   outputs,
@@ -9,6 +10,10 @@
   imports = [
     ./modules
     inputs.home-manager.nixosModules.home-manager
+  ] ++ lib.optionals (builtins.pathExists ./hardware-configuration.nix) [
+    ./hardware-configuration.nix
+  ] ++ lib.optionals (builtins.pathExists ./installer.nix) [
+    ./installer.nix
   ];
 
   bigbother = {
@@ -75,8 +80,8 @@
     desktopManager.plasma6.enable = true;
     displayManager = {
       sddm.enable = true;
-      # autoLogin.enable = true;
-      # autoLogin.user = "test";
+      # autoLogin.enable = lib.mkDefault true;
+      # autoLogin.user = lib.mkDefault "test";
     };
   };
 
@@ -93,8 +98,8 @@
     '';
   };
 
-  networking.hostName = "bigbother";
+  networking.hostName = lib.mkDefault "bigbother";
 
-  services.xserver.xkb.layout = "no";
+  services.xserver.xkb.layout = lib.mkDefault "no";
   system.stateVersion = "23.05";
 }

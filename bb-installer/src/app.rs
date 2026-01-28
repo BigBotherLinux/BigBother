@@ -35,9 +35,9 @@ impl eframe::App for BigBotherInstaller {
         // Top panel with title and eye
         egui::TopBottomPanel::top("header")
             .frame(
-                egui::Frame::none()
+                egui::Frame::new()
                     .fill(BG_PANEL)
-                    .inner_margin(egui::Margin::symmetric(20.0, 10.0)),
+                    .inner_margin(egui::Margin::symmetric(20, 10)),
             )
             .show(ctx, |ui| {
                 ui.horizontal(|ui| {
@@ -87,9 +87,9 @@ impl eframe::App for BigBotherInstaller {
         // Bottom panel with navigation
         egui::TopBottomPanel::bottom("navigation")
             .frame(
-                egui::Frame::none()
+                egui::Frame::new()
                     .fill(BG_PANEL)
-                    .inner_margin(egui::Margin::symmetric(20.0, 15.0)),
+                    .inner_margin(egui::Margin::symmetric(20, 15)),
             )
             .show(ctx, |ui| {
                 ui.horizontal(|ui| {
@@ -176,9 +176,9 @@ impl eframe::App for BigBotherInstaller {
         // Main content panel
         egui::CentralPanel::default()
             .frame(
-                egui::Frame::none()
+                egui::Frame::new()
                     .fill(BG_DARK)
-                    .inner_margin(egui::Margin::symmetric(40.0, 30.0)),
+                    .inner_margin(egui::Margin::symmetric(40, 30)),
             )
             .show(ctx, |ui| {
                 // Terms page handles its own scrolling

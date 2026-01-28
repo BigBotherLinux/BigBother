@@ -1,6 +1,6 @@
 //! BigBother visual theme - Orwellian surveillance aesthetic
 
-use eframe::egui::{self, Color32, FontFamily, FontId, Rounding, Stroke, TextStyle, Visuals};
+use eframe::egui::{self, Color32, CornerRadius, FontFamily, FontId, Rounding, Stroke, TextStyle, Visuals};
 
 // BigBother color palette
 pub const BG_DARK: Color32 = Color32::from_rgb(15, 15, 20);
@@ -60,7 +60,7 @@ pub fn configure_style(ctx: &egui::Context) {
                 bg_fill: BG_PANEL,
                 weak_bg_fill: BG_PANEL,
                 bg_stroke: Stroke::new(1.0, Color32::from_rgb(50, 50, 70)),
-                rounding: Rounding::same(4.0),
+                corner_radius: 4.into(),
                 fg_stroke: Stroke::new(1.0, TEXT_PRIMARY),
                 expansion: 0.0,
             },
@@ -68,7 +68,7 @@ pub fn configure_style(ctx: &egui::Context) {
                 bg_fill: BG_WIDGET,
                 weak_bg_fill: BG_WIDGET,
                 bg_stroke: Stroke::new(1.0, Color32::from_rgb(60, 60, 80)),
-                rounding: Rounding::same(4.0),
+                corner_radius: 4.into(),
                 fg_stroke: Stroke::new(1.0, TEXT_PRIMARY),
                 expansion: 0.0,
             },
@@ -76,7 +76,7 @@ pub fn configure_style(ctx: &egui::Context) {
                 bg_fill: Color32::from_rgb(50, 50, 70),
                 weak_bg_fill: Color32::from_rgb(50, 50, 70),
                 bg_stroke: Stroke::new(1.0, ACCENT_RED),
-                rounding: Rounding::same(4.0),
+                corner_radius: 4.into(),
                 fg_stroke: Stroke::new(1.0, TEXT_PRIMARY),
                 expansion: 2.0,
             },
@@ -84,7 +84,7 @@ pub fn configure_style(ctx: &egui::Context) {
                 bg_fill: Color32::from_rgb(60, 60, 85),
                 weak_bg_fill: Color32::from_rgb(60, 60, 85),
                 bg_stroke: Stroke::new(2.0, ACCENT_RED),
-                rounding: Rounding::same(4.0),
+                corner_radius: 4.into(),
                 fg_stroke: Stroke::new(1.0, Color32::WHITE),
                 expansion: 2.0,
             },
@@ -92,7 +92,7 @@ pub fn configure_style(ctx: &egui::Context) {
                 bg_fill: BG_WIDGET,
                 weak_bg_fill: BG_WIDGET,
                 bg_stroke: Stroke::new(1.0, ACCENT_RED),
-                rounding: Rounding::same(4.0),
+                corner_radius: 4.into(),
                 fg_stroke: Stroke::new(1.0, TEXT_PRIMARY),
                 expansion: 0.0,
             },
@@ -107,20 +107,20 @@ pub fn configure_style(ctx: &egui::Context) {
         code_bg_color: BG_DARK,
         warn_fg_color: WARNING_YELLOW,
         error_fg_color: ACCENT_RED,
-        window_rounding: Rounding::same(8.0),
+        window_corner_radius: CornerRadius::same(8),
         window_shadow: egui::epaint::Shadow {
-            offset: [0.0, 4.0].into(),
-            blur: 15.0,
-            spread: 0.0,
+            offset: [0, 4].into(),
+            blur: 15,
+            spread: 0,
             color: Color32::from_black_alpha(100),
         },
         window_fill: BG_PANEL,
         window_stroke: Stroke::new(1.0, Color32::from_rgb(50, 50, 70)),
         panel_fill: BG_DARK,
         popup_shadow: egui::epaint::Shadow {
-            offset: [0.0, 2.0].into(),
-            blur: 8.0,
-            spread: 0.0,
+            offset: [0, 2].into(),
+            blur: 8,
+            spread: 0,
             color: Color32::from_black_alpha(80),
         },
         ..Visuals::dark()
@@ -128,7 +128,7 @@ pub fn configure_style(ctx: &egui::Context) {
 
     style.spacing.item_spacing = egui::vec2(10.0, 8.0);
     style.spacing.button_padding = egui::vec2(16.0, 8.0);
-    style.spacing.window_margin = egui::Margin::same(20.0);
+    style.spacing.window_margin = egui::Margin::same(20);
 
     ctx.set_style(style);
 }

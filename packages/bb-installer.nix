@@ -47,6 +47,21 @@ rustPlatform.buildRustPackage rec {
   ];
 
   postInstall = ''
+    # Copy all .nix files from the repo for installation
+    mkdir -p $out/share/bb-flake
+    cd ${../.}
+    find . -name "*.nix" -type f ! -path "*/target/*" ! -path "*/.git/*" ! -path "*/result/*" -exec sh -c '
+      rel_path="$1"
+      dest_dir="$out/share/bb-flake/$(dirname "$rel_path")"
+      mkdir -p "$dest_dir"
+      cp "$rel_path" "$dest_dir/"
+    ' _ {} \;
+
+    # Copy flake.lock if it exists
+    if [ -f flake.lock ]; then
+      cp flake.lock $out/share/bb-flake/
+    fi
+
     wrapProgram $out/bin/bb-installer \
       --prefix PATH : ${lib.makeBinPath [
         parted
@@ -65,7 +80,8 @@ rustPlatform.buildRustPackage rec {
         xorg.libXrandr
         xorg.libXi
         xorg.libxcb
-      ]}
+      ]} \
+      --set BB_FLAKE_PATH $out/share/bb-flake
   '';
 
   meta = with lib; {
