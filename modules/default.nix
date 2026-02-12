@@ -8,5 +8,7 @@
     ./sddm.nix
     ./theme.nix
     ./pixel-peep.nix
+    ./incel.nix
+    ./adboost.nix
   ];
 }
