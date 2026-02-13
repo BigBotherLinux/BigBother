@@ -18,11 +18,12 @@
 
   bigbother = {
     osInfo.enable = true; # version numbers in lsb-release
-    bb-mouse-drift.enable = true;
-    accidental-boot-protection.enable = true;
+    # bb-mouse-drift.enable = true;
+    # accidental-boot-protection.enable = true;
     sudo.enable = true;
     sddm.enable = true;
     theme.enable = true;
+    bb-bp.enable = true;
   };
 
   formatConfigs.vm =
@@ -75,6 +76,11 @@
   };
 
   users.groups.nixos = { };
+  users.users.nixos = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" "networkmanager" "video" ];
+    initialPassword = "bothered";
+  };
 
   services = {
     desktopManager.plasma6.enable = true;
@@ -99,6 +105,20 @@
   };
 
   networking.hostName = lib.mkDefault "bigbother";
+
+  # Default filesystems (overridden by hardware-configuration.nix during install)
+  fileSystems."/" = lib.mkDefault {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+  fileSystems."/boot" = lib.mkDefault {
+    device = "/dev/disk/by-label/boot";
+    fsType = "vfat";
+  };
+
+  # Default boot loader (overridden by hardware-configuration.nix during install)
+  boot.loader.systemd-boot.enable = lib.mkDefault true;
+  boot.loader.efi.canTouchEfiVariables = lib.mkDefault true;
 
   services.xserver.xkb.layout = lib.mkDefault "no";
   system.stateVersion = "23.05";

@@ -9,23 +9,17 @@
   libGL,
   wayland,
   xorg,
-  parted,
-  util-linux,
-  e2fsprogs,
-  dosfstools,
-  nixos-install-tools,
-  mkpasswd,
   ...
 }:
 
 rustPlatform.buildRustPackage rec {
-  pname = "bb-installer";
+  pname = "bb-bp";
   version = "0.1.0";
 
-  src = ../bb-installer;
+  src = ../bb-bp;
 
   cargoLock = {
-    lockFile = ../bb-installer/Cargo.lock;
+    lockFile = ../bb-bp/Cargo.lock;
   };
 
   nativeBuildInputs = [
@@ -47,16 +41,7 @@ rustPlatform.buildRustPackage rec {
   ];
 
   postInstall = ''
-    # Copy all .nix files from the repo for installation
-    wrapProgram $out/bin/bb-installer \
-      --prefix PATH : ${lib.makeBinPath [
-        parted
-        util-linux
-        e2fsprogs
-        dosfstools
-        nixos-install-tools
-        mkpasswd
-      ]} \
+    wrapProgram $out/bin/bb-bp \
       --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [
         libGL
         libxkbcommon
@@ -66,15 +51,15 @@ rustPlatform.buildRustPackage rec {
         xorg.libXrandr
         xorg.libXi
         xorg.libxcb
-      ]} \
+      ]}
   '';
 
   meta = with lib; {
-    description = "BigBother NixOS Installer - Your Friendly Surveillance-Themed Setup Wizard";
+    description = "BigBother Pre-Login Splash Screen";
     homepage = "https://github.com/BigBotherLinux/BigBother";
     license = licenses.mit;
     maintainers = [ ];
     platforms = platforms.linux;
-    mainProgram = "bb-installer";
+    mainProgram = "bb-bp";
   };
 }

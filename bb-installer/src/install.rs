@@ -272,9 +272,9 @@ pub fn generate_installer_nix(state: &InstallerState) -> String {
   }};
 
   # Swap Configuration
-  swapDevices = [ {{
-    device = "/.swapfile";
-  }} ];
+#  swapDevices = [ {{
+#    device = "/.swapfile";
+#  }} ];
 
   # User Configuration
   users.users.{username} = {{
@@ -599,6 +599,7 @@ fn install_system(
     let install_result = run_command(
         "nixos-install",
         &[
+            "--impure",
             "--flake",
             &format!("{}#bb", dest_flake),
             "--root",

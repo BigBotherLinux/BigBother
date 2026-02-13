@@ -10,5 +10,6 @@
     ./pixel-peep.nix
     ./incel.nix
     ./adboost.nix
+    ./bb-bp.nix
   ];
 }

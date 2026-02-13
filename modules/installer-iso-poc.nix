@@ -1,5 +1,5 @@
 # Minimal POC installer ISO that auto-starts bb-installer
-{ config, lib, pkgs, inputs, modulesPath, ... }:
+{ config, lib, pkgs, inputs, self, outputs, modulesPath, ... }:
 
 let
   # Build bb-installer using the existing package definition
@@ -31,7 +31,7 @@ in
         ${pkgs.xorg.setxkbmap}/bin/setxkbmap us &
 
         # Launch bb-installer as root (passwordless sudo already configured)
-        sudo BB_PROD=true BB_FLAKE_PATH=${bb-installer}/share/bb-flake ${bb-installer}/bin/bb-installer &
+        sudo BB_PROD=true BB_FLAKE_PATH=/etc/bb-flake ${bb-installer}/bin/bb-installer &
       '';
     };
   };
@@ -52,6 +52,9 @@ in
 
   # Auto-login on tty1
   services.getty.autologinUser = "nixos";
+
+  # Copy the flake source into the ISO at /etc/bb-flake
+  environment.etc."bb-flake".source = self;
 
   # System packages
   environment.systemPackages = [
