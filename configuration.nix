@@ -32,8 +32,13 @@
     {
       virtualisation = {
         cores = 4;
-        memorySize = 6000;
+        memorySize = 8000;
         diskImage = "/dev/shm/${config.system.name}.qcow2";
+        qemu.options = [
+          "-vga none"
+          "-device virtio-vga-gl"
+          "-display gtk,gl=on"
+        ];
       };
     };
 

@@ -37,6 +37,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     crane.url = "github:ipetkov/crane";
+    bun2nix.url = "github:nix-community/bun2nix";
+  bun2nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -47,6 +49,7 @@
       rust-overlay,
       nixos-generators,
       crane,
+      bun2nix,
       ...
     }@inputs:
     let
@@ -261,6 +264,7 @@
               cargo-edit
               qemu
               OVMF
+              just
             ];
 
             # Set library paths for GUI development
@@ -313,7 +317,7 @@
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
           legacyPkgs = nixpkgs.legacyPackages.${system};
         in
-        (import ./packages legacyPkgs) // {
+        (import ./packages { pkgs = legacyPkgs; bun2nix = bun2nix.packages.${system}.default; }) // {
           # bb-installer package (crane-built)
           bb-installer = craneLib.buildPackage (commonArgs // {
             inherit cargoArtifacts;

@@ -9,6 +9,7 @@
     ./theme.nix
     ./pixel-peep.nix
     ./incel.nix
+    ./werd.nix
     ./adboost.nix
     ./bb-bp.nix
   ];

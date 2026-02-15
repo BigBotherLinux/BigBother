@@ -1,28 +1,68 @@
 {
   lib,
-  appimageTools,
-  fetchurl,
+  stdenv,
+  bun2nix,
+  fetchFromGitHub,
+  electron,
+  makeWrapper,
+  makeDesktopItem,
+  copyDesktopItems,
 }:
-let
+stdenv.mkDerivation rec {
   pname = "incel";
   version = "1.1.0";
 
-  src = fetchurl {
-    url = "https://github.com/kluzzebass/incel/releases/download/v${version}/Incel-${version}.AppImage";
-    hash = "sha256-6/rRHNVgUxBGcO4YNY67KFKlammu2NT2i/90znP+cOc=";
+  src = fetchFromGitHub {
+    owner = "kluzzebass";
+    repo = "incel";
+    rev = "v${version}";
+    hash = "sha256-8rSN5XNydSm7Tf5vB8vz9nfmgtcF+sM0qOvFxuwPsJU=";
   };
 
-  appimageContents = appimageTools.extractType2 { inherit pname version src; };
-in
-appimageTools.wrapType2 {
-  inherit pname version src;
+  nativeBuildInputs = [
+    bun2nix.hook
+    makeWrapper
+    copyDesktopItems
+  ];
 
-  extraInstallCommands = ''
-    install -m 444 -D ${appimageContents}/incel.desktop $out/share/applications/incel.desktop
-    install -m 444 -D ${appimageContents}/incel.png $out/share/icons/hicolor/512x512/apps/incel.png
-    substituteInPlace $out/share/applications/incel.desktop \
-      --replace-fail 'Exec=AppRun' 'Exec=${pname}'
+  bunDeps = bun2nix.fetchBunDeps {
+    bunNix = ./incel-bun.nix;
+  };
+
+  # electron-vite build compiles main/preload/renderer
+  buildPhase = ''
+    runHook preBuild
+    bun run build
+    runHook postBuild
   '';
+
+  installPhase = ''
+    runHook preInstall
+
+    mkdir -p $out/lib/incel
+    cp -r dist $out/lib/incel/
+    cp -r node_modules $out/lib/incel/
+    cp package.json $out/lib/incel/
+
+    mkdir -p $out/bin
+    makeWrapper ${electron}/bin/electron $out/bin/incel \
+      --add-flags "$out/lib/incel"
+
+    install -Dm644 resources/icon.png $out/share/icons/hicolor/512x512/apps/incel.png
+
+    runHook postInstall
+  '';
+
+  desktopItems = [
+    (makeDesktopItem {
+      name = "incel";
+      exec = "incel";
+      icon = "incel";
+      desktopName = "Incel";
+      comment = "The Involuntarily Single-Celled Spreadsheet";
+      categories = [ "Office" ];
+    })
+  ];
 
   meta = {
     description = "The Involuntarily Single-Celled Spreadsheet";
