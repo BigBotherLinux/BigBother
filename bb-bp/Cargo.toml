@@ -7,6 +7,7 @@ authors = ["Ministry of First Impressions"]
 
 [dependencies]
 eframe = { version = "0.33", features = ["default_fonts", "glow", "wayland", "x11"] }
+rand = "0.10"
 
 # Pin problematic dependencies to versions compatible with stable Rust
 smithay-clipboard = "=0.7.2"

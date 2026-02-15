@@ -9,7 +9,7 @@ let
 
   src = fetchurl {
     url = "https://github.com/kluzzebass/incel/releases/download/v${version}/Incel-${version}.AppImage";
-    hash = "sha256-nDCH1ZVOQBUo0FwWuBoRSzIrmTcJhCgt6/vCHIC/4KQ=";
+    hash = "sha256-6/rRHNVgUxBGcO4YNY67KFKlammu2NT2i/90znP+cOc=";
   };
 
   appimageContents = appimageTools.extractType2 { inherit pname version src; };

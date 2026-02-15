@@ -24,6 +24,7 @@
     sddm.enable = true;
     theme.enable = true;
     bb-bp.enable = true;
+    incel.enable = true;
   };
 
   formatConfigs.vm =
