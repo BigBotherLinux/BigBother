@@ -1,6 +1,6 @@
 //! BigBother visual theme - Orwellian surveillance aesthetic
 
-use eframe::egui::{self, Color32, CornerRadius, FontFamily, FontId, Rounding, Stroke, TextStyle, Visuals};
+use eframe::egui::{self, Color32, CornerRadius, FontFamily, FontId, Stroke, TextStyle, Visuals};
 
 // BigBother color palette
 pub const BG_DARK: Color32 = Color32::from_rgb(15, 15, 20);
@@ -109,7 +109,7 @@ pub fn configure_style(ctx: &egui::Context) {
         error_fg_color: ACCENT_RED,
         window_corner_radius: CornerRadius::same(8),
         window_shadow: egui::epaint::Shadow {
-            offset: [0, 4].into(),
+            offset: [0, 4],
             blur: 15,
             spread: 0,
             color: Color32::from_black_alpha(100),
@@ -118,7 +118,7 @@ pub fn configure_style(ctx: &egui::Context) {
         window_stroke: Stroke::new(1.0, Color32::from_rgb(50, 50, 70)),
         panel_fill: BG_DARK,
         popup_shadow: egui::epaint::Shadow {
-            offset: [0, 2].into(),
+            offset: [0, 2],
             blur: 8,
             spread: 0,
             color: Color32::from_black_alpha(80),

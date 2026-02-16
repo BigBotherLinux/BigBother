@@ -7,11 +7,7 @@ use eframe::egui::{self, RichText, ScrollArea};
 
 pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
-        ui.label(theme::title_text("Installation Monitor"));
-        ui.add_space(5.0);
-        ui.label(theme::muted_text(
-            "BigBother is being deployed. Please remain calm.",
-        ));
+        ui.label(theme::title_text("Installation Progress"));
     });
 
     ui.add_space(20.0);

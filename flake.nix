@@ -145,16 +145,7 @@
         specialArgs = { inherit inputs self outputs; };
         system = "x86_64-linux";
         modules = [
-          ./modules/installer-iso.nix
-        ];
-      };
-
-      # POC Installer ISO - minimal, auto-starts bb-installer
-      nixosConfigurations.bb-installer-poc = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs self outputs; };
-        system = "x86_64-linux";
-        modules = [
-          ./modules/installer-iso-poc.nix
+          ./installer-iso.nix
         ];
       };
 
@@ -213,7 +204,7 @@
             # Build ISO if -iso flag was provided without a path
             if [ "$BUILD_ISO" = true ]; then
               echo "Building installer ISO..."
-              nix build .#nixosConfigurations.bb-installer-poc.config.system.build.isoImage
+              nix build .#nixosConfigurations.bb-installer.config.system.build.isoImage
               ISO_PATH="./result/iso/bigbother-poc.iso"
             fi
 

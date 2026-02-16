@@ -590,10 +590,7 @@ fn install_system(
     set_status(progress, InstallStatus::RunningNixosInstall);
     log_message(progress, "");
     log_message(progress, "=== Running nixos-install ===");
-    log_message(
-        progress,
-        "This may take a while. BigBother is watching your progress.",
-    );
+    log_message(progress, "This will take a while...");
     log_message(progress, "");
 
     let install_result = run_command(

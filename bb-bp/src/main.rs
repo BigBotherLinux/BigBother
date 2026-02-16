@@ -119,8 +119,12 @@ impl SplashApp {
 "#,
                 },
                 Page {
-                    title: "Respiratory Compliance Check",
-                    content: "BigBother requires proof of biological function.\nComplete 3 supervised breathing cycles to proceed.",
+                    title: "Mandatory Breathing Exercise",
+                    content: r#"
+                    We value your health and well being.
+                    As an preventive measure, we require you to complete a breathing exercise to help you stay alert.
+                    Please take a deep breath in, hold for 4 seconds, and exhale slowly.
+                    "#,
                 },
             ],
         }
@@ -407,20 +411,13 @@ impl eframe::App for SplashApp {
                         }
                     });
                 }
-
-                // ESC hint
-                ui.add_space(20.0);
-                ui.label(
-                    RichText::new("Press ESC to skip (debug only)")
-                        .font(FontId::proportional(12.0))
-                        .color(Color32::from_rgb(100, 100, 100)),
-                );
             });
         });
 
         // Handle ESC key for debug/testing
-        if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
-            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-        }
+        if ctx.input(|i| i.key_pressed(egui::Key::Escape))
+            && std::env::var("DEBUG").is_ok() {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
     }
 }

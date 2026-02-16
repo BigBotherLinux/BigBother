@@ -3,7 +3,9 @@
 
 let
   # Build bb-installer using the existing package definition
-  bb-installer = pkgs.callPackage ../packages/bb-installer.nix { };
+  bb-installer = pkgs.callPackage ./packages/bb-installer.nix { };
+  bun2nix = inputs.bun2nix.packages.x86_64-linux.default;
+  bbPackages = import ./packages { inherit pkgs bun2nix; };
 in
 {
   imports = [
@@ -15,6 +17,14 @@ in
     isoBaseName = lib.mkForce "bigbother-poc";
     volumeID = lib.mkForce "BB_POC";
     squashfsCompression = lib.mkForce "zstd -Xcompression-level 3"; # Faster compression for POC
+
+    # Pre-build bun-based packages on the host and include them in the ISO's
+    # nix store. Bun requires AVX2 which QEMU's default CPU doesn't support,
+    # so these can't be built inside the VM.
+    storeContents = [
+      bbPackages.incel
+      bbPackages.werd
+    ];
   };
 
   # Use openbox as minimal window manager with auto-login
@@ -67,7 +77,7 @@ in
 
   # Networking
   networking = {
-    hostName = "bb-installer-poc";
+    hostName = "bb-installer";
     # networkmanager.enable = true;
     # wireless.enable = false;
   };

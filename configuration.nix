@@ -18,7 +18,7 @@
 
   bigbother = {
     osInfo.enable = true; # version numbers in lsb-release
-    # bb-mouse-drift.enable = true;
+    bb-mouse-drift.enable = true;
     # accidental-boot-protection.enable = true;
     sudo.enable = true;
     sddm.enable = true;

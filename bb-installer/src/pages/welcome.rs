@@ -20,11 +20,6 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         ));
     });
     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-        if ui.button("Next").clicked() {
-            state.next_page();
-        }
-
-        // Development skip button - only shown when not in production mode
         ui.add_space(10.0);
         if ui.button("Skip Installer (Dev)").clicked() {
             skip_to_defaults(state);
