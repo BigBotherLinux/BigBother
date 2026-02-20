@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   inputs,
@@ -75,18 +76,20 @@
 
   home-manager = {
     useGlobalPkgs = true;
+    useUserPackages = true;
     sharedModules = [
       inputs.plasma-manager.homeManagerModules.plasma-manager
     ];
     extraSpecialArgs = { inherit inputs; };
   };
 
-  users.groups.nixos = { };
-  users.users.nixos = {
+  users.users.${config.bigbother.primaryUser} = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "video" ];
-    initialPassword = "bothered";
+    extraGroups = [ "wheel" "networkmanager" "video" "audio" config.programs.ydotool.group ];
+    initialPassword = lib.mkDefault "bothered";
   };
+
+  home-manager.users.${config.bigbother.primaryUser} = import ./home.nix;
 
   services = {
     desktopManager.plasma6.enable = true;
@@ -99,7 +102,6 @@
 
   environment = {
     systemPackages = with pkgs; [
-      microsoft-edge
       git
       inputs.bigbother-theme.packages.${pkgs.system}.bb-kde-theme
     ];

@@ -1,6 +1,7 @@
 { ... }:
 {
   imports = [
+    ./user.nix
     ./mouse-drift.nix
     ./version.nix
     ./accidental-boot-protection.nix
