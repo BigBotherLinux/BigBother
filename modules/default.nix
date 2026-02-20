@@ -13,5 +13,6 @@
     ./werd.nix
     ./adboost.nix
     ./bb-bp.nix
+    ./bb-nag.nix
   ];
 }

@@ -11,4 +11,5 @@ in
   inherit adboost;
   edge-adboost = pkgs.callPackage ./edge-adboost.nix { inherit adboost; };
   bb-bp = pkgs.callPackage ./bb-bp.nix { };
+  bb-nag = pkgs.callPackage ./bb-nag.nix { };
 }
