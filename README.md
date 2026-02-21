@@ -1,11 +1,9 @@
 # BigBother
 ## An annoying, yet functional linux distribution
 
-**Just a hobby project**
-
 The goal of this distribution is to push the limits of an annoying user experience, while still remaining fully functional.
 
-It is based on NixOS using flakes and comes with features you would normally not find in other distributions, such as having **Microsoft Edge** as default browser and a genuinely inconvenient features.
+It is based on NixOS using flakes and comes with features you would normally not find in other distributions, such as having **Microsoft Edge** as default browser and genuinely inconvenient features.
 
 ## Why use this distro?
 
@@ -15,6 +13,7 @@ If you are still not conviced, here are some of the features in this distro:
 
 - Microsoft Edge as default browser
 - [Incel](https://github.com/kluzzebass/incel) and [Werd](https://github.com/kluzzebass/werd) preinstalled
+- [Adboost extension](https://github.com/surprisetalk/AdBoost) preloaded in Microsoft Edge
 - Default system font [only supports lowercase letters](#system-font)
 - The cursor's active click point has been [shifted](#cursor)
 - Cursor will [slowly drift](#trackpoint-drift-simulation) in a direction
@@ -26,7 +25,8 @@ If you are still not conviced, here are some of the features in this distro:
 - Nano is aliased to VIM
 
 Much more in depth details about the features are found [here](#features)
-## Features 
+
+## Full Feature List
 ⚠️ Trigger warning ⚠️ 
 
 ### Wallpaper
@@ -39,42 +39,57 @@ This is a custom menu entry in the boot menu that will be default unless somethi
 
 Failing to choose something else within 5 sec it will automatically shut down the system.
 
+A cognitive test and a mandatory breathing exercise is also included to ensure you are a concious and willing participant in using the system.
+
 ![Accidentail boot protection](images/boot-protection.png)
 
-### Productivity tools
+### The login screen
+The login screen SDDM theme is customized:
+- Will never remember your username
+- Passwords are obviously not something you should hide from someone
+- A watchful eye is will ensure you dont hide anything
+
+![Login screen](images/login-screen.png)
+
+### TrackPoint drift
+We simulate a slight drift in the mouse cursor to make it feel like the good old days using a TrackPoint.
+
+![preview trackpoint drift](images/mouse-drift-preview.gif)
+
+### "Productivity tools"
+We have some great additions for "productivity" bundled with the system. Not that we think you would do anything useful anyways..
+
 #### Incel
- - Incel is a spreadsheet application with only one cell per sheet.
- - You can read more about the project [here](https://github.com/kluzzebass/incel).
+Incel is a spreadsheet application with **exactly one** cell per sheet.
+
+You can read more about the project [here](https://github.com/kluzzebass/incel).
 
 ![Incel](images/incel-preview.png)
 
 #### Werd
- - Werd is a word processor that allows exactly one word.
- - You can read more about the project [here](https://github.com/kluzzebass/werd).
+Werd is a word processor that allows **exactly one** word.
+You can read more about the project [here](https://github.com/kluzzebass/werd).
 
 ![Werd](images/werd-preview.png)
 
-### System font
-[Underpass](https://github.com/BigBotherLinux/Underpass) is the system's default font and is forked off [Overpass](https://github.com/BigBotherLinux/Underpass).
+#### Adboost
+Adboost is a browser extension oposite to what an adblocker would do, it adds ads to websites.
+You can read more about the project [here](https://github.com/surprisetalk/AdBoost).
 
-In this font, all capital letters are replaced with lowercase letters (i.e `A = a`).
+![Adboost](images/adboost-preview.png)
 
-### Cursor
-The default cursor named "Gust" is a fork of the KDE cursor "Breeze". It is modified to have the cursor click spot on bottom right corner instead of top left. 
+### Notifications
+A notification service will pull up inspirational system messages.
 
-Old: 
+![Notification preview](images/notifications-preview.png)
 
-![old cursor](images/cursor-shift-old.png)
+### Other minor features
+- The system's default font has all capital letters replaced with lowercase letters (i.e `A = a`).
+- Sometimes prevents space key from being used, ensuring your text has that cozy, compact feel.
+- `nano` is an alias to `vim`
+- `sudo` is configured to insult you when password is incorrect
+- The default cursor is modified to have the click spot on bottom right corner ![new cursor](images/cursor-shift-new.png) instead of top left ![old cursor](images/cursor-shift-old.png)
 
-New: 
-
-![new cursor](images/cursor-shift-new.png)
-
-### Safe space
-Sometimes prevents space key from being used, ensuring your text has that cozy, compact feel.
-
-### TrackPoint drift simulation
-*TrackPoint drift simulation* gently nudges your cursor in one direction to simulate the nostalgic experience of having the TrackPoint mice stuck between one of the keys. 
 
 
 ### VM mouse containment
@@ -83,14 +98,7 @@ These edges will trigger lock screen:
 
 ![VM mouse containment](images/vm-screen-edge.png)
 
-### Customizations to the login screen
-The login screen (SDDM) is customized to never remember the username, so the user will have to type both the username and password to log in. 
-
-![Login screen](images/login-screen.png)
-
 ### Other customizations
-- `nano` is an alias to `vim`
-- `sudo` is configured to insult you when password is incorrect
 
 
 ## Getting started
