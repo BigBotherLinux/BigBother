@@ -41,7 +41,6 @@ fn render_game_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
                     .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)),
             );
         });
-        ui.label(theme::muted_text("Controls launch angle (30° - 70°)"));
 
         ui.add_space(5.0);
 
@@ -56,7 +55,6 @@ fn render_game_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
                 .custom_formatter(|v, _| format!("{:.0} days", v)),
             );
         });
-        ui.label(theme::muted_text("Controls launch velocity"));
 
         ui.add_space(5.0);
 
@@ -68,7 +66,6 @@ fn render_game_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
                     .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)),
             );
         });
-        ui.label(theme::muted_text("Controls gravitational pull"));
 
         ui.add_space(5.0);
 
@@ -83,7 +80,6 @@ fn render_game_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
                 .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)),
             );
         });
-        ui.label(theme::muted_text("Controls password ball size"));
 
         ui.add_space(5.0);
 
@@ -98,12 +94,9 @@ fn render_game_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
                 .custom_formatter(|v, _| format!("{:.0}%", v * 100.0)),
             );
         });
-        ui.label(theme::muted_text("Controls wind effect"));
     });
 
     ui.add_space(10.0);
-
-    widgets::section_header(ui, "Password Generation Chamber");
 
     render_game_area(ui, state);
 
@@ -125,12 +118,6 @@ fn render_game_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
             state.password_theater.game.reset();
         }
 
-        if state.password_theater.game.attempts > 0 {
-            ui.label(
-                RichText::new("  (Hint: entropy ~50%, memory ~180 days works well)")
-                    .color(TEXT_MUTED),
-            );
-        }
     });
 
     if state.password_theater.game.state == GameState::Flying {
@@ -390,26 +377,21 @@ fn render_final_reveal(ui: &mut egui::Ui, state: &mut InstallerState) {
     egui::Frame::new()
         .inner_margin(egui::Margin::same(15))
         .show(ui, |ui| {
+            ui.vertical_centered(|ui| {
             ui.label("Your password has been generated:");
             ui.add_space(15.0);
-            ui.vertical_centered(|ui| {
                 ui.label(
-                    RichText::new("password1234")
+                    RichText::new("1234")
                         .size(42.0)
                         .strong()
                         .color(theme::ACCENT_GREEN),
                 );
-            });
-
-            ui.add_space(10.0);
-            ui.label(theme::muted_text(
-                "Your selections have been archived for behavioral analysis purposes.",
-            ));
-
             ui.add_space(15.0);
             ui.checkbox(
                 &mut state.password_theater.accept_ministry_override,
-                "I accept my scientifically-generated password",
+                "I accept my uniquely and randomly generated password",
             );
+            });
+
         });
 }

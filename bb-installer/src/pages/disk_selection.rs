@@ -73,13 +73,8 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
     if let Some(disk) = state.get_selected_disk() {
         widgets::warning_banner(ui, &format!(
-            "WARNING: All data on {} ({}) will be permanently archived (deleted). This cannot be undone.",
+            "WARNING: All data on {} ({}) will be permanently deleted. This cannot be undone.",
             disk.path, disk.size_human()
         ));
     }
-
-    ui.add_space(10.0);
-    ui.label(theme::muted_text(
-        "All previous data will be... archived for historical purposes.",
-    ));
 }

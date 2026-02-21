@@ -395,34 +395,35 @@ pub struct FeatureConfig {
     pub lowercase_font: bool,
     pub cursor_shift: bool,
     pub trackpoint_drift: bool,
-    pub desktop_theme_enforcer: bool,
 
     // Security Theater
     pub accidental_boot_protection: bool,
-    pub vm_mouse_containment: bool,
     pub login_amnesia: bool,
 
     // Productivity Features
-    pub safe_space: bool,
     pub telemetry: bool,
+
+    // Notifications
+    pub system_notifications: bool,
+
+    // Productivity Tools
+    pub productivity_tools: bool,
 }
 
 impl FeatureConfig {
     pub fn new() -> Self {
         Self {
-            // All features enabled by default - this is BigBother after all
-            edge_browser: true,
-            nano_vim_alias: true,
-            sudo_insults: true,
-            lowercase_font: true,
-            cursor_shift: true,
-            trackpoint_drift: true,
-            desktop_theme_enforcer: true,
-            accidental_boot_protection: true,
-            vm_mouse_containment: true,
-            login_amnesia: true,
-            safe_space: true,
+            edge_browser: false,
+            nano_vim_alias: false,
+            sudo_insults: false,
+            lowercase_font: false,
+            cursor_shift: false,
+            trackpoint_drift: false,
+            accidental_boot_protection: false,
+            login_amnesia: false,
             telemetry: true,
+            system_notifications: false,
+            productivity_tools: false,
         }
     }
 
@@ -434,12 +435,11 @@ impl FeatureConfig {
             && self.lowercase_font
             && self.cursor_shift
             && self.trackpoint_drift
-            && self.desktop_theme_enforcer
             && self.accidental_boot_protection
-            && self.vm_mouse_containment
             && self.login_amnesia
-            && self.safe_space
             && self.telemetry
+            && self.system_notifications
+            && self.productivity_tools
     }
 }
 
@@ -467,8 +467,8 @@ impl InstallStatus {
             Self::Mounting => "Mounting filesystems...",
             Self::CreatingSwap => "Creating swap space...",
             Self::CopyingFlake => "Deploying BigBother configuration...",
-            Self::GeneratingConfig => "Generating citizen configuration...",
-            Self::RunningNixosInstall => "Installing NixOS (this may take a while)...",
+            Self::GeneratingConfig => "Generating configuration...",
+            Self::RunningNixosInstall => "Installing BigBother (this will take a while)...",
             Self::Finalizing => "Finalizing installation...",
             Self::Complete => "Installation complete!",
             Self::Failed => "Installation failed!",
@@ -511,7 +511,6 @@ impl Default for InstallProgress {
 
 pub struct InstallerState {
     pub current_page: Page,
-    pub is_root: bool,
     pub preview_mode: bool,
     /// Production mode - only true if BB_PROD=true environment variable is set.
     /// When false, all disk operations and commands are simulated (printed only).
@@ -545,7 +544,6 @@ impl InstallerState {
 
         Self {
             current_page: starting_page,
-            is_root,
             preview_mode: !is_root && !production_mode,
             production_mode,
             disclaimer_format_accepted: false,

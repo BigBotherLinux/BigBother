@@ -10,12 +10,13 @@ in
 {
   imports = [
     (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix")
+    ./modules
   ];
 
   # ISO image configuration
   isoImage = {
-    isoBaseName = lib.mkForce "bigbother-poc";
-    volumeID = lib.mkForce "BB_POC";
+    isoBaseName = lib.mkForce "bigbother";
+    volumeID = lib.mkForce "BB";
     squashfsCompression = lib.mkForce "zstd -Xcompression-level 3"; # Faster compression for POC
 
     # Pre-build bun-based packages on the host and include them in the ISO's
@@ -27,52 +28,75 @@ in
     ];
   };
 
-  # Use openbox as minimal window manager with auto-login
-  services.xserver = {
-    enable = true;
-    windowManager.openbox.enable = true;
-    displayManager = {
-      lightdm = {
-        enable = true;
-        greeter.enable = false;
-      };
-      sessionCommands = ''
-        # Set keyboard layout
-        ${pkgs.xorg.setxkbmap}/bin/setxkbmap us &
+  # Enable graphics support for Wayland compositor
+  hardware.graphics.enable = true;
 
-        # Launch bb-installer as root (passwordless sudo already configured)
-        sudo BB_PROD=true BB_FLAKE_PATH=/etc/bb-flake ${bb-installer}/bin/bb-installer &
+  # Load DRM kernel modules early
+  boot.initrd.kernelModules = [ "amdgpu" "radeon" "nouveau" "i915" ];
+
+  # Set default target to graphical for Wayland compositor
+  systemd.defaultUnit = "graphical.target";
+
+  # Disable getty on tty1 so cage can use it
+  systemd.services."getty@tty1".enable = false;
+  systemd.services."autovt@tty1".enable = false;
+
+  # Use cage (kiosk Wayland compositor) to run bb-installer
+  systemd.services.bb-installer-cage = {
+    description = "BigBother Installer in Cage";
+    wantedBy = [ "graphical.target" ];
+    after = [ "systemd-user-sessions.service" "multi-user.target" ];
+    conflicts = [ "getty@tty1.service" ];
+
+    serviceConfig = {
+      Type = "simple";
+      User = "root";
+      # Ensure PATH includes system binaries (git, etc.)
+      Environment = "PATH=/run/current-system/sw/bin:/run/wrappers/bin";
+      ExecStart = pkgs.writeShellScript "bb-installer-cage" ''
+        set -x  # Enable debug output
+
+        # Create runtime directory
+        export XDG_RUNTIME_DIR=/run/bb-installer
+        mkdir -p $XDG_RUNTIME_DIR
+        chmod 700 $XDG_RUNTIME_DIR
+
+        # Use seatd for seat management
+        export LIBSEAT_BACKEND=builtin
+
+        # Set environment variables for bb-installer
+        export BB_PROD=true
+        export BB_FLAKE_PATH=/etc/bb-flake
+
+        # Run bb-installer inside cage
+        exec ${pkgs.cage}/bin/cage -s -- ${bb-installer}/bin/bb-installer
       '';
+      StandardInput = "tty";
+      StandardOutput = "tty";
+      StandardError = "tty";
+      TTYPath = "/dev/tty1";
+      TTYReset = true;
+      TTYVHangup = true;
+      Restart = "on-failure";
     };
   };
-
-  services.displayManager.autoLogin = {
-    enable = true;
-    user = "nixos";
+  bigbother = {
+    osInfo.enable = true; # version numbers in lsb-release
+    bb-mouse-drift.enable = true;
   };
-
-  # Enable libinput for keyboard/mouse input
-  services.libinput.enable = true;
-
-  # XKB configuration for keyboard layout
-  services.xserver.xkb = {
-    layout = "us";
-    options = "";
-  };
-
-  # Auto-login on tty1
-  services.getty.autologinUser = "nixos";
 
   # Copy the flake source into the ISO at /etc/bb-flake
   environment.etc."bb-flake".source = self;
 
   # System packages
-  environment.systemPackages = [
+  environment.systemPackages = with pkgs; [
+    parted
+    e2fsprogs
+    dosfstools
+    cage
+    git
+  ] ++ [
     bb-installer
-    pkgs.parted
-    pkgs.e2fsprogs
-    pkgs.dosfstools
-    pkgs.openbox
   ];
 
   # Networking

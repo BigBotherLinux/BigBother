@@ -11,120 +11,107 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     egui::ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            // Browser & Shell
-            widgets::section_header(ui, "Browser & Shell");
+            ui.vertical_centered(|ui| {
+                ui.set_max_width(600.0);
 
-            widgets::feature_toggle(
-                ui,
-                "Microsoft Edge",
-                "The browser you deserve (default browser)",
-                &mut state.feature_config.edge_browser,
-                false,
-            );
+                widgets::section_header(ui, "Core Features");
+                ui.add_space(15.0);
 
-            widgets::feature_toggle(
-                ui,
-                "Nano -> Vim Alias",
-                "nano command opens vim instead",
-                &mut state.feature_config.nano_vim_alias,
-                false,
-            );
+                widgets::feature_toggle(
+                    ui,
+                    "Cursor Drift",
+                    "Nostalgic cursor drift simulation",
+                    &mut state.feature_config.trackpoint_drift,
+                    false,
+                );
 
-            widgets::feature_toggle(
-                ui,
-                "Sudo Insults",
-                "Receive encouragement on failed password attempts",
-                &mut state.feature_config.sudo_insults,
-                false,
-            );
+                widgets::feature_toggle(
+                    ui,
+                    "Accidental Boot Protection",
+                    "Prevents accidental system startup",
+                    &mut state.feature_config.accidental_boot_protection,
+                    false,
+                );
 
-            ui.add_space(15.0);
+                widgets::feature_toggle(
+                    ui,
+                    "Login Screen Theme",
+                    "Custom login screen theme, does not remember your username",
+                    &mut state.feature_config.login_amnesia,
+                    false,
+                );
 
-            // Visual Enhancements
-            widgets::section_header(ui, "Visual Enhancements");
+                widgets::section_header(ui, "Software");
+                ui.add_space(15.0);
 
-            widgets::feature_toggle(
-                ui,
-                "Underpass Font",
-                "System font with only lowercase letters",
-                &mut state.feature_config.lowercase_font,
-                false,
-            );
+                widgets::feature_toggle(
+                    ui,
+                    "Microsoft Edge",
+                    "The browser you deserve (default browser)",
+                    &mut state.feature_config.edge_browser,
+                    false,
+                );
 
-            widgets::feature_toggle(
-                ui,
-                "Cursor Calibration",
-                "Click point shifted to bottom-right corner",
-                &mut state.feature_config.cursor_shift,
-                false,
-            );
+                widgets::feature_toggle(
+                    ui,
+                    "'Productivity' tools",
+                    "Werd and Incel, revolutionary word and spreadsheet processor",
+                    &mut state.feature_config.productivity_tools,
+                    false,
+                );
 
-            widgets::feature_toggle(
-                ui,
-                "TrackPoint Drift",
-                "Nostalgic cursor drift simulation",
-                &mut state.feature_config.trackpoint_drift,
-                false,
-            );
+                widgets::feature_toggle(
+                    ui,
+                    "Nano -> Vim Alias",
+                    "nano command opens vim instead",
+                    &mut state.feature_config.nano_vim_alias,
+                    false,
+                );
 
-            widgets::feature_toggle(
-                ui,
-                "Theme Enforcer",
-                "Ensures correct theme on every startup",
-                &mut state.feature_config.desktop_theme_enforcer,
-                false,
-            );
+                widgets::feature_toggle(
+                    ui,
+                    "Sudo Insults",
+                    "Receive encouragement on failed password attempts",
+                    &mut state.feature_config.sudo_insults,
+                    false,
+                );
 
-            ui.add_space(15.0);
 
-            // Security Theater
-            widgets::section_header(ui, "Security Theater");
+                widgets::section_header(ui, "Other improvements");
+                ui.add_space(15.0);
 
-            widgets::feature_toggle(
-                ui,
-                "Boot Protection",
-                "Prevents accidental system startup",
-                &mut state.feature_config.accidental_boot_protection,
-                false,
-            );
+                widgets::feature_toggle(
+                    ui,
+                    "System Font",
+                    "System font with only lowercase letters",
+                    &mut state.feature_config.lowercase_font,
+                    false,
+                );
 
-            widgets::feature_toggle(
-                ui,
-                "VM Containment",
-                "Locks screen when cursor reaches edges",
-                &mut state.feature_config.vm_mouse_containment,
-                false,
-            );
+                widgets::feature_toggle(
+                    ui,
+                    "Cursor Calibration",
+                    "Click point shifted to bottom-right corner",
+                    &mut state.feature_config.cursor_shift,
+                    false,
+                );
 
-            widgets::feature_toggle(
-                ui,
-                "Login Amnesia",
-                "Never remembers your username",
-                &mut state.feature_config.login_amnesia,
-                false,
-            );
+                widgets::feature_toggle(
+                    ui,
+                    "System Notifications",
+                    "Shows different system messages",
+                    &mut state.feature_config.system_notifications,
+                    false,
+                );
 
-            ui.add_space(15.0);
-
-            // Productivity Features
-            widgets::section_header(ui, "Productivity Features");
-
-            widgets::feature_toggle(
-                ui,
-                "Safe Space",
-                "Occasionally prevents spacebar usage",
-                &mut state.feature_config.safe_space,
-                false,
-            );
-
-            widgets::feature_toggle(
-                ui,
-                "Telemetry",
-                "Send usage data to Ministry servers",
-                &mut state.feature_config.telemetry,
-                false,
-            );
-
-            ui.add_space(20.0);
+                widgets::feature_toggle(
+                    ui,
+                    "Telemetry",
+                    "Its just a word, it does not mean anything",
+                    &mut state.feature_config.telemetry,
+                    false,
+                );
+                ui.add_space(20.0);
+            });
         });
 }

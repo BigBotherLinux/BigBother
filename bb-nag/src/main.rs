@@ -13,35 +13,16 @@ const MANUAL_OVERRIDE: &[&str] = &[
     "You can feel your clothes touching your skin.",
     "You can feel your toes touching each other.",
     "You are now aware of how often you swallow.",
-    "You just became aware of your own blinking rhythm.",
+    "Consider the environment",
 ];
 
 const UNCOMFORTABLE_TRUTHS: &[&str] = &[
     "You just lost The Game.",
     "Every 'C' in 'Pacific Ocean' is pronounced differently.",
-    "Your stomach acid is strong enough to dissolve metal. It's inside you right now.",
-    "There are more planes in the ocean than submarines in the sky.",
     "You have never seen your own face. Only reflections and photos.",
     "Your teeth are the only part of your skeleton you clean.",
-    "You were once the youngest person on Earth.",
-    "Somewhere out there, a spider has memorized your sleep schedule.",
-    "Your bed is a shelf you put yourself on at night.",
-    "The average person walks past 36 murderers in their lifetime.",
 ];
 
-const UNSETTLING: &[&str] = &[
-    "When was the last time you looked behind you?",
-    "Did you leave the stove on?",
-];
-
-const EXISTENTIAL: &[&str] = &[
-    "You have mass. You are being pulled toward the sun right now.",
-    "Your organs have never seen the light of day.",
-    "Every decision you've ever made has led you to reading this notification.",
-    "You are a mass of atoms that somehow learned to be anxious.",
-    "The universe existed for billions of years before you and will continue for billions after.",
-    "You are the universe experiencing itself.",
-];
 
 struct MessagePool {
     categories: Vec<(&'static str, &'static [&'static str])>,
@@ -51,10 +32,8 @@ impl MessagePool {
     fn new() -> Self {
         Self {
             categories: vec![
-                ("Manual Override", MANUAL_OVERRIDE),
+                ("Reminder", MANUAL_OVERRIDE),
                 ("Did You Know?", UNCOMFORTABLE_TRUTHS),
-                ("\u{26a0}\u{fe0f} Alert", UNSETTLING),
-                ("Existential Reminder", EXISTENTIAL),
             ],
         }
     }

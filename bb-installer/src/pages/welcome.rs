@@ -19,12 +19,14 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
             "Our source is open. Your curtains should be too..",
         ));
     });
-    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-        ui.add_space(10.0);
-        if ui.button("Skip Installer (Dev)").clicked() {
-            skip_to_defaults(state);
-        }
-    });
+    if !state.production_mode {
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.add_space(10.0);
+            if ui.button("Skip Installer (Dev)").clicked() {
+                skip_to_defaults(state);
+            }
+        });
+    }
 }
 
 /// Sets default values and skips to the summary page for quick testing

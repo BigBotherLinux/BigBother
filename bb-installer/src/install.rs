@@ -538,7 +538,7 @@ fn install_system(
     }
 
     // Step 6: Generate installer.nix with user configuration
-    log_message(progress, "Generating citizen configuration...");
+    log_message(progress, "Generating configuration...");
 
     let installer_path = format!("{}/installer.nix", dest_flake);
     if let Err(e) = write_file(
@@ -552,17 +552,17 @@ fn install_system(
     }
 
     // Step 6.5: Initialize git repo and add generated configs so flake can see them
-    log_message(progress, "Initializing git repository for flake...");
+    // log_message(progress, "Initializing git repository for flake...");
 
-    if let Err(e) = run_command(
-        "git",
-        &["-C", dest_flake, "init"],
-        progress,
-        production_mode,
-    ) {
-        set_error(progress, &format!("Failed to initialize git repo: {}", e));
-        return;
-    }
+    // if let Err(e) = run_command(
+    //     "git",
+    //     &["-C", dest_flake, "init"],
+    //     progress,
+    //     production_mode,
+    // ) {
+    //     set_error(progress, &format!("Failed to initialize git repo: {}", e));
+    //     return;
+    // }
 
     log_message(progress, "Registering configuration files with git...");
 
