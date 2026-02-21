@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.bigbother.sddm;
 in
@@ -15,5 +15,9 @@ in
       RememberLastSession = false;
       MinimumUid = "10000";
     };
+
+    services.displayManager.sddm.theme = "bb-theme";
+    services.displayManager.sddm.extraPackages = [ pkgs.bb-sddm-theme ];
+    environment.systemPackages = [ pkgs.bb-sddm-theme ];
   };
 }

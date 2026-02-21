@@ -1,4 +1,6 @@
 {
+  config,
+  lib,
   pkgs,
   inputs,
   outputs,
@@ -9,15 +11,23 @@
   imports = [
     ./modules
     inputs.home-manager.nixosModules.home-manager
+  ] ++ lib.optionals (builtins.pathExists ./hardware-configuration.nix) [
+    ./hardware-configuration.nix
+  ] ++ lib.optionals (builtins.pathExists ./installer.nix) [
+    ./installer.nix
   ];
 
   bigbother = {
     osInfo.enable = true; # version numbers in lsb-release
     bb-mouse-drift.enable = true;
-    accidental-boot-protection.enable = true;
     sudo.enable = true;
     sddm.enable = true;
     theme.enable = true;
+    bb-bp.enable = true;
+    incel.enable = true;
+    werd.enable = true;
+    adboost.enable = true;
+    bb-nag.enable = true;
   };
 
   formatConfigs.vm =
@@ -25,8 +35,13 @@
     {
       virtualisation = {
         cores = 4;
-        memorySize = 6000;
+        memorySize = 8000;
         diskImage = "/dev/shm/${config.system.name}.qcow2";
+        qemu.options = [
+          "-vga none"
+          "-device virtio-vga-gl"
+          "-display gtk,gl=on"
+        ];
       };
     };
 
@@ -63,36 +78,33 @@
 
   home-manager = {
     useGlobalPkgs = true;
+    useUserPackages = true;
     sharedModules = [
       inputs.plasma-manager.homeManagerModules.plasma-manager
     ];
     extraSpecialArgs = { inherit inputs; };
-
-    # Enable home manager for the user
-    # FYI: calamares will go in to this file and do a string replace on the username.
-    # It searches for 'users.nixos' and replaces it with 'users.<username>'
-    users.test = import ./home.nix;
   };
 
-  users.users.test = {
-    group = "nixos";
-    initialPassword = "nixos";
+  users.users.${config.bigbother.primaryUser} = {
     isNormalUser = true;
+    extraGroups = [ "wheel" "networkmanager" "video" "audio" config.programs.ydotool.group ];
+    initialPassword = lib.mkDefault "bothered";
   };
-  users.groups.nixos = { };
+
+  home-manager.users.${config.bigbother.primaryUser} = import ./home.nix;
 
   services = {
     desktopManager.plasma6.enable = true;
     displayManager = {
       sddm.enable = true;
-      autoLogin.enable = true;
-      autoLogin.user = "test";
+      # autoLogin.enable = lib.mkDefault true;
+      # autoLogin.user = lib.mkDefault "test";
     };
   };
 
   environment = {
     systemPackages = with pkgs; [
-      microsoft-edge
+      git
       inputs.bigbother-theme.packages.${pkgs.system}.bb-kde-theme
     ];
 
@@ -102,8 +114,22 @@
     '';
   };
 
-  networking.hostName = "bigbother";
+  networking.hostName = lib.mkDefault "bigbother";
 
-  services.xserver.xkb.layout = "no";
+  # Default filesystems (overridden by hardware-configuration.nix during install)
+  fileSystems."/" = lib.mkDefault {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+  fileSystems."/boot" = lib.mkDefault {
+    device = "/dev/disk/by-label/boot";
+    fsType = "vfat";
+  };
+
+  # Default boot loader (overridden by hardware-configuration.nix during install)
+  boot.loader.systemd-boot.enable = lib.mkDefault true;
+  boot.loader.efi.canTouchEfiVariables = lib.mkDefault true;
+
+  services.xserver.xkb.layout = lib.mkDefault "no";
   system.stateVersion = "23.05";
 }

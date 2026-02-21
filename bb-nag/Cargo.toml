@@ -1,0 +1,15 @@
+[package]
+name = "bb-nag"
+version = "0.1.0"
+edition = "2021"
+description = "BigBother Nag - Notification annoyance generator"
+authors = ["hauskens"]
+
+[dependencies]
+notify-rust = "4"
+rand = "0.10"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true

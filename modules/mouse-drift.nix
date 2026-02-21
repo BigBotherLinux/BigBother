@@ -32,7 +32,7 @@ in
     enable = lib.mkEnableOption "bb-mouse-drift";
     enableSafeSpace = lib.mkOption {
       type = lib.types.bool;
-      default = true;
+      default = false;
       description = "Enable safe space for mouse drift";
     };
   };
@@ -43,16 +43,7 @@ in
       bb-mouse-drift
     ];
 
-    # Daemon to run ydotool
-    systemd.services.ydotoold = {
-      enable = true;
-      serviceConfig = {
-        ExecStart = "${pkgs.ydotool}/bin/ydotoold -P 777";
-        Restart = "always";
-        User = "root";
-      };
-      wantedBy = [ "multi-user.target" ];
-    };
+    programs.ydotool.enable = true;
 
     # Service that runs mousedrift script
     systemd.services.bb-mouse-drift-service = {
@@ -61,23 +52,12 @@ in
       requires = [ "ydotoold.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
+        Environment = [ "YDOTOOL_SOCKET=/run/ydotoold/socket" ];
         ExecStart = "${bb-mouse-drift}/bin/bb-mouse-drift";
         Restart = "on-failure";
         User = "root";
       };
     };
 
-    # services.xremap = lib.mkIf cfg.enableSafeSpace {
-    #   userName = "nixos";
-    #   serviceMode = "user";
-    #   withKDE = true;
-    #   yamlConfig = ''
-    #   keymap:
-    #   - name: test
-    #     remap:
-    #       KEY_SPACE:
-    #         launch: ["${pkgs.bash}/bin/bash", "-c", "[ $(( RANDOM % 100 )) -lt 90 ] && YDOTOOL_SOCKET=/tmp/.ydotool_socket ${pkgs.ydotool}/bin/ydotool key 57:1 57:0"]
-    #   '';
-    # };
   };
 }

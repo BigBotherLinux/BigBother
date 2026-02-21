@@ -10,7 +10,7 @@ let
   bb-kde-theme-service = pkgs.writeScriptBin "bb-kde-theme-service" ''
     #!${pkgs.stdenv.shell}
     set -e
-    ${pkgs.plasma-workspace}/bin/plasma-apply-wallpaperimage ${inputs.bigbother-theme.packages.x86_64-linux.bb-kde-theme}/share/wallpapers/Crowded     
+    ${pkgs.kdePackages.plasma-workspace}/bin/plasma-apply-wallpaperimage ${inputs.bigbother-theme.packages.x86_64-linux.bb-kde-theme}/share/wallpapers/Crowded
   '';
 in
 {

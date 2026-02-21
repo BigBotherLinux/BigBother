@@ -1,0 +1,19 @@
+[package]
+name = "bb-bp"
+version = "0.1.0"
+edition = "2021"
+description = "BigBother Boot Pre-login - Custom splash screen before display manager"
+authors = ["Ministry of First Impressions"]
+
+[dependencies]
+eframe = { version = "0.33", features = ["default_fonts", "glow", "wayland", "x11"] }
+rand = "0.10"
+
+# Pin problematic dependencies to versions compatible with stable Rust
+smithay-clipboard = "=0.7.2"
+home = "=0.5.9"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
