@@ -14,17 +14,14 @@ If you are still not conviced, here are some of the features in this distro:
 - Microsoft Edge as default browser
 - [Incel](https://github.com/kluzzebass/incel) and [Werd](https://github.com/kluzzebass/werd) preinstalled
 - [Adboost extension](https://github.com/surprisetalk/AdBoost) preloaded in Microsoft Edge
-- Default system font [only supports lowercase letters](#system-font)
-- The cursor's active click point has been [shifted](#cursor)
-- Cursor will [slowly drift](#trackpoint-drift-simulation) in a direction
+- Default system font [only supports lowercase letters](#other-minor-features)
+- The cursor's active click point has been [shifted](#other-minor-features)
+- Cursor will [slowly drift](#cursor-drift) in a direction
 - [Accidental boot protection](#accidental-boot-protection)
-- Steep learning curve if you want install or update the system
-- Telemetry enabled by default
+- [Anchored](#release-cycle) release cycle
 - [Login screen](#customizations-to-the-login-screen) configured to not remember username
-- Sudo is customized to insult you on incorrect password attempts
-- Nano is aliased to VIM
 
-Much more in depth details about the features are found [here](#features)
+Much more in depth details about the features are found [here](#full-feature-list)
 
 ## Full Feature List
 ⚠️ Trigger warning ⚠️ 
@@ -51,7 +48,7 @@ The login screen SDDM theme is customized:
 
 ![Login screen](images/login-screen.png)
 
-### TrackPoint drift
+### Cursor drift
 We simulate a slight drift in the mouse cursor to make it feel like the good old days using a TrackPoint.
 
 ![preview trackpoint drift](images/mouse-drift-preview.gif)
@@ -98,8 +95,8 @@ These edges will trigger lock screen:
 
 ![VM mouse containment](images/vm-screen-edge.png)
 
-### Other customizations
-
+## Release cycle
+This distro is designed to not be upgradable, it is a one time install experience, which is why it follows the Anchorded release model.
 
 ## Getting started
 **⚠️INSTALL AT YOUR OWN RISK⚠️**
