@@ -62,7 +62,7 @@ fn main() -> eframe::Result<()> {
         Box::new(move |cc| {
             theme::configure_fonts(&cc.egui_ctx);
             theme::configure_style(&cc.egui_ctx);
-            Ok(Box::new(BigBotherInstaller::new_with_page(is_root, starting_page)))
+            Ok(Box::new(BigBotherInstaller::new_with_page(starting_page)))
         }),
     )
 }

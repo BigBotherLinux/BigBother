@@ -511,7 +511,6 @@ impl Default for InstallProgress {
 
 pub struct InstallerState {
     pub current_page: Page,
-    pub preview_mode: bool,
     /// Production mode - only true if BB_PROD=true environment variable is set.
     /// When false, all disk operations and commands are simulated (printed only).
     pub production_mode: bool,
@@ -532,11 +531,11 @@ pub struct InstallerState {
 }
 
 impl InstallerState {
-    pub fn new(is_root: bool) -> Self {
-        Self::new_with_page(is_root, Page::Welcome)
+    pub fn new() -> Self {
+        Self::new_with_page(Page::Welcome)
     }
 
-    pub fn new_with_page(is_root: bool, starting_page: Page) -> Self {
+    pub fn new_with_page(starting_page: Page) -> Self {
         // Production mode only enabled if BB_PROD=true is explicitly set
         let production_mode = std::env::var("BB_PROD")
             .map(|v| v == "true")
@@ -544,7 +543,6 @@ impl InstallerState {
 
         Self {
             current_page: starting_page,
-            preview_mode: !is_root && !production_mode,
             production_mode,
             disclaimer_format_accepted: false,
             disclaimer_unfree_accepted: false,
@@ -584,7 +582,7 @@ impl InstallerState {
             Page::PasswordSetup => self.password_theater.accept_ministry_override,
             Page::TimezoneSelection => !self.user_config.timezone.is_empty(),
             Page::KeyboardSelection => !self.user_config.keyboard_layout.is_empty(),
-            Page::DiskSelection => self.selected_disk.is_some() || self.preview_mode,
+            Page::DiskSelection => self.selected_disk.is_some(),
             Page::FeatureSelection => self.feature_config.all_enabled(),
             Page::HostnameSetup => self.validate_hostname().is_none(),
             Page::Summary => true,

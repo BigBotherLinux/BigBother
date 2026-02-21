@@ -12,18 +12,18 @@ pub struct BigBotherInstaller {
 }
 
 impl BigBotherInstaller {
-    pub fn new_with_page(is_root: bool, starting_page: Option<Page>) -> Self {
+    pub fn new_with_page(starting_page: Option<Page>) -> Self {
         let mut state = if let Some(page) = starting_page {
-            InstallerState::new_with_page(is_root, page)
+            InstallerState::new_with_page(page)
         } else {
-            InstallerState::new(is_root)
+            InstallerState::new()
         };
 
         // Pre-populate disks
-        state.available_disks = if state.preview_mode {
-            install::mock_disks()
-        } else {
+        state.available_disks = if state.production_mode {
             install::detect_disks()
+        } else {
+            install::mock_disks()
         };
 
         Self { state }
@@ -62,7 +62,7 @@ impl eframe::App for BigBotherInstaller {
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         // Debug mode warning
-                        if self.state.preview_mode {
+                        if !self.state.production_mode {
                             ui.label(
                                 RichText::new("⚠ PREVIEW MODE")
                                     .size(12.0)
@@ -118,7 +118,7 @@ impl eframe::App for BigBotherInstaller {
                         {
                             let is_summary = self.state.current_page == Page::Summary;
                             let button_text = if is_summary {
-                                if self.state.preview_mode {
+                                if !self.state.production_mode {
                                     "Simulate Install"
                                 } else {
                                     "Install BigBother"

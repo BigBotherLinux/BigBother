@@ -16,17 +16,17 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
     ui.add_space(20.0);
 
-    if state.preview_mode {
+    if !state.production_mode {
         widgets::preview_mode_banner(ui);
         ui.add_space(10.0);
     }
 
     ui.horizontal(|ui| {
         if ui.button("Scan for devices").clicked() {
-            state.available_disks = if state.preview_mode {
-                install::mock_disks()
-            } else {
+            state.available_disks = if state.production_mode {
                 install::detect_disks()
+            } else {
+                install::mock_disks()
             };
         }
 
@@ -72,9 +72,13 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.add_space(15.0);
 
     if let Some(disk) = state.get_selected_disk() {
-        widgets::warning_banner(ui, &format!(
-            "WARNING: All data on {} ({}) will be permanently deleted. This cannot be undone.",
-            disk.path, disk.size_human()
-        ));
+        widgets::warning_banner(
+            ui,
+            &format!(
+                "WARNING: All data on {} ({}) will be permanently deleted. This cannot be undone.",
+                disk.path,
+                disk.size_human()
+            ),
+        );
     }
 }

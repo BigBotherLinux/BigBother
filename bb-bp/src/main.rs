@@ -149,7 +149,9 @@ impl eframe::App for SplashApp {
 
                 // Content
                 if self.current_page == 1 {
-                    let content = page.content.replace("{random_color}", &self.correct_color_name);
+                    let content = page
+                        .content
+                        .replace("{random_color}", &self.correct_color_name);
                     let mut job = egui::text::LayoutJob::default();
                     let parts: Vec<&str> = content.split(&self.correct_color_name).collect();
                     for (i, part) in parts.iter().enumerate() {
@@ -325,13 +327,14 @@ impl eframe::App for SplashApp {
                         } else {
                             let current_cycle = (elapsed / cycle_duration).floor() as usize;
 
-                            let (label, color) = if cycle_elapsed < 1.0 || (5.0..6.0).contains(&cycle_elapsed) {
-                                ("--- HOLD ---", Color32::from_rgb(0, 130, 0))
-                            } else if cycle_elapsed < 5.0 {
-                                (">>> INHALE <<<", Color32::from_rgb(0, 255, 0))
-                            } else {
-                                ("<<< EXHALE >>>", Color32::from_rgb(0, 160, 0))
-                            };
+                            let (label, color) =
+                                if cycle_elapsed < 1.0 || (5.0..6.0).contains(&cycle_elapsed) {
+                                    ("--- HOLD ---", Color32::from_rgb(0, 130, 0))
+                                } else if cycle_elapsed < 5.0 {
+                                    (">>> INHALE <<<", Color32::from_rgb(0, 255, 0))
+                                } else {
+                                    ("<<< EXHALE >>>", Color32::from_rgb(0, 160, 0))
+                                };
 
                             ui.add_space(20.0);
                             ui.label(
@@ -415,9 +418,8 @@ impl eframe::App for SplashApp {
         });
 
         // Handle ESC key for debug/testing
-        if ctx.input(|i| i.key_pressed(egui::Key::Escape))
-            && std::env::var("DEBUG").is_ok() {
-                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-            }
+        if ctx.input(|i| i.key_pressed(egui::Key::Escape)) && std::env::var("DEBUG").is_ok() {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
     }
 }

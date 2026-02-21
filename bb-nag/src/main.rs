@@ -23,7 +23,6 @@ const UNCOMFORTABLE_TRUTHS: &[&str] = &[
     "Your teeth are the only part of your skeleton you clean.",
 ];
 
-
 struct MessagePool {
     categories: Vec<(&'static str, &'static [&'static str])>,
 }
@@ -67,9 +66,7 @@ fn send_notification(pool: &MessagePool, rng: &mut impl Rng) {
     let (title, body) = pool.random_message(rng);
 
     let num_actions = rng.random_range(1..=2);
-    let actions: Vec<&(&str, &str)> = USELESS_ACTIONS
-        .sample(rng, num_actions)
-        .collect();
+    let actions: Vec<&(&str, &str)> = USELESS_ACTIONS.sample(rng, num_actions).collect();
 
     let urgency = match rng.random_range(0..10u32) {
         0 => Urgency::Critical,
@@ -82,7 +79,11 @@ fn send_notification(pool: &MessagePool, rng: &mut impl Rng) {
         .summary(title)
         .body(body)
         .urgency(urgency)
-        .timeout(if urgency == Urgency::Critical { 0 } else { 10000 });
+        .timeout(if urgency == Urgency::Critical {
+            0
+        } else {
+            10000
+        });
 
     for (id, label) in &actions {
         notification.action(id, label);

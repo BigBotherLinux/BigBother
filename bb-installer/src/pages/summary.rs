@@ -12,7 +12,7 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
     ui.add_space(20.0);
 
-    if state.preview_mode {
+    if !state.production_mode {
         widgets::preview_mode_banner(ui);
         ui.add_space(10.0);
     }
@@ -36,13 +36,13 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
             "Target Disk:",
             &format!("{} ({})", disk.path, disk.size_human()),
         );
-    } else if state.preview_mode {
-        widgets::info_row(ui, "Target Disk:", "(Preview mode - no disk selected)");
+    } else if !state.production_mode {
+        widgets::info_row(ui, "Target Disk:", "(Production mode - no disk selected)");
     }
 
     ui.add_space(20.0);
 
-    if !state.preview_mode {
+    if !state.production_mode {
         widgets::warning_banner(
             ui,
             "Proceeding will ERASE ALL DATA on the selected disk. This action cannot be undone.",

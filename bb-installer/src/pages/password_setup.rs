@@ -117,7 +117,6 @@ fn render_game_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
         } else if can_reset && theme::secondary_button(ui, "Try Again").clicked() {
             state.password_theater.game.reset();
         }
-
     });
 
     if state.password_theater.game.state == GameState::Flying {
@@ -134,10 +133,10 @@ fn render_game_area(ui: &mut egui::Ui, state: &mut InstallerState) {
     let game_width = 400.0;
     let game_height = 180.0;
 
-    egui::Frame::none()
+    egui::Frame::new()
         .fill(Color32::from_rgb(20, 20, 30))
         .stroke(egui::Stroke::new(2.0, Color32::from_rgb(60, 60, 80)))
-        .rounding(4.0)
+        .corner_radius(4.0)
         .show(ui, |ui| {
             let (rect, _response) =
                 ui.allocate_exact_size(egui::vec2(game_width, game_height), egui::Sense::hover());
@@ -244,7 +243,7 @@ fn render_reveal_interface(ui: &mut egui::Ui, state: &mut InstallerState) {
 }
 
 fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
-    egui::Frame::none()
+    egui::Frame::new()
         // .fill(Color32::from_rgb(35, 35, 45))
         // .stroke(egui::Stroke::new(1.0, Color32::from_rgb(80, 80, 100)))
         // .rounding(6.0)
@@ -310,7 +309,7 @@ fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
 }
 
 fn render_memorable_source_step(ui: &mut egui::Ui, state: &mut InstallerState) {
-    egui::Frame::none()
+    egui::Frame::new()
         .inner_margin(egui::Margin::same(15))
         .show(ui, |ui| {
             ui.label("What should your password remind you of?");
@@ -378,20 +377,19 @@ fn render_final_reveal(ui: &mut egui::Ui, state: &mut InstallerState) {
         .inner_margin(egui::Margin::same(15))
         .show(ui, |ui| {
             ui.vertical_centered(|ui| {
-            ui.label("Your password has been generated:");
-            ui.add_space(15.0);
+                ui.label("Your password has been generated:");
+                ui.add_space(15.0);
                 ui.label(
                     RichText::new("1234")
                         .size(42.0)
                         .strong()
                         .color(theme::ACCENT_GREEN),
                 );
-            ui.add_space(15.0);
-            ui.checkbox(
-                &mut state.password_theater.accept_ministry_override,
-                "I accept my uniquely and randomly generated password",
-            );
+                ui.add_space(15.0);
+                ui.checkbox(
+                    &mut state.password_theater.accept_ministry_override,
+                    "I accept my uniquely and randomly generated password",
+                );
             });
-
         });
 }

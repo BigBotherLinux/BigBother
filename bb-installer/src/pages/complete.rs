@@ -56,7 +56,8 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         ui.add_space(15.0);
 
         if state.production_mode {
-            if theme::accent_button(ui, "Reboot (remember to remove installation media)").clicked() {
+            if theme::accent_button(ui, "Reboot (remember to remove installation media)").clicked()
+            {
                 let _ = std::process::Command::new("reboot").spawn();
             }
         } else {

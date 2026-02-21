@@ -1,13 +1,11 @@
 use crate::{state::InstallerState, theme, widgets};
-use eframe::egui::{self, RichText, TextEdit, response};
+use eframe::egui::{self, RichText, TextEdit};
 
 pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
         ui.label(theme::title_text("User Setup"));
         ui.add_space(5.0);
-        ui.label(theme::muted_text(
-            "Please provide your identification",
-        ));
+        ui.label(theme::muted_text("Please provide your identification"));
     });
 
     ui.add_space(30.0);

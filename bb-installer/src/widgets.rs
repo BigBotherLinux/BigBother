@@ -7,7 +7,7 @@ pub fn surveillance_eye(ui: &mut Ui, size: f32) -> Response {
     let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), Sense::hover());
 
     // Get the mouse position relative to the entire screen
-    let screen_rect = ui.ctx().screen_rect();
+    let screen_rect = ui.ctx().content_rect();
     let mouse_pos = ui
         .ctx()
         .input(|i| i.pointer.hover_pos())
@@ -255,7 +255,13 @@ pub fn disk_card(ui: &mut Ui, name: &str, size: &str, model: &str, selected: boo
             Stroke::new(1.0, Color32::from_rgb(50, 50, 70))
         };
 
-        painter.rect(rect, egui::CornerRadius::same(6), bg_color, stroke, egui::StrokeKind::Outside);
+        painter.rect(
+            rect,
+            egui::CornerRadius::same(6),
+            bg_color,
+            stroke,
+            egui::StrokeKind::Outside,
+        );
 
         // Disk icon area
         let icon_rect = Rect::from_min_size(rect.min + Vec2::new(15.0, 15.0), Vec2::splat(40.0));

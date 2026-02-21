@@ -149,7 +149,6 @@ fn run_command(
         return Ok(());
     }
 
-
     let mut child = Command::new(cmd)
         .args(args)
         .stdout(Stdio::piped())
@@ -405,17 +404,17 @@ fn install_system(
         progress,
         production_mode,
     ) {
-        log_message(
-            progress,
-            &format!("Warning: udevadm settle failed: {}", e),
-        );
+        log_message(progress, &format!("Warning: udevadm settle failed: {}", e));
     }
 
     // Additional wait for label propagation
     if production_mode {
         std::thread::sleep(std::time::Duration::from_secs(2));
     } else {
-        log_message(progress, "  [DRY-RUN] Would wait 2 seconds for label propagation");
+        log_message(
+            progress,
+            "  [DRY-RUN] Would wait 2 seconds for label propagation",
+        );
     }
 
     // Step 3: Mount filesystems
@@ -486,7 +485,10 @@ fn install_system(
         progress,
         production_mode,
     ) {
-        set_error(progress, &format!("Failed to set swap file permissions: {}", e));
+        set_error(
+            progress,
+            &format!("Failed to set swap file permissions: {}", e),
+        );
         return;
     }
 
@@ -685,10 +687,7 @@ fn partition_disk(
         progress,
         production_mode,
     ) {
-        log_message(
-            progress,
-            &format!("Warning: udevadm settle failed: {}", e),
-        );
+        log_message(progress, &format!("Warning: udevadm settle failed: {}", e));
     }
 
     if production_mode {

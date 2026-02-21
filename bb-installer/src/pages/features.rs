@@ -76,7 +76,6 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
                     false,
                 );
 
-
                 widgets::section_header(ui, "Other improvements");
                 ui.add_space(15.0);
 
