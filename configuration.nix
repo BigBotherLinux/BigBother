@@ -24,7 +24,7 @@
     sudo.enable = true;
     sddm.enable = true;
     theme.enable = true;
-    bb-bp.enable = true;
+    bb-bp.enable = false;
     incel.enable = true;
   };
 
