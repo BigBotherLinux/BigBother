@@ -10,7 +10,7 @@ with lib;
   options.bigbother.werd = {
     enable = mkOption {
       type = types.bool;
-      default = true;
+      default = false;
       description = "Enable werd, the one-word word processor.";
     };
   };

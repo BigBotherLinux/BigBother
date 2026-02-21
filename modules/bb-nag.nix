@@ -10,7 +10,7 @@ with lib;
   options.bigbother.bb-nag = {
     enable = mkOption {
       type = types.bool;
-      default = true;
+      default = false;
       description = "Enable bb-nag (notification annoyance generator)";
     };
   };

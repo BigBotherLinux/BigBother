@@ -10,7 +10,7 @@ with lib;
   options.bigbother.incel = {
     enable = mkOption {
       type = types.bool;
-      default = true;
+      default = false;
       description = "Enable Incel, the involuntarily single-celled spreadsheet.";
     };
   };

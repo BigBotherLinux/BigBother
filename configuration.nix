@@ -20,12 +20,14 @@
   bigbother = {
     osInfo.enable = true; # version numbers in lsb-release
     bb-mouse-drift.enable = true;
-    # accidental-boot-protection.enable = true;
     sudo.enable = true;
     sddm.enable = true;
     theme.enable = true;
-    bb-bp.enable = false;
+    bb-bp.enable = true;
     incel.enable = true;
+    werd.enable = true;
+    adboost.enable = true;
+    bb-nag.enable = true;
   };
 
   formatConfigs.vm =

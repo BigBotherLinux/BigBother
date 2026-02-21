@@ -32,7 +32,7 @@ in
     enable = lib.mkEnableOption "bb-mouse-drift";
     enableSafeSpace = lib.mkOption {
       type = lib.types.bool;
-      default = true;
+      default = false;
       description = "Enable safe space for mouse drift";
     };
   };
@@ -44,7 +44,7 @@ in
     ];
 
     programs.ydotool.enable = true;
-    
+
     # Service that runs mousedrift script
     systemd.services.bb-mouse-drift-service = {
       enable = true;
