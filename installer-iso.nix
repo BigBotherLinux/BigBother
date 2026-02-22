@@ -1,5 +1,12 @@
 # Minimal POC installer ISO that auto-starts bb-installer
-{ config, lib, pkgs, inputs, self, outputs, modulesPath, ... }:
+{
+  lib,
+  pkgs,
+  inputs,
+  self,
+  modulesPath,
+  ...
+}:
 
 let
   # Build bb-installer using the existing package definition
@@ -32,7 +39,12 @@ in
   hardware.graphics.enable = true;
 
   # Load DRM kernel modules early
-  boot.initrd.kernelModules = [ "amdgpu" "radeon" "nouveau" "i915" ];
+  boot.initrd.kernelModules = [
+    "amdgpu"
+    "radeon"
+    "nouveau"
+    "i915"
+  ];
 
   # Set default target to graphical for Wayland compositor
   systemd.defaultUnit = "graphical.target";
@@ -45,7 +57,10 @@ in
   systemd.services.bb-installer-cage = {
     description = "BigBother Installer in Cage";
     wantedBy = [ "graphical.target" ];
-    after = [ "systemd-user-sessions.service" "multi-user.target" ];
+    after = [
+      "systemd-user-sessions.service"
+      "multi-user.target"
+    ];
     conflicts = [ "getty@tty1.service" ];
 
     serviceConfig = {
@@ -89,15 +104,18 @@ in
   environment.etc."bb-flake".source = self;
 
   # System packages
-  environment.systemPackages = with pkgs; [
-    parted
-    e2fsprogs
-    dosfstools
-    cage
-    git
-  ] ++ [
-    bb-installer
-  ];
+  environment.systemPackages =
+    with pkgs;
+    [
+      parted
+      e2fsprogs
+      dosfstools
+      cage
+      git
+    ]
+    ++ [
+      bb-installer
+    ];
 
   # Networking
   networking = {
@@ -109,7 +127,11 @@ in
   # User configuration
   users.users.nixos = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "video" ];
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "video"
+    ];
     initialPassword = "";
   };
 

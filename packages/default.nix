@@ -1,4 +1,4 @@
-{pkgs, bun2nix}:
+{ pkgs, bun2nix }:
 let
   adboost = pkgs.callPackage ./adboost.nix { };
 in

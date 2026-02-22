@@ -2,7 +2,6 @@
   stdenv,
   pkgs,
   fetchFromGitHub,
-  lib,
   ...
 }:
 stdenv.mkDerivation {

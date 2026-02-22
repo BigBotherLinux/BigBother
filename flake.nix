@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -38,14 +37,22 @@
     };
     crane.url = "github:ipetkov/crane";
     bun2nix.url = "github:nix-community/bun2nix";
-  bun2nix.inputs.nixpkgs.follows = "nixpkgs";
+    bun2nix.inputs.nixpkgs.follows = "nixpkgs";
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pre-commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs =
     {
       self,
       nixpkgs,
-      flake-utils,
       rust-overlay,
       nixos-generators,
       crane,
@@ -54,7 +61,6 @@
     }@inputs:
     let
       inherit (self) outputs;
-      version = "1.9";
       systems = [
         "x86_64-linux"
         "aarch64-linux"
@@ -62,38 +68,45 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
       # Crane setup for Rust development
-      mkCraneLib = system:
+      mkCraneLib =
+        system:
         let
           pkgs = import nixpkgs {
             inherit system;
             overlays = [ (import rust-overlay) ];
           };
           rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-            extensions = [ "rust-src" "rust-analyzer" ];
+            extensions = [
+              "rust-src"
+              "rust-analyzer"
+            ];
           };
         in
         (crane.mkLib pkgs).overrideToolchain rustToolchain;
 
       # Build inputs needed for bb-installer (GUI app)
-      mkBuildInputs = pkgs: with pkgs; [
-        fontconfig
-        freetype
-        libxkbcommon
-        libGL
-        wayland
-        xorg.libX11
-        xorg.libXcursor
-        xorg.libXrandr
-        xorg.libXi
-        xorg.libxcb
-      ];
+      mkBuildInputs =
+        pkgs: with pkgs; [
+          fontconfig
+          freetype
+          libxkbcommon
+          libGL
+          wayland
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXrandr
+          xorg.libXi
+          xorg.libxcb
+        ];
 
-      mkNativeBuildInputs = pkgs: with pkgs; [
-        pkg-config
-      ];
+      mkNativeBuildInputs =
+        pkgs: with pkgs; [
+          pkg-config
+        ];
 
       # Common args for crane builds
-      mkCommonArgs = system:
+      mkCommonArgs =
+        system:
         let
           pkgs = import nixpkgs {
             inherit system;
@@ -107,29 +120,13 @@
           buildInputs = mkBuildInputs pkgs;
           nativeBuildInputs = mkNativeBuildInputs pkgs;
         };
+
+      # Treefmt evaluation for formatting checks
+      treefmtEval = forAllSystems (
+        system: inputs.treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix
+      );
     in
     {
-      # nixosModules.bigbotherinstaller = {config, ...}: {
-      #   nixpkgs.hostPlatform = system;
-      #   imports = [
-      #     nixos-generators.nixosModules.all-formats
-      #   ];
-      #
-      #   formatConfigs.isogen = {
-      #     config,
-      #     modulesPath,
-      #     ...
-      #   }: {
-      #     imports = ["${toString modulesPath}/installer/cd-dvd/installation-cd-graphical-calamares-plasma5.nix"];
-      #     isoImage.squashfsCompression = "zstd -Xcompression-level 3";
-      #     # Custom iso splash image
-      #     isoImage.splashImage = inputs.bigbother-theme + "/images/splashImage.png";
-      #     isoImage.efiSplashImage = inputs.bigbother-theme + "/images/splashImage.png";
-      #     isoImage.grubTheme = inputs.bigbother-theme + "/grub2-theme";
-      #     formatAttr = "isoImage";
-      #     fileExtension = ".iso";
-      #   };
-      # };
 
       nixosConfigurations.bb = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs self outputs; };
@@ -149,7 +146,8 @@
         ];
       };
 
-      devShells = forAllSystems (system:
+      devShells = forAllSystems (
+        system:
         let
           pkgs = import nixpkgs {
             inherit system;
@@ -157,28 +155,30 @@
           };
           craneLib = mkCraneLib system;
           rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-            extensions = [ "rust-src" "rust-analyzer" ];
+            extensions = [
+              "rust-src"
+              "rust-analyzer"
+            ];
           };
-          commonArgs = mkCommonArgs system;
-
-          # Build deps only (for caching)
-          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
           scripts = import ./scripts.nix { inherit pkgs; };
-        in {
+        in
+        {
           default = craneLib.devShell {
             # Checks to run in the dev shell
             checks = self.checks.${system};
 
             # Additional packages for development
-            packages = (builtins.attrValues scripts) ++ (with pkgs; [
-              rustToolchain
-              cargo-watch
-              cargo-edit
-              qemu
-              OVMF
-              just
-            ]);
+            packages =
+              (builtins.attrValues scripts)
+              ++ (with pkgs; [
+                rustToolchain
+                cargo-watch
+                cargo-edit
+                qemu
+                OVMF
+                just
+              ]);
 
             # Set library paths for GUI development
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (mkBuildInputs pkgs);
@@ -188,38 +188,23 @@
         }
       );
 
-      # Crane-based checks for CI
-      checks = forAllSystems (system:
+      # Checks for CI (imported from checks.nix)
+      checks = forAllSystems (
+        system:
         let
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ (import rust-overlay) ];
-          };
-          craneLib = mkCraneLib system;
-          commonArgs = mkCommonArgs system;
-          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
-        in {
-          # Build the crate as part of checks
-          bb-installer = craneLib.buildPackage (commonArgs // {
-            inherit cargoArtifacts;
-          });
-
-          # Run clippy
-          bb-installer-clippy = craneLib.cargoClippy (commonArgs // {
-            inherit cargoArtifacts;
-            cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-          });
-
-          # Check formatting
-          bb-installer-fmt = craneLib.cargoFmt {
-            src = craneLib.cleanCargoSource ./bb-installer;
-          };
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        import ./checks.nix {
+          inherit inputs system pkgs;
+          treefmt = treefmtEval.${system}.config.build.wrapper;
         }
       );
 
       overlays = import ./overlays.nix { inherit inputs; };
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
-      packages = forAllSystems (system:
+      formatter = forAllSystems (system: treefmtEval.${system}.config.build.wrapper);
+
+      packages = forAllSystems (
+        system:
         let
           pkgs = import nixpkgs {
             inherit system;
@@ -228,41 +213,56 @@
           craneLib = mkCraneLib system;
           commonArgs = mkCommonArgs system;
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
-          legacyPkgs = nixpkgs.legacyPackages.${system};
+          legacyPkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
         in
-        (import ./packages { pkgs = legacyPkgs; bun2nix = bun2nix.packages.${system}.default; }) // {
+        (import ./packages {
+          pkgs = legacyPkgs;
+          bun2nix = bun2nix.packages.${system}.default;
+        })
+        // {
           # bb-installer package (crane-built)
-          bb-installer = craneLib.buildPackage (commonArgs // {
-            inherit cargoArtifacts;
-            # Wrap the binary with runtime dependencies
-            postInstall = ''
-              # Copy all .nix files from the repo for installation
-              mkdir -p $out/share/bb-flake
-              cd ${./.}
-              find . -name "*.nix" -type f ! -path "*/target/*" ! -path "*/.git/*" -exec sh -c '
-                mkdir -p "$out/share/bb-flake/$(dirname "$1")"
-                cp "$1" "$out/share/bb-flake/$1"
-              ' _ {} \;
+          bb-installer = craneLib.buildPackage (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              # Wrap the binary with runtime dependencies
+              postInstall = ''
+                # Copy all .nix files from the repo for installation
+                mkdir -p $out/share/bb-flake
+                cd ${./.}
+                find . -name "*.nix" -type f ! -path "*/target/*" ! -path "*/.git/*" -exec sh -c '
+                  mkdir -p "$out/share/bb-flake/$(dirname "$1")"
+                  cp "$1" "$out/share/bb-flake/$1"
+                ' _ {} \;
 
-              # Copy flake.lock if it exists
-              if [ -f flake.lock ]; then
-                cp flake.lock $out/share/bb-flake/
-              fi
+                # Copy flake.lock if it exists
+                if [ -f flake.lock ]; then
+                  cp flake.lock $out/share/bb-flake/
+                fi
 
-              wrapProgram $out/bin/bb-installer \
-                --prefix PATH : ${pkgs.lib.makeBinPath (with pkgs; [
-                  parted
-                  util-linux
-                  e2fsprogs
-                  dosfstools
-                  nixos-install-tools
-                  mkpasswd
-                ])} \
-                --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath (mkBuildInputs pkgs)} \
-                --set BB_FLAKE_PATH $out/share/bb-flake
-            '';
-            nativeBuildInputs = (mkNativeBuildInputs pkgs) ++ [ pkgs.makeWrapper ];
-          });
+                wrapProgram $out/bin/bb-installer \
+                  --prefix PATH : ${
+                    pkgs.lib.makeBinPath (
+                      with pkgs;
+                      [
+                        parted
+                        util-linux
+                        e2fsprogs
+                        dosfstools
+                        nixos-install-tools
+                        mkpasswd
+                      ]
+                    )
+                  } \
+                  --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath (mkBuildInputs pkgs)} \
+                  --set BB_FLAKE_PATH $out/share/bb-flake
+              '';
+              nativeBuildInputs = (mkNativeBuildInputs pkgs) ++ [ pkgs.makeWrapper ];
+            }
+          );
         }
       );
     };

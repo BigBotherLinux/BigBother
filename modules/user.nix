@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ lib, ... }:
 {
   options.bigbother.primaryUser = lib.mkOption {
     type = lib.types.str;

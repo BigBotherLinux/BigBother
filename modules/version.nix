@@ -3,7 +3,6 @@
 {
   lib,
   config,
-  options,
   pkgs,
   ...
 }:
@@ -15,7 +14,7 @@ let
   attrsToText =
     attrs:
     lib.concatStringsSep "\n" (
-      lib.mapAttrsToList (n: v: ''${n}=${escapeIfNeccessary (toString v)}'') attrs
+      lib.mapAttrsToList (n: v: "${n}=${escapeIfNeccessary (toString v)}") attrs
     )
     + "\n";
   osReleaseContents = {

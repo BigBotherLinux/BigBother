@@ -11,9 +11,11 @@
   imports = [
     ./modules
     inputs.home-manager.nixosModules.home-manager
-  ] ++ lib.optionals (builtins.pathExists ./hardware-configuration.nix) [
+  ]
+  ++ lib.optionals (builtins.pathExists ./hardware-configuration.nix) [
     ./hardware-configuration.nix
-  ] ++ lib.optionals (builtins.pathExists ./installer.nix) [
+  ]
+  ++ lib.optionals (builtins.pathExists ./installer.nix) [
     ./installer.nix
   ];
 
@@ -87,7 +89,13 @@
 
   users.users.${config.bigbother.primaryUser} = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "video" "audio" config.programs.ydotool.group ];
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "video"
+      "audio"
+      config.programs.ydotool.group
+    ];
     initialPassword = lib.mkDefault "bothered";
   };
 

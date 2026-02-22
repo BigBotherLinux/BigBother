@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
@@ -35,7 +40,10 @@ in
 
   config = mkIf cfg.enable {
     # Add the packages to system packages
-    environment.systemPackages = [ cfg.package pkgs.cage ];
+    environment.systemPackages = [
+      cfg.package
+      pkgs.cage
+    ];
 
     # Create the systemd service
     systemd.services.bb-bp = {

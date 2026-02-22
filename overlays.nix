@@ -1,6 +1,11 @@
 { inputs, ... }:
 rec {
-  additions = final: _prev: import ./packages { pkgs = final; bun2nix = final.inputs.bun2nix.default; };
+  additions =
+    final: _prev:
+    import ./packages {
+      pkgs = final;
+      bun2nix = final.inputs.bun2nix.default;
+    };
 
   modifications = _final: prev: {
     # python312 = prev.python312.override {

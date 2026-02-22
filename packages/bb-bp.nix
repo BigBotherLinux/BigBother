@@ -42,16 +42,18 @@ rustPlatform.buildRustPackage rec {
 
   postInstall = ''
     wrapProgram $out/bin/bb-bp \
-      --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [
-        libGL
-        libxkbcommon
-        wayland
-        xorg.libX11
-        xorg.libXcursor
-        xorg.libXrandr
-        xorg.libXi
-        xorg.libxcb
-      ]}
+      --prefix LD_LIBRARY_PATH : ${
+        lib.makeLibraryPath [
+          libGL
+          libxkbcommon
+          wayland
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXrandr
+          xorg.libXi
+          xorg.libxcb
+        ]
+      }
   '';
 
   meta = with lib; {

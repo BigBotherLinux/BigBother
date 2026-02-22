@@ -49,24 +49,28 @@ rustPlatform.buildRustPackage rec {
   postInstall = ''
     # Copy all .nix files from the repo for installation
     wrapProgram $out/bin/bb-installer \
-      --prefix PATH : ${lib.makeBinPath [
-        parted
-        util-linux
-        e2fsprogs
-        dosfstools
-        nixos-install-tools
-        mkpasswd
-      ]} \
-      --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [
-        libGL
-        libxkbcommon
-        wayland
-        xorg.libX11
-        xorg.libXcursor
-        xorg.libXrandr
-        xorg.libXi
-        xorg.libxcb
-      ]} \
+      --prefix PATH : ${
+        lib.makeBinPath [
+          parted
+          util-linux
+          e2fsprogs
+          dosfstools
+          nixos-install-tools
+          mkpasswd
+        ]
+      } \
+      --prefix LD_LIBRARY_PATH : ${
+        lib.makeLibraryPath [
+          libGL
+          libxkbcommon
+          wayland
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXrandr
+          xorg.libXi
+          xorg.libxcb
+        ]
+      } \
   '';
 
   meta = with lib; {

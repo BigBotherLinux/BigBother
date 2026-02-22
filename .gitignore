@@ -3,4 +3,4 @@ dist
 result
 *.qcow2
 calamares
-bb-installer/target
+target

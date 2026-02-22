@@ -1,5 +1,4 @@
 {
-  lib,
   symlinkJoin,
   makeWrapper,
   microsoft-edge,

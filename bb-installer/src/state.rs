@@ -316,8 +316,12 @@ impl PasswordPhilosophy {
             Self::Nihilistic => "Nothing matters, so why would you care?",
             Self::Optimistic => "Maybe this time you'll remember it?",
             Self::Fatalistic => "The Ministry will decide what's best",
-            Self::Kafkaesque => "Your password must contain 8 characters, a number, a symbol, a haiku, and the approval of a committee that meets quarterly.",
-            Self::Stoic => "You cannot control the hacker, you can only control your reaction to theft.",
+            Self::Kafkaesque => {
+                "Your password must contain 8 characters, a number, a symbol, a haiku, and the approval of a committee that meets quarterly."
+            }
+            Self::Stoic => {
+                "You cannot control the hacker, you can only control your reaction to theft."
+            }
             Self::Paranoid => "You want the strongest password possible.",
             Self::Defeatist => "You'll never remember it, so you will just reset it anyways.",
         }
