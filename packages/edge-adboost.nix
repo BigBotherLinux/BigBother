@@ -1,4 +1,5 @@
 {
+  lib,
   symlinkJoin,
   makeWrapper,
   microsoft-edge,
@@ -29,6 +30,7 @@ symlinkJoin {
 
   meta = {
     description = "Microsoft Edge with AdBoost extension pre-loaded";
+    license = lib.licenses.unlicense;
     mainProgram = "microsoft-edge";
   };
 }

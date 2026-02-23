@@ -15,6 +15,8 @@ let
   bbPackages = import ./packages { inherit pkgs bun2nix; };
 in
 {
+  nixpkgs.config.allowUnfree = false;
+
   imports = [
     (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix")
     ./modules
@@ -29,9 +31,12 @@ in
     # Pre-build bun-based packages on the host and include them in the ISO's
     # nix store. Bun requires AVX2 which QEMU's default CPU doesn't support,
     # so these can't be built inside the VM.
-    storeContents = [
-      bbPackages.incel
-      bbPackages.werd
+    storeContents = with bbPackages; [
+      incel
+      werd
+      bb-installer
+      bb-bp
+      bb-nag
     ];
   };
 

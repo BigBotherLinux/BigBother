@@ -1,4 +1,5 @@
 {
+  lib,
   stdenv,
   pkgs,
   fetchFromGitHub,
@@ -28,4 +29,9 @@ stdenv.mkDerivation {
     mkdir -p $out/share/icons/
     cp -r Gust $out/share/icons/
   '';
+
+  meta = {
+    description = "Gust cursor theme for BigBother";
+    license = lib.licenses.mit;
+  };
 }

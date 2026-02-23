@@ -195,7 +195,12 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         import ./checks.nix {
-          inherit inputs system pkgs;
+          inherit
+            inputs
+            system
+            self
+            pkgs
+            ;
           treefmt = treefmtEval.${system}.config.build.wrapper;
         }
       );

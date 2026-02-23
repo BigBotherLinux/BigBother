@@ -1,6 +1,7 @@
 {
   inputs,
   system,
+  self,
   treefmt,
   ...
 }:
@@ -46,8 +47,23 @@ let
   };
 
   cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+  # Ensure the ISO closure contains no unfree packages (x86_64-linux only).
+  # Evaluating toplevel.drvPath forces Nix to instantiate every derivation in the
+  # ISO closure.  If any has an unfree license the eval fails because the ISO sets
+  # allowUnfree = false.  The check itself is just `touch $out` — no ISO build.
+  isoUnfreeCheck =
+    if system == "x86_64-linux" then
+      {
+        iso-no-unfree = builtins.seq self.nixosConfigurations.bb-iso.config.system.build.toplevel.drvPath (
+          pkgsWithRust.runCommand "iso-no-unfree" { } "touch $out"
+        );
+      }
+    else
+      { };
 in
-{
+isoUnfreeCheck
+// {
   # Crane-based checks for Rust packages
   bb-installer = craneLib.buildPackage (
     commonArgs

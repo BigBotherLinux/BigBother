@@ -38,6 +38,7 @@ stdenv.mkDerivation {
 
   meta = {
     description = "A fork of the font Overpass, but with letters converted to lowercase versions";
+    license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ hausken ];
   };
 }
