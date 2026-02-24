@@ -26,6 +26,7 @@ in
   isoImage = {
     isoBaseName = lib.mkForce "bigbother";
     # volumeID = lib.mkForce "BB";
+    splashImage = ./images/splashImage.png;
     squashfsCompression = lib.mkForce "xz -Xdict-size 100%"; # Better compatibility for Hyper-V
 
     # Pre-build bun-based packages on the host and include them in the ISO's
