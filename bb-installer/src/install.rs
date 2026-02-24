@@ -566,17 +566,17 @@ fn install_system(
     //     return;
     // }
 
-    log_message(progress, "Registering configuration files with git...");
-
-    if let Err(e) = run_command(
-        "git",
-        &["-C", dest_flake, "add", "."],
-        progress,
-        production_mode,
-    ) {
-        set_error(progress, &format!("Failed to add configs to git: {}", e));
-        return;
-    }
+    // log_message(progress, "Registering configuration files with git...");
+    //
+    // if let Err(e) = run_command(
+    //     "git",
+    //     &["-C", dest_flake, "add", "."],
+    //     progress,
+    //     production_mode,
+    // ) {
+    //     set_error(progress, &format!("Failed to add configs to git: {}", e));
+    //     return;
+    // }
 
     // Step 7: Run nixos-install
     set_status(progress, InstallStatus::RunningNixosInstall);

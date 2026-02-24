@@ -149,43 +149,13 @@ pub struct UserConfig {
 /// All of these are ignored - password is always set to "1234"
 #[derive(Debug, Clone)]
 pub struct PasswordTheater {
-    // Sliders (all meaningless, but affect the mini-game!)
-    pub entropy_coefficient: f32,   // 0.0 - 1.0 -> affects launch angle
-    pub memory_half_life_days: f32, // 1 - 365 -> affects initial velocity
-    pub quantum_uncertainty: f32,   // 0.0 - 1.0 -> affects gravity
-    pub character_diversity_index: f32, // 0.0 - 1.0 -> affects ball size
-    pub brute_force_resistance: f32, // 0.0 - 1.0 -> affects wind
-
-    // Radio selections (all meaningless)
+    // Reveal step
+    pub reveal_step: RevealStep,
     pub password_philosophy: PasswordPhilosophy,
     pub memorable_source: MemorableSource,
 
-    // Mini-game state
-    pub game: PasswordGame,
-
     // Final acknowledgment
     pub accept_ministry_override: bool,
-}
-
-/// The password generation mini-game state
-#[derive(Debug, Clone)]
-pub struct PasswordGame {
-    pub state: GameState,
-    pub ball_x: f32,
-    pub ball_y: f32,
-    pub velocity_x: f32,
-    pub velocity_y: f32,
-    pub start_time: Option<std::time::Instant>,
-    pub attempts: u32,
-    pub reveal_step: RevealStep,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum GameState {
-    Ready,  // Waiting for player to launch
-    Flying, // Ball is in the air
-    Scored, // Ball hit the goal
-    Missed, // Ball missed the goal
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -193,98 +163,6 @@ pub enum RevealStep {
     Philosophy,      // First: ask about password philosophy
     MemorableSource, // Second: ask about memorable source
     FinalReveal,     // Third: show the "1234" password
-}
-
-impl Default for PasswordGame {
-    fn default() -> Self {
-        Self {
-            state: GameState::Ready,
-            ball_x: 30.0,  // Starting X position
-            ball_y: 150.0, // Starting Y position (bottom-ish)
-            velocity_x: 0.0,
-            velocity_y: 0.0,
-            start_time: None,
-            attempts: 0,
-            reveal_step: RevealStep::Philosophy,
-        }
-    }
-}
-
-impl PasswordGame {
-    pub fn reset(&mut self) {
-        self.state = GameState::Ready;
-        self.ball_x = 30.0;
-        self.ball_y = 150.0;
-        self.velocity_x = 0.0;
-        self.velocity_y = 0.0;
-        self.start_time = None;
-    }
-
-    /// Launch the ball using the slider parameters
-    pub fn launch(&mut self, entropy: f32, memory: f32, brute_force: f32) {
-        if self.state != GameState::Ready {
-            return;
-        }
-
-        self.attempts += 1;
-        self.state = GameState::Flying;
-        self.start_time = Some(std::time::Instant::now());
-
-        // Calculate launch parameters from sliders
-        // entropy -> angle (30 to 70 degrees)
-        let angle_deg = 30.0 + entropy * 40.0;
-        let angle_rad = angle_deg * std::f32::consts::PI / 180.0;
-
-        // memory (1-365 days) -> velocity (scaled to 80-200)
-        let base_velocity = 80.0 + (memory / 365.0) * 120.0;
-
-        // brute_force -> wind effect (will be applied during flight as velocity modifier)
-        let wind = (brute_force - 0.5) * 30.0; // -15 to +15
-
-        self.velocity_x = angle_rad.cos() * base_velocity + wind;
-        self.velocity_y = -angle_rad.sin() * base_velocity; // negative because Y increases downward
-    }
-
-    /// Update ball physics, returns true if still animating
-    pub fn update(&mut self, quantum: f32, dt: f32) -> bool {
-        if self.state != GameState::Flying {
-            return false;
-        }
-
-        // Gravity affected by quantum uncertainty
-        let gravity = 100.0 + quantum * 100.0; // 150 to 250
-
-        // Update velocity (gravity)
-        self.velocity_y += gravity * dt;
-
-        // Update position
-        self.ball_x += self.velocity_x * dt;
-        self.ball_y += self.velocity_y * dt;
-
-        // Check bounds (game area is roughly 400x180)
-        let game_width = 400.0;
-        let game_height = 180.0;
-        let goal_x = game_width - 50.0;
-        let goal_y_min = 60.0;
-        let goal_y_max = 120.0;
-
-        // Check if ball hit the goal
-        if self.ball_x >= goal_x && self.ball_y >= goal_y_min && self.ball_y <= goal_y_max {
-            self.state = GameState::Scored;
-            return false;
-        }
-
-        // Check if ball went out of bounds
-        if self.ball_y > game_height + 50.0
-            || self.ball_x > game_width + 50.0
-            || self.ball_x < -50.0
-        {
-            self.state = GameState::Missed;
-            return false;
-        }
-
-        true
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -359,17 +237,9 @@ impl MemorableSource {
 impl Default for PasswordTheater {
     fn default() -> Self {
         Self {
-            entropy_coefficient: 0.5,
-            memory_half_life_days: 180.0,
-            quantum_uncertainty: 0.5,
-            character_diversity_index: 0.5,
-            brute_force_resistance: 0.5,
-
-            password_philosophy: PasswordPhilosophy::Fatalistic,
+            reveal_step: RevealStep::Philosophy,
+            password_philosophy: PasswordPhilosophy::Nihilistic,
             memorable_source: MemorableSource::ChildhoodTrauma,
-
-            game: PasswordGame::default(),
-
             accept_ministry_override: false,
         }
     }
