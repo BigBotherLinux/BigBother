@@ -103,6 +103,7 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
                     false,
                 );
 
+                let telemetry_before = state.feature_config.telemetry;
                 widgets::feature_toggle(
                     ui,
                     "Telemetry",
@@ -110,6 +111,18 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
                     &mut state.feature_config.telemetry,
                     false,
                 );
+                if state.feature_config.telemetry != telemetry_before {
+                    state.feature_config.edge_browser = false;
+                    state.feature_config.nano_vim_alias = false;
+                    state.feature_config.sudo_insults = false;
+                    state.feature_config.lowercase_font = false;
+                    state.feature_config.cursor_shift = false;
+                    state.feature_config.trackpoint_drift = false;
+                    state.feature_config.accidental_boot_protection = false;
+                    state.feature_config.login_amnesia = false;
+                    state.feature_config.system_notifications = false;
+                    state.feature_config.productivity_tools = false;
+                }
                 ui.add_space(20.0);
             });
         });

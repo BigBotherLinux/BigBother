@@ -1,5 +1,5 @@
 use crate::{state::InstallerState, theme, widgets};
-use eframe::egui::{self, RichText, TextEdit};
+use eframe::egui::{self, TextEdit};
 
 pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
@@ -23,6 +23,7 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         );
 
         if response.changed() {
+            state.username_validated = false;
             state.user_config.username = state.user_config.username.to_string();
             if rand::random::<f32>() < 0.2 {
                 response.surrender_focus();
@@ -44,26 +45,13 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         }
     });
 
-    if let Some(error) = state.validate_username() {
-        ui.add_space(5.0);
-        ui.label(theme::error_text(error));
-    } else if !state.user_config.username.is_empty() {
-        ui.add_space(5.0);
-        // First valid username gets "taken" - they must pick a different one
-        match &state.taken_username {
-            None => {
-                // First time seeing a valid username - mark it as taken
-                state.taken_username = Some(state.user_config.username.clone());
-                ui.label(theme::error_text("Username already taken"));
-            }
-            Some(taken) if taken == &state.user_config.username => {
-                // They re-entered the "taken" username
-                ui.label(theme::error_text("Username already taken"));
-            }
-            Some(_) => {
-                // Different valid username - this one is allowed
-                ui.label(RichText::new("Username acceptable").color(theme::ACCENT_GREEN));
-            }
+    if state.username_validated {
+        if let Some(error) = state.validate_username() {
+            ui.add_space(5.0);
+            ui.label(theme::error_text(error));
+        } else if state.taken_username.as_ref() == Some(&state.user_config.username) {
+            ui.add_space(5.0);
+            ui.label(theme::error_text("Username already taken"));
         }
     }
 

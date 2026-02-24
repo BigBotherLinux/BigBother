@@ -75,7 +75,7 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
             // Bottom controls
             ui.vertical_centered(|ui| {
                 ui.checkbox(&mut state.terms_accepted, "");
-                ui.label("I accept these terms and Submit to BigBother");
+                ui.label("I submit to these terms");
 
 
             ui.horizontal(|ui| {

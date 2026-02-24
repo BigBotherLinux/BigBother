@@ -20,7 +20,7 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     widgets::section_header(ui, "Citizen Profile");
 
     widgets::info_row(ui, "Username:", &state.user_config.username);
-    widgets::info_row(ui, "Password:", "1234 (Ministry-assigned)");
+    widgets::info_row(ui, "Password:", "1234");
 
     widgets::section_header(ui, "Regional Settings");
 

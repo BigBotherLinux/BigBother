@@ -2,6 +2,35 @@
 
 use std::sync::{Arc, Mutex};
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum CheckStatus {
+    Pending,
+    Running,
+    Passed,
+    Failed,
+}
+
+#[derive(Debug, Clone)]
+pub struct PreflightState {
+    pub internet: CheckStatus,
+    pub uefi: CheckStatus,
+    pub internet_error: Option<String>,
+    pub uefi_error: Option<String>,
+    pub checks_started: bool,
+}
+
+impl Default for PreflightState {
+    fn default() -> Self {
+        Self {
+            internet: CheckStatus::Pending,
+            uefi: CheckStatus::Pending,
+            internet_error: None,
+            uefi_error: None,
+            checks_started: false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Page {
     Welcome,
@@ -402,6 +431,9 @@ pub struct InstallerState {
     pub decline_attempts: u32,
     /// The first valid username entered - will be "already taken"
     pub taken_username: Option<String>,
+    /// Set after clicking Continue on user setup, to show validation errors
+    pub username_validated: bool,
+    pub preflight: Arc<Mutex<PreflightState>>,
 }
 
 impl InstallerState {
@@ -432,12 +464,26 @@ impl InstallerState {
                 .unwrap_or_else(|_| "/etc/bb-flake".to_string()),
             decline_attempts: 0,
             taken_username: None,
+            username_validated: false,
+            preflight: Arc::new(Mutex::new(PreflightState::default())),
         }
     }
 
     pub fn can_proceed(&self) -> bool {
         match self.current_page {
-            Page::Welcome => true,
+            Page::Welcome => {
+                let preflight = self.preflight.lock().unwrap();
+                if self.production_mode {
+                    preflight.internet == CheckStatus::Passed
+                        && preflight.uefi == CheckStatus::Passed
+                } else {
+                    // In dev mode, allow proceeding once checks finish (even if failed)
+                    matches!(
+                        preflight.internet,
+                        CheckStatus::Passed | CheckStatus::Failed
+                    ) && matches!(preflight.uefi, CheckStatus::Passed | CheckStatus::Failed)
+                }
+            }
             Page::Disclaimer => {
                 self.disclaimer_format_accepted
                     && self.disclaimer_unfree_accepted
@@ -449,10 +495,7 @@ impl InstallerState {
                     && self.disclaimer_unfree_accepted
                     && self.disclaimer_surveillance_accepted
             }
-            Page::UserSetup => {
-                self.validate_username().is_none()
-                    && self.taken_username.as_ref() != Some(&self.user_config.username)
-            }
+            Page::UserSetup => true,
             Page::PasswordSetup => self.password_theater.accept_ministry_override,
             Page::TimezoneSelection => !self.user_config.timezone.is_empty(),
             Page::KeyboardSelection => !self.user_config.keyboard_layout.is_empty(),
