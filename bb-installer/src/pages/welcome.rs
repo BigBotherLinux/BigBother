@@ -54,7 +54,7 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
 
         if show_checks {
             ui.label(
-                RichText::new("System Clearance")
+                RichText::new("System Checks")
                     .size(16.0)
                     .strong()
                     .color(theme::TEXT_SECONDARY),

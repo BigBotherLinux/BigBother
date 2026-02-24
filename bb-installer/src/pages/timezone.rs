@@ -4,8 +4,6 @@ use eframe::egui::{self, RichText, ScrollArea};
 pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
         ui.label(theme::title_text("Temporal Jurisdiction"));
-        ui.add_space(5.0);
-        ui.label(theme::muted_text("Select your surveillance time zone"));
     });
 
     ui.add_space(20.0);
@@ -32,9 +30,4 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         ui.label("Selected:");
         ui.label(RichText::new(&state.user_config.timezone).strong());
     });
-
-    ui.add_space(10.0);
-    ui.label(theme::muted_text(
-        "Note: Time zone selection helps synchronize your activities with our monitoring schedule.",
-    ));
 }

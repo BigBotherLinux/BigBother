@@ -433,6 +433,12 @@ pub struct InstallerState {
     pub taken_username: Option<String>,
     /// Set after clicking Continue on user setup, to show validation errors
     pub username_validated: bool,
+    /// Show warning when user presses Enter in username field
+    pub show_enter_warning: bool,
+    /// Cascade animation state for telemetry disable
+    pub feature_cascade_active: bool,
+    pub feature_cascade_start_time: Option<f64>,
+    pub feature_cascade_index: usize,
     pub preflight: Arc<Mutex<PreflightState>>,
 }
 
@@ -465,6 +471,10 @@ impl InstallerState {
             decline_attempts: 0,
             taken_username: None,
             username_validated: false,
+            show_enter_warning: false,
+            feature_cascade_active: false,
+            feature_cascade_start_time: None,
+            feature_cascade_index: 0,
             preflight: Arc::new(Mutex::new(PreflightState::default())),
         }
     }

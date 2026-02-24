@@ -4,6 +4,10 @@ use crate::theme::{self, ACCENT_RED, BG_WIDGET, TEXT_MUTED, TEXT_PRIMARY, TEXT_S
 use eframe::egui::{self, Color32, Pos2, Rect, Response, Sense, Stroke, Ui, Vec2};
 
 pub fn surveillance_eye(ui: &mut Ui, size: f32) -> Response {
+    surveillance_eye_with_opacity(ui, size, 1.0)
+}
+
+pub fn surveillance_eye_with_opacity(ui: &mut Ui, size: f32, opacity: f32) -> Response {
     let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), Sense::hover());
 
     // Get the mouse position relative to the entire screen
@@ -14,7 +18,8 @@ pub fn surveillance_eye(ui: &mut Ui, size: f32) -> Response {
         .unwrap_or_else(|| screen_rect.center());
 
     if ui.is_rect_visible(rect) {
-        let painter = ui.painter();
+        let mut painter = ui.painter().clone();
+        painter.set_opacity(opacity);
         let center = rect.center();
         let time = ui.ctx().input(|i| i.time);
 
@@ -358,11 +363,15 @@ pub fn feature_toggle(
 
         painter.rect_filled(toggle_rect, 12.0, toggle_bg);
 
-        let knob_x = if *enabled {
-            toggle_rect.max.x - 14.0
-        } else {
-            toggle_rect.min.x + 14.0
-        };
+        // Slow animation when toggling OFF, fast when toggling ON
+        let animation_time = if *enabled { 0.1 } else { 0.8 };
+        let t = ui.ctx().animate_bool_with_time(
+            response.id.with("toggle_anim"),
+            *enabled,
+            animation_time,
+        );
+
+        let knob_x = egui::lerp(toggle_rect.min.x + 14.0..=toggle_rect.max.x - 14.0, t);
 
         painter.circle_filled(
             Pos2::new(knob_x, toggle_rect.center().y),

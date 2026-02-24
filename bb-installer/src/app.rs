@@ -148,7 +148,8 @@ impl eframe::App for BigBotherInstaller {
                                 } else {
                                     Color32::from_rgb(80, 70, 70)
                                 },
-                            ));
+                            ))
+                            .corner_radius(4.0);
 
                             if ui.add_enabled(can_proceed, button).clicked() {
                                 if is_summary {

@@ -12,11 +12,9 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         |ui| {
             // Header
             ui.label(theme::title_text("Terms of Submission"));
-            ui.add_space(5.0);
-            ui.label(theme::muted_text("Please review and accept our completely reasonable terms"));
             ui.add_space(20.0);
             ui.label(RichText::new("We value your privacy, literally.").strong());
-            ui.add_space(10.0);
+            ui.add_space(20.0);
 
             // Calculate remaining height for scroll area (leave ~80px for bottom controls)
             let remaining = ui.available_height() - 80.0;

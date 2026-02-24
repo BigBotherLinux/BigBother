@@ -56,7 +56,6 @@ in
     "hv_vmbus"
   ];
 
-  # Ensure squashfs support is available
   boot.initrd.availableKernelModules = [
     "hyperv_keyboard"
   ];

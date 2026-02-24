@@ -52,7 +52,7 @@ fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
                     for (idx, philosophy) in philosophies.iter().enumerate() {
                         let is_selected = state.password_theater.password_philosophy == *philosophy;
                         let response = ui.allocate_ui(egui::vec2(cell_width, 0.0), |ui| {
-                            let response = egui::Frame::new()
+                            egui::Frame::new()
                                 .fill(if is_selected {
                                     Color32::from_rgb(50, 40, 50)
                                 } else {
@@ -83,7 +83,6 @@ fn render_philosophy_step(ui: &mut egui::Ui, state: &mut InstallerState) {
                                         });
                                     });
                                 });
-                            response
                         });
 
                         if response.response.interact(egui::Sense::click()).clicked() {

@@ -3,11 +3,7 @@ use eframe::egui::{self, RichText, ScrollArea};
 
 pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
-        ui.label(theme::title_text("Input Device Registration"));
-        ui.add_space(5.0);
-        ui.label(theme::muted_text(
-            "Configure your keyboard for optimal keystroke capture",
-        ));
+        ui.label(theme::title_text("Input Device"));
     });
 
     ui.add_space(20.0);
@@ -35,9 +31,4 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
         ui.label("Selected:");
         ui.label(RichText::new(&state.user_config.keyboard_layout).strong());
     });
-
-    ui.add_space(10.0);
-    ui.label(theme::muted_text(
-        "Keystroke patterns will be recorded for behavioral analysis. This is for your convenience."
-    ));
 }
