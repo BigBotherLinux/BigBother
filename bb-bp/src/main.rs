@@ -57,7 +57,7 @@ struct SplashApp {
     start_time: Instant,
     shutdown_triggered: bool,
     correct_color_name: String,
-    correct_color: Color32,
+    display_color: Color32,
     button_options: Vec<(String, Color32)>,
     breathing_start: Option<Instant>,
 }
@@ -75,7 +75,8 @@ impl SplashApp {
         let mut shuffled_colors: Vec<(&str, Color32)> = COLORS.to_vec();
         shuffled_colors.shuffle(&mut rng);
 
-        let (correct_name, correct_color) = shuffled_colors[0];
+        let (correct_name, _) = shuffled_colors[0];
+        let display_color = COLORS.choose(&mut rng).unwrap().1;
         let button_bg_colors: Vec<(&str, Color32)> = shuffled_colors[..4].to_vec();
 
         let mut button_options: Vec<(String, Color32)> = button_bg_colors
@@ -92,6 +93,10 @@ impl SplashApp {
                 (label, bg_color)
             })
             .collect();
+        // Ensure exactly one button has the correct label text
+        let forced_idx = (0..button_options.len()).collect::<Vec<_>>();
+        let &idx = forced_idx.choose(&mut rng).unwrap();
+        button_options[idx].0 = correct_name.to_string();
         button_options.shuffle(&mut rng);
 
         Self {
@@ -99,7 +104,7 @@ impl SplashApp {
             start_time: Instant::now(),
             shutdown_triggered: false,
             correct_color_name: correct_name.to_string(),
-            correct_color,
+            display_color,
             button_options,
             breathing_start: None,
             pages: vec![
@@ -114,7 +119,7 @@ impl SplashApp {
                     title: "Cognitive Verification",
                     content: r#"
                     Although you made it this far, we need to verify that you are conscious and awake.
-                    Please select the {random_color} button to continue.
+                    Please select the button with the text saying {random_color} to continue.
                     This is to ensure that you are not just dreaming or sleep walking.
 "#,
                 },
@@ -122,7 +127,7 @@ impl SplashApp {
                     title: "Mandatory Breathing Exercise",
                     content: r#"
                     We value your health and well being.
-                    As an preventive measure, we require you to complete a breathing exercise to help you stay alert.
+                    As an preventive measure, you must complete a breathing exercise to help you stay alert.
                     Please take a deep breath in, hold for 4 seconds, and exhale slowly.
                     "#,
                 },
@@ -180,7 +185,7 @@ impl eframe::App for SplashApp {
                                 0.0,
                                 egui::TextFormat {
                                     font_id: FontId::proportional(content_size),
-                                    color: self.correct_color,
+                                    color: self.display_color,
                                     ..Default::default()
                                 },
                             );
@@ -228,7 +233,6 @@ impl eframe::App for SplashApp {
                         let available_width = ui.available_width();
                         ui.add_space((available_width - total_width) / 2.0);
 
-                        let correct_color = self.correct_color;
                         let mut clicked_correct = false;
                         let mut clicked_wrong = false;
 
@@ -246,7 +250,7 @@ impl eframe::App for SplashApp {
                             .fill(*bg_color);
 
                             if ui.add_sized(Vec2::new(120.0, 50.0), button).clicked() {
-                                if *bg_color == correct_color {
+                                if *label == self.correct_color_name {
                                     clicked_correct = true;
                                 } else {
                                     clicked_wrong = true;
@@ -327,9 +331,11 @@ impl eframe::App for SplashApp {
                             let done_space = if screen_height < 800.0 { 15.0 } else { 20.0 };
                             ui.add_space(done_space);
                             ui.label(
-                                RichText::new("RESPIRATORY COMPLIANCE VERIFIED")
-                                    .font(FontId::proportional(status_size))
-                                    .color(Color32::from_rgb(0, 255, 0)),
+                                RichText::new(
+                                    "Good job! The best part of your day is now behind you",
+                                )
+                                .font(FontId::proportional(status_size))
+                                .color(Color32::from_rgb(0, 255, 0)),
                             );
                             ui.add_space(done_space);
                             if ui
