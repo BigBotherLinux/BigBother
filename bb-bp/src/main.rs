@@ -57,7 +57,7 @@ struct SplashApp {
     start_time: Instant,
     shutdown_triggered: bool,
     correct_color_name: String,
-    correct_color: Color32,
+    display_color: Color32,
     button_options: Vec<(String, Color32)>,
     breathing_start: Option<Instant>,
 }
@@ -75,7 +75,8 @@ impl SplashApp {
         let mut shuffled_colors: Vec<(&str, Color32)> = COLORS.to_vec();
         shuffled_colors.shuffle(&mut rng);
 
-        let (correct_name, correct_color) = shuffled_colors[0];
+        let (correct_name, _) = shuffled_colors[0];
+        let display_color = COLORS.choose(&mut rng).unwrap().1;
         let button_bg_colors: Vec<(&str, Color32)> = shuffled_colors[..4].to_vec();
 
         let mut button_options: Vec<(String, Color32)> = button_bg_colors
@@ -92,6 +93,10 @@ impl SplashApp {
                 (label, bg_color)
             })
             .collect();
+        // Ensure exactly one button has the correct label text
+        let forced_idx = (0..button_options.len()).collect::<Vec<_>>();
+        let &idx = forced_idx.choose(&mut rng).unwrap();
+        button_options[idx].0 = correct_name.to_string();
         button_options.shuffle(&mut rng);
 
         Self {
@@ -99,7 +104,7 @@ impl SplashApp {
             start_time: Instant::now(),
             shutdown_triggered: false,
             correct_color_name: correct_name.to_string(),
-            correct_color,
+            display_color,
             button_options,
             breathing_start: None,
             pages: vec![
@@ -114,7 +119,7 @@ impl SplashApp {
                     title: "Cognitive Verification",
                     content: r#"
                     Although you made it this far, we need to verify that you are conscious and awake.
-                    Please select the {random_color} button to continue.
+                    Please select the button with the text saying {random_color} to continue.
                     This is to ensure that you are not just dreaming or sleep walking.
 "#,
                 },
@@ -122,7 +127,7 @@ impl SplashApp {
                     title: "Mandatory Breathing Exercise",
                     content: r#"
                     We value your health and well being.
-                    As an preventive measure, we require you to complete a breathing exercise to help you stay alert.
+                    As an preventive measure, you must complete a breathing exercise to help you stay alert.
                     Please take a deep breath in, hold for 4 seconds, and exhale slowly.
                     "#,
                 },
@@ -135,19 +140,27 @@ impl eframe::App for SplashApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered(|ui| {
-                ui.add_space(100.0);
+                let screen_height = ui.available_height();
+                // Responsive top spacing: less on smaller screens
+                let top_space = if screen_height < 800.0 { 40.0 } else { 100.0 };
+                ui.add_space(top_space);
 
                 // Title
                 let page = &self.pages[self.current_page];
+                // Responsive title size: smaller on smaller screens
+                let title_size = if screen_height < 800.0 { 36.0 } else { 48.0 };
                 ui.label(
                     RichText::new(page.title)
-                        .font(FontId::proportional(48.0))
+                        .font(FontId::proportional(title_size))
                         .color(Color32::from_rgb(0, 255, 0)),
                 );
 
-                ui.add_space(50.0);
+                // Responsive spacing after title
+                let after_title_space = if screen_height < 800.0 { 30.0 } else { 50.0 };
+                ui.add_space(after_title_space);
 
                 // Content
+                let content_size = if screen_height < 800.0 { 20.0 } else { 24.0 };
                 if self.current_page == 1 {
                     let content = page
                         .content
@@ -160,7 +173,7 @@ impl eframe::App for SplashApp {
                                 part,
                                 0.0,
                                 egui::TextFormat {
-                                    font_id: FontId::proportional(24.0),
+                                    font_id: FontId::proportional(content_size),
                                     color: Color32::from_rgb(0, 200, 0),
                                     ..Default::default()
                                 },
@@ -171,8 +184,8 @@ impl eframe::App for SplashApp {
                                 &self.correct_color_name,
                                 0.0,
                                 egui::TextFormat {
-                                    font_id: FontId::proportional(24.0),
-                                    color: self.correct_color,
+                                    font_id: FontId::proportional(content_size),
+                                    color: self.display_color,
                                     ..Default::default()
                                 },
                             );
@@ -183,7 +196,7 @@ impl eframe::App for SplashApp {
                 } else {
                     ui.label(
                         RichText::new(page.content)
-                            .font(FontId::proportional(24.0))
+                            .font(FontId::proportional(content_size))
                             .color(Color32::from_rgb(0, 200, 0)),
                     );
                 }
@@ -193,10 +206,12 @@ impl eframe::App for SplashApp {
                     let elapsed = self.start_time.elapsed().as_secs();
                     let remaining = 5u64.saturating_sub(elapsed);
 
-                    ui.add_space(20.0);
+                    let countdown_space = if screen_height < 800.0 { 15.0 } else { 20.0 };
+                    ui.add_space(countdown_space);
+                    let countdown_size = if screen_height < 800.0 { 18.0 } else { 20.0 };
                     ui.label(
                         RichText::new(format!("System will shut down in {}...", remaining))
-                            .font(FontId::proportional(20.0))
+                            .font(FontId::proportional(countdown_size))
                             .color(Color32::from_rgb(255, 60, 60)),
                     );
 
@@ -208,7 +223,8 @@ impl eframe::App for SplashApp {
                     }
                 }
 
-                ui.add_space(50.0);
+                let button_space = if screen_height < 800.0 { 30.0 } else { 50.0 };
+                ui.add_space(button_space);
 
                 // Color puzzle buttons on page 1
                 if self.current_page == 1 {
@@ -217,7 +233,6 @@ impl eframe::App for SplashApp {
                         let available_width = ui.available_width();
                         ui.add_space((available_width - total_width) / 2.0);
 
-                        let correct_color = self.correct_color;
                         let mut clicked_correct = false;
                         let mut clicked_wrong = false;
 
@@ -235,7 +250,7 @@ impl eframe::App for SplashApp {
                             .fill(*bg_color);
 
                             if ui.add_sized(Vec2::new(120.0, 50.0), button).clicked() {
-                                if *bg_color == correct_color {
+                                if *label == self.correct_color_name {
                                     clicked_correct = true;
                                 } else {
                                     clicked_wrong = true;
@@ -253,6 +268,9 @@ impl eframe::App for SplashApp {
                     });
                 } else if self.current_page == 2 {
                     // Breathing exercise page
+                    let status_size = if screen_height < 800.0 { 20.0 } else { 24.0 };
+                    let breath_size = if screen_height < 800.0 { 16.0 } else { 18.0 };
+
                     if let Some(start) = self.breathing_start {
                         let elapsed = start.elapsed().as_secs_f32();
                         // Each cycle: 1s hold → 4s inhale → 1s hold → 4s exhale = 10s
@@ -283,12 +301,16 @@ impl eframe::App for SplashApp {
                             (phase * PI / 2.0).cos()
                         };
 
-                        // Pulsating circle
+                        // Pulsating circle - smaller on smaller screens
+                        let circle_size = if screen_height < 800.0 { 180.0 } else { 250.0 };
                         let (response, painter) =
-                            ui.allocate_painter(Vec2::splat(250.0), Sense::hover());
+                            ui.allocate_painter(Vec2::splat(circle_size), Sense::hover());
                         let center = response.rect.center();
-                        let min_radius = 20.0_f32;
-                        let max_radius = 110.0_f32;
+                        let (min_radius, max_radius) = if screen_height < 800.0 {
+                            (15.0_f32, 80.0_f32)
+                        } else {
+                            (20.0_f32, 110.0_f32)
+                        };
                         let radius = min_radius + (max_radius - min_radius) * radius_factor;
 
                         painter.circle_filled(
@@ -306,18 +328,22 @@ impl eframe::App for SplashApp {
 
                         // Status text
                         if breathing_done {
-                            ui.add_space(20.0);
+                            let done_space = if screen_height < 800.0 { 15.0 } else { 20.0 };
+                            ui.add_space(done_space);
                             ui.label(
-                                RichText::new("RESPIRATORY COMPLIANCE VERIFIED")
-                                    .font(FontId::proportional(24.0))
-                                    .color(Color32::from_rgb(0, 255, 0)),
+                                RichText::new(
+                                    "Good job! The best part of your day is now behind you",
+                                )
+                                .font(FontId::proportional(status_size))
+                                .color(Color32::from_rgb(0, 255, 0)),
                             );
-                            ui.add_space(20.0);
+                            ui.add_space(done_space);
                             if ui
                                 .add_sized(
                                     Vec2::new(120.0, 40.0),
                                     egui::Button::new(
-                                        RichText::new("FINISH").font(FontId::proportional(18.0)),
+                                        RichText::new("FINISH")
+                                            .font(FontId::proportional(breath_size)),
                                     ),
                                 )
                                 .clicked()
@@ -336,33 +362,37 @@ impl eframe::App for SplashApp {
                                     ("<<< EXHALE >>>", Color32::from_rgb(0, 160, 0))
                                 };
 
-                            ui.add_space(20.0);
+                            let label_space = if screen_height < 800.0 { 15.0 } else { 20.0 };
+                            ui.add_space(label_space);
                             ui.label(
                                 RichText::new(label)
-                                    .font(FontId::proportional(24.0))
+                                    .font(FontId::proportional(status_size))
                                     .color(color),
                             );
                             ui.add_space(10.0);
                             ui.label(
                                 RichText::new(format!("Breath {} of 3", current_cycle + 1))
-                                    .font(FontId::proportional(18.0))
+                                    .font(FontId::proportional(breath_size))
                                     .color(Color32::from_rgb(0, 200, 0)),
                             );
                         }
                     } else {
                         // Show ready prompt before starting
-                        ui.add_space(30.0);
+                        let ready_space = if screen_height < 800.0 { 20.0 } else { 30.0 };
+                        let ready_size = if screen_height < 800.0 { 24.0 } else { 28.0 };
+                        let button_space_before = if screen_height < 800.0 { 15.0 } else { 20.0 };
+                        ui.add_space(ready_space);
                         ui.label(
                             RichText::new("Ready to meditate?")
-                                .font(FontId::proportional(28.0))
+                                .font(FontId::proportional(ready_size))
                                 .color(Color32::from_rgb(0, 200, 0)),
                         );
-                        ui.add_space(20.0);
+                        ui.add_space(button_space_before);
                         if ui
                             .add_sized(
                                 Vec2::new(120.0, 40.0),
                                 egui::Button::new(
-                                    RichText::new("BEGIN").font(FontId::proportional(18.0)),
+                                    RichText::new("BEGIN").font(FontId::proportional(breath_size)),
                                 ),
                             )
                             .clicked()

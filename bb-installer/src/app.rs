@@ -148,13 +148,29 @@ impl eframe::App for BigBotherInstaller {
                                 } else {
                                     Color32::from_rgb(80, 70, 70)
                                 },
-                            ));
+                            ))
+                            .corner_radius(4.0);
 
                             if ui.add_enabled(can_proceed, button).clicked() {
                                 if is_summary {
                                     // Start installation
                                     self.state.next_page();
                                     start_install_if_ready(&mut self.state);
+                                } else if self.state.current_page == Page::UserSetup {
+                                    self.state.username_validated = true;
+                                    if self.state.validate_username().is_some() {
+                                        // Has errors, stay on page
+                                    } else if self.state.taken_username.is_none() {
+                                        // First valid username gets "taken"
+                                        self.state.taken_username =
+                                            Some(self.state.user_config.username.clone());
+                                    } else if self.state.taken_username.as_ref()
+                                        == Some(&self.state.user_config.username)
+                                    {
+                                        // Still using the taken name, stay on page
+                                    } else {
+                                        self.state.next_page();
+                                    }
                                 } else {
                                     self.state.next_page();
                                 }

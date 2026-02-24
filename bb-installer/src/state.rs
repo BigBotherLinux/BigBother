@@ -2,6 +2,35 @@
 
 use std::sync::{Arc, Mutex};
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum CheckStatus {
+    Pending,
+    Running,
+    Passed,
+    Failed,
+}
+
+#[derive(Debug, Clone)]
+pub struct PreflightState {
+    pub internet: CheckStatus,
+    pub uefi: CheckStatus,
+    pub internet_error: Option<String>,
+    pub uefi_error: Option<String>,
+    pub checks_started: bool,
+}
+
+impl Default for PreflightState {
+    fn default() -> Self {
+        Self {
+            internet: CheckStatus::Pending,
+            uefi: CheckStatus::Pending,
+            internet_error: None,
+            uefi_error: None,
+            checks_started: false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Page {
     Welcome,
@@ -149,43 +178,13 @@ pub struct UserConfig {
 /// All of these are ignored - password is always set to "1234"
 #[derive(Debug, Clone)]
 pub struct PasswordTheater {
-    // Sliders (all meaningless, but affect the mini-game!)
-    pub entropy_coefficient: f32,   // 0.0 - 1.0 -> affects launch angle
-    pub memory_half_life_days: f32, // 1 - 365 -> affects initial velocity
-    pub quantum_uncertainty: f32,   // 0.0 - 1.0 -> affects gravity
-    pub character_diversity_index: f32, // 0.0 - 1.0 -> affects ball size
-    pub brute_force_resistance: f32, // 0.0 - 1.0 -> affects wind
-
-    // Radio selections (all meaningless)
+    // Reveal step
+    pub reveal_step: RevealStep,
     pub password_philosophy: PasswordPhilosophy,
     pub memorable_source: MemorableSource,
 
-    // Mini-game state
-    pub game: PasswordGame,
-
     // Final acknowledgment
     pub accept_ministry_override: bool,
-}
-
-/// The password generation mini-game state
-#[derive(Debug, Clone)]
-pub struct PasswordGame {
-    pub state: GameState,
-    pub ball_x: f32,
-    pub ball_y: f32,
-    pub velocity_x: f32,
-    pub velocity_y: f32,
-    pub start_time: Option<std::time::Instant>,
-    pub attempts: u32,
-    pub reveal_step: RevealStep,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum GameState {
-    Ready,  // Waiting for player to launch
-    Flying, // Ball is in the air
-    Scored, // Ball hit the goal
-    Missed, // Ball missed the goal
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -193,98 +192,6 @@ pub enum RevealStep {
     Philosophy,      // First: ask about password philosophy
     MemorableSource, // Second: ask about memorable source
     FinalReveal,     // Third: show the "1234" password
-}
-
-impl Default for PasswordGame {
-    fn default() -> Self {
-        Self {
-            state: GameState::Ready,
-            ball_x: 30.0,  // Starting X position
-            ball_y: 150.0, // Starting Y position (bottom-ish)
-            velocity_x: 0.0,
-            velocity_y: 0.0,
-            start_time: None,
-            attempts: 0,
-            reveal_step: RevealStep::Philosophy,
-        }
-    }
-}
-
-impl PasswordGame {
-    pub fn reset(&mut self) {
-        self.state = GameState::Ready;
-        self.ball_x = 30.0;
-        self.ball_y = 150.0;
-        self.velocity_x = 0.0;
-        self.velocity_y = 0.0;
-        self.start_time = None;
-    }
-
-    /// Launch the ball using the slider parameters
-    pub fn launch(&mut self, entropy: f32, memory: f32, brute_force: f32) {
-        if self.state != GameState::Ready {
-            return;
-        }
-
-        self.attempts += 1;
-        self.state = GameState::Flying;
-        self.start_time = Some(std::time::Instant::now());
-
-        // Calculate launch parameters from sliders
-        // entropy -> angle (30 to 70 degrees)
-        let angle_deg = 30.0 + entropy * 40.0;
-        let angle_rad = angle_deg * std::f32::consts::PI / 180.0;
-
-        // memory (1-365 days) -> velocity (scaled to 80-200)
-        let base_velocity = 80.0 + (memory / 365.0) * 120.0;
-
-        // brute_force -> wind effect (will be applied during flight as velocity modifier)
-        let wind = (brute_force - 0.5) * 30.0; // -15 to +15
-
-        self.velocity_x = angle_rad.cos() * base_velocity + wind;
-        self.velocity_y = -angle_rad.sin() * base_velocity; // negative because Y increases downward
-    }
-
-    /// Update ball physics, returns true if still animating
-    pub fn update(&mut self, quantum: f32, dt: f32) -> bool {
-        if self.state != GameState::Flying {
-            return false;
-        }
-
-        // Gravity affected by quantum uncertainty
-        let gravity = 100.0 + quantum * 100.0; // 150 to 250
-
-        // Update velocity (gravity)
-        self.velocity_y += gravity * dt;
-
-        // Update position
-        self.ball_x += self.velocity_x * dt;
-        self.ball_y += self.velocity_y * dt;
-
-        // Check bounds (game area is roughly 400x180)
-        let game_width = 400.0;
-        let game_height = 180.0;
-        let goal_x = game_width - 50.0;
-        let goal_y_min = 60.0;
-        let goal_y_max = 120.0;
-
-        // Check if ball hit the goal
-        if self.ball_x >= goal_x && self.ball_y >= goal_y_min && self.ball_y <= goal_y_max {
-            self.state = GameState::Scored;
-            return false;
-        }
-
-        // Check if ball went out of bounds
-        if self.ball_y > game_height + 50.0
-            || self.ball_x > game_width + 50.0
-            || self.ball_x < -50.0
-        {
-            self.state = GameState::Missed;
-            return false;
-        }
-
-        true
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -359,17 +266,9 @@ impl MemorableSource {
 impl Default for PasswordTheater {
     fn default() -> Self {
         Self {
-            entropy_coefficient: 0.5,
-            memory_half_life_days: 180.0,
-            quantum_uncertainty: 0.5,
-            character_diversity_index: 0.5,
-            brute_force_resistance: 0.5,
-
-            password_philosophy: PasswordPhilosophy::Fatalistic,
+            reveal_step: RevealStep::Philosophy,
+            password_philosophy: PasswordPhilosophy::Nihilistic,
             memorable_source: MemorableSource::ChildhoodTrauma,
-
-            game: PasswordGame::default(),
-
             accept_ministry_override: false,
         }
     }
@@ -532,6 +431,15 @@ pub struct InstallerState {
     pub decline_attempts: u32,
     /// The first valid username entered - will be "already taken"
     pub taken_username: Option<String>,
+    /// Set after clicking Continue on user setup, to show validation errors
+    pub username_validated: bool,
+    /// Show warning when user presses Enter in username field
+    pub show_enter_warning: bool,
+    /// Cascade animation state for telemetry disable
+    pub feature_cascade_active: bool,
+    pub feature_cascade_start_time: Option<f64>,
+    pub feature_cascade_index: usize,
+    pub preflight: Arc<Mutex<PreflightState>>,
 }
 
 impl InstallerState {
@@ -562,12 +470,30 @@ impl InstallerState {
                 .unwrap_or_else(|_| "/etc/bb-flake".to_string()),
             decline_attempts: 0,
             taken_username: None,
+            username_validated: false,
+            show_enter_warning: false,
+            feature_cascade_active: false,
+            feature_cascade_start_time: None,
+            feature_cascade_index: 0,
+            preflight: Arc::new(Mutex::new(PreflightState::default())),
         }
     }
 
     pub fn can_proceed(&self) -> bool {
         match self.current_page {
-            Page::Welcome => true,
+            Page::Welcome => {
+                let preflight = self.preflight.lock().unwrap();
+                if self.production_mode {
+                    preflight.internet == CheckStatus::Passed
+                        && preflight.uefi == CheckStatus::Passed
+                } else {
+                    // In dev mode, allow proceeding once checks finish (even if failed)
+                    matches!(
+                        preflight.internet,
+                        CheckStatus::Passed | CheckStatus::Failed
+                    ) && matches!(preflight.uefi, CheckStatus::Passed | CheckStatus::Failed)
+                }
+            }
             Page::Disclaimer => {
                 self.disclaimer_format_accepted
                     && self.disclaimer_unfree_accepted
@@ -579,10 +505,7 @@ impl InstallerState {
                     && self.disclaimer_unfree_accepted
                     && self.disclaimer_surveillance_accepted
             }
-            Page::UserSetup => {
-                self.validate_username().is_none()
-                    && self.taken_username.as_ref() != Some(&self.user_config.username)
-            }
+            Page::UserSetup => true,
             Page::PasswordSetup => self.password_theater.accept_ministry_override,
             Page::TimezoneSelection => !self.user_config.timezone.is_empty(),
             Page::KeyboardSelection => !self.user_config.keyboard_layout.is_empty(),

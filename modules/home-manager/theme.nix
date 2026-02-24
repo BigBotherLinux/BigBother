@@ -26,17 +26,26 @@ in
     '';
 
     programs.plasma = {
-      configFile = optionalAttrs cfg.font {
-        kdeglobals = {
-          General = {
-            "font" = "Underpass,10,-1,5,50,0,0,0,0,0";
-            # "fixed" = "Underpass,10,-1,5,50,0,0,0,0,0";
-            "smallestReadableFont" = "Underpass,8,-1,5,50,0,0,0,0,0";
-            "toolBarFont" = "Underpass,12,-1,5,50,0,0,0,0,0";
-            "menuFont" = "Underpass,10,-1,5,50,0,0,0,0,0";
+      configFile =
+        optionalAttrs cfg.font {
+          kdeglobals = {
+            General = {
+              "font" = "Underpass,10,-1,5,50,0,0,0,0,0";
+              # "fixed" = "Underpass,10,-1,5,50,0,0,0,0,0";
+              "smallestReadableFont" = "Underpass,8,-1,5,50,0,0,0,0,0";
+              "toolBarFont" = "Underpass,12,-1,5,50,0,0,0,0,0";
+              "menuFont" = "Underpass,10,-1,5,50,0,0,0,0,0";
+            };
+          };
+        }
+        // {
+          kscreenlockerrc = {
+            "Greeter/Wallpaper/org.kde.image/General" = {
+              Image = "${inputs.bigbother-theme.packages.x86_64-linux.bb-kde-theme}/share/wallpapers/Crowded";
+              PreviewImage = "${inputs.bigbother-theme.packages.x86_64-linux.bb-kde-theme}/share/wallpapers/Crowded";
+            };
           };
         };
-      };
       workspace.wallpaper = "${inputs.bigbother-theme.packages.x86_64-linux.bb-kde-theme}/share/wallpapers/Crowded";
     };
 

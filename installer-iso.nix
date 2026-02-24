@@ -25,8 +25,9 @@ in
   # ISO image configuration
   isoImage = {
     isoBaseName = lib.mkForce "bigbother";
-    volumeID = lib.mkForce "BB";
-    squashfsCompression = lib.mkForce "zstd -Xcompression-level 3"; # Faster compression for POC
+    # volumeID = lib.mkForce "BB";
+    splashImage = ./images/splashImage.png;
+    squashfsCompression = lib.mkForce "xz -Xdict-size 100%"; # Better compatibility for Hyper-V
 
     # Pre-build bun-based packages on the host and include them in the ISO's
     # nix store. Bun requires AVX2 which QEMU's default CPU doesn't support,
@@ -49,6 +50,15 @@ in
     "radeon"
     "nouveau"
     "i915"
+    "hv_balloon"
+    "hv_netvsc"
+    "hv_storvsc"
+    "hv_utils"
+    "hv_vmbus"
+  ];
+
+  boot.initrd.availableKernelModules = [
+    "hyperv_keyboard"
   ];
 
   # Set default target to graphical for Wayland compositor
