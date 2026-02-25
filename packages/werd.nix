@@ -40,7 +40,6 @@ stdenv.mkDerivation rec {
 
     mkdir -p $out/lib/werd
     cp -r dist $out/lib/werd/
-    cp -r node_modules $out/lib/werd/
     cp package.json $out/lib/werd/
 
     mkdir -p $out/bin

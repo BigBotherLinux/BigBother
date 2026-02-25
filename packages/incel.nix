@@ -41,7 +41,6 @@ stdenv.mkDerivation rec {
 
     mkdir -p $out/lib/incel
     cp -r dist $out/lib/incel/
-    cp -r node_modules $out/lib/incel/
     cp package.json $out/lib/incel/
 
     mkdir -p $out/bin
