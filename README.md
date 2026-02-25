@@ -13,16 +13,13 @@ The simple answer is: **Don't.**
 If you are still not conviced, here are some of the features in this distro:
 
 - Microsoft Edge as default browser
+- [Custom installer](#custom-installer) for a unique installation experience
+- [Accidental boot protection](#accidental-boot-protection)
 - [Incel](https://github.com/kluzzebass/incel) and [Werd](https://github.com/kluzzebass/werd) preinstalled
 - [Adboost extension](https://github.com/surprisetalk/AdBoost) preloaded in Microsoft Edge
 - Default system font [only supports lowercase letters](#other-minor-features)
-- The cursor's active click point has been [shifted](#other-minor-features)
 - Cursor will [slowly drift](#cursor-drift) in a direction
-- [Accidental boot protection](#accidental-boot-protection)
-- [Anchored](#release-cycle) release cycle
 - [Login screen](#customizations-to-the-login-screen) configured to not remember username
-
-Much more in depth details about the features are found [here](#full-feature-list)
 
 ## Full Feature List
 
@@ -92,6 +89,12 @@ A notification service will pull up inspirational system messages.
 
 ![Notification preview](images/notifications-preview.png)
 
+### Custom Installer
+
+A custom installer is made for this distro with some quite unique options to ensure we only have willing and loyal users.
+
+![Custom installer](images/installer-preview.png)
+
 ### Other minor features
 
 - The system's default font has all capital letters replaced with lowercase letters (i.e `A = a`).
@@ -147,22 +150,9 @@ Contributions are also welcome with these guidelines:
 
 [feelafraidcomic.com](https://feelafraidcomic.com/60.php) - [@feel_afraid](https://twitter.com/feel_afraid)
 
-## Feature wishlist
-
-This is a list of features not yet implemented.
-
-- Add system font with only lower-case letters
-- "Start" button icon
-- Find out a way to set up a theme(the nix way).
-- Create a welcome-screen
-- New calamares module
-- Set up a script or a alias for updating or installing packages. User will have to dig into the nix config themselves, but at least they could get some pointers on where to begin.
-- Go over licenses to ensure all is ok
-
 ## Special thanks
 
 - Instagram @jfb_fit for making the logo
 - [SnowflakeOS](https://github.com/snowflakelinux/) for inspiration and versioning implementation
-- [calamares nixos extension](https://github.com/NixOS/calamares-nixos-extensions) for fork and inspiration
 - [Arc KDE theme](https://github.com/PapirusDevelopmentTeam/arc-kde) for inspiration on global theme implementation
 - ChatGPT/Claude for providing slop

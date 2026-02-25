@@ -14,11 +14,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    calamares-bb = {
-      url = "github:hauskens/calamares-nixos-extensions";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     bigbother-theme = {
       url = "github:BigBotherLinux/kde-theme";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -31,17 +26,24 @@
     };
 
     xremap.url = "github:xremap/nix-flake";
+
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     crane.url = "github:ipetkov/crane";
-    bun2nix.url = "github:nix-community/bun2nix";
-    bun2nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    bun2nix = {
+      url = "github:nix-community/bun2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     pre-commit-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";

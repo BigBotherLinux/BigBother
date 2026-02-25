@@ -45,26 +45,6 @@
         "type": "github"
       }
     },
-    "calamares-bb": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1704748275,
-        "narHash": "sha256-dkawtv/Tg8827LvVG82z1fyRENCv5DaYQVetpFEufH8=",
-        "owner": "hauskens",
-        "repo": "calamares-nixos-extensions",
-        "rev": "4b5ddc664785dbb5581a891b147f8780d76352e5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hauskens",
-        "repo": "calamares-nixos-extensions",
-        "type": "github"
-      }
-    },
     "crane": {
       "locked": {
         "lastModified": 1769287525,
@@ -372,7 +352,6 @@
       "inputs": {
         "bigbother-theme": "bigbother-theme",
         "bun2nix": "bun2nix",
-        "calamares-bb": "calamares-bb",
         "crane": "crane",
         "home-manager": "home-manager_2",
         "nixos-generators": "nixos-generators",
