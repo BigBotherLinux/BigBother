@@ -13,4 +13,5 @@ in
   bb-bp = pkgs.callPackage ./bb-bp.nix { };
   bb-nag = pkgs.callPackage ./bb-nag.nix { };
   bb-sddm-theme = pkgs.callPackage ./bb-sddm-theme.nix { };
+  bb-fastfetch = pkgs.callPackage ./bb-fastfetch.nix { };
 }

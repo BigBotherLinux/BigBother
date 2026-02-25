@@ -30,6 +30,7 @@
     werd.enable = true;
     adboost.enable = true;
     bb-nag.enable = true;
+    fastfetch.enable = true;
   };
 
   formatConfigs.vm =

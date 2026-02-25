@@ -13,5 +13,6 @@
     ./adboost.nix
     ./bb-bp.nix
     ./bb-nag.nix
+    ./fastfetch.nix
   ];
 }
