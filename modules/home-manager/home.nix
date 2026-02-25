@@ -4,7 +4,7 @@
 }:
 {
   imports = [
-    ./modules/home-manager
+    ./theme.nix
   ];
   bigbother.theme = {
     enable = true;

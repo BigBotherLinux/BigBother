@@ -100,20 +100,17 @@
     initialPassword = lib.mkDefault "bothered";
   };
 
-  home-manager.users.${config.bigbother.primaryUser} = import ./home.nix;
+  home-manager.users.${config.bigbother.primaryUser} = import ./modules/home-manager;
 
   services = {
     desktopManager.plasma6.enable = true;
     displayManager = {
       sddm.enable = true;
-      # autoLogin.enable = lib.mkDefault true;
-      # autoLogin.user = lib.mkDefault "test";
     };
   };
 
   environment = {
     systemPackages = with pkgs; [
-      git
       inputs.bigbother-theme.packages.${pkgs.system}.bb-kde-theme
     ];
 

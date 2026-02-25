@@ -7,21 +7,7 @@ rec {
       bun2nix = final.inputs.bun2nix.default;
     };
 
-  modifications = _final: prev: {
-    # python312 = prev.python312.override {
-    #   packageOverrides = _python-self: python-super: {
-    #     faster-whisper = python-super.faster-whisper.overridePythonAttrs (_oldAttrs: {
-    #       pythonRelaxDeps = [
-    #         "tokenizers"
-    #         "av"
-    #       ];
-    #     });
-    #     opentelemetry-proto = python-super.opentelemetry-proto.overridePythonAttrs (_oldAttrs: {
-    #       pythonRelaxDeps = [ "protobuf" ];
-    #     });
-    #   };
-    # };
-  };
+  modifications = _final: prev: { };
 
   flake-inputs = final: _: {
     inputs = builtins.mapAttrs (

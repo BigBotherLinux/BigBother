@@ -42,7 +42,6 @@ in
   # Enable graphics support for Wayland compositor
   hardware.graphics.enable = true;
 
-  # Load DRM kernel modules early
   boot.initrd.kernelModules = [
     "hv_balloon"
     "hv_netvsc"
@@ -55,7 +54,6 @@ in
     "hyperv_keyboard"
   ];
 
-  # Set default target to graphical for Wayland compositor
   systemd.defaultUnit = "graphical.target";
 
   # Disable getty on tty1 so cage can use it

@@ -47,7 +47,6 @@ rustPlatform.buildRustPackage rec {
   ];
 
   postInstall = ''
-    # Copy all .nix files from the repo for installation
     wrapProgram $out/bin/bb-installer \
       --prefix PATH : ${
         lib.makeBinPath [
