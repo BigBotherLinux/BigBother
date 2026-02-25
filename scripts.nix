@@ -6,16 +6,13 @@
     ISO_PATH=""
     BUILD_ISO=false
 
-    # Parse arguments
     while [[ $# -gt 0 ]]; do
       case $1 in
         -iso)
           if [[ -n "$2" && "$2" != -* ]]; then
-            # Path provided after -iso
             ISO_PATH="$2"
             shift 2
           else
-            # No path, build the ISO
             BUILD_ISO=true
             shift
           fi
@@ -27,21 +24,23 @@
       esac
     done
 
-    # Default disk image if not specified
     DISK_IMAGE="''${DISK_IMAGE:-test-disk.qcow2}"
 
-    # Build ISO if -iso flag was provided without a path
     if [ "$BUILD_ISO" = true ]; then
       echo "Building installer ISO..."
-      nix build .#nixosConfigurations.bb-installer.config.system.build.isoImage
-      ISO_PATH="./result/iso/bigbother-poc.iso"
+      nix build .#nixosConfigurations.bb-iso.config.system.build.isoImage
+      ISO_PATH="./result/iso/bigbother.iso"
+    fi
+
+    if [ ! -f "$DISK_IMAGE" ]; then
+      echo "Disk image not found, creating $DISK_IMAGE..."
+      ${pkgs.qemu}/bin/qemu-img create -f qcow2 "$DISK_IMAGE" 20G
     fi
 
     echo "Starting QEMU with UEFI firmware..."
-    echo "Disk image: $DISK_IMAGE"
-    [ -n "$ISO_PATH" ] && echo "ISO image: $ISO_PATH"
+    echo "  Disk: $DISK_IMAGE"
+    [ -n "$ISO_PATH" ] && echo "  ISO:  $ISO_PATH"
 
-    # Build QEMU command
     QEMU_ARGS=(
       -enable-kvm
       -m 4G
@@ -54,9 +53,7 @@
       -device virtio-keyboard-pci
     )
 
-    # Configure drives with boot priority
     if [ -n "$ISO_PATH" ]; then
-      # ISO gets bootindex=0 (highest priority), HDD gets bootindex=1
       QEMU_ARGS+=(
         -drive file="$ISO_PATH",id=cdrom,media=cdrom,readonly=on,if=none
         -device ide-cd,drive=cdrom,bootindex=0
@@ -64,7 +61,6 @@
         -device virtio-blk-pci,drive=hdd,bootindex=1
       )
     else
-      # No ISO, just the HDD
       QEMU_ARGS+=(-drive file="$DISK_IMAGE",format=qcow2,if=virtio)
     fi
 

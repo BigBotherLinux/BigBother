@@ -121,14 +121,53 @@ This distro is designed to not be upgradable, it is a one time install experienc
 You should preferably run this in a virtual machine, not on physical hardware.
 Some of the implementations have too much permissions and is considered to be insecure.
 
-### Get the ISO
+Check the [github releases](https://github.com/BigBotherLinux/BigBother/releases) for the latest ISO.
 
-Check the [github releases](https://github.com/BigBotherLinux/BigBother/releases) for torrent file which will include the latest ISO.
-
-### Building the iso
-
-To build iso:
+Its also possible to build the iso yourself with nix:
 `nix build .#nixosConfigurations.bb-iso.config.system.build.isoImage`
+
+### Running the ISO in QEMU
+
+If you have Nix installed:
+
+```bash
+nix develop
+testBB-uefi -iso
+# When installation is complete, simply boot without the -iso flag
+testBB-uefi
+```
+
+Without Nix, you can use QEMU directly:
+
+```bash
+# Create a virtual disk
+qemu-img create -f qcow2 test-disk.qcow2 20G
+
+# Boot the ISO (UEFI)
+qemu-system-x86_64 \
+  -enable-kvm \
+  -m 4G \
+  -smp 2 \
+  -bios /usr/share/OVMF/OVMF_CODE.fd \
+  -vga virtio \
+  -display gtk \
+  -usb \
+  -device usb-tablet \
+  -device virtio-keyboard-pci \
+  -drive file=bigbother.iso,media=cdrom,readonly=on,if=none,id=cdrom \
+  -device ide-cd,drive=cdrom,bootindex=0 \
+  -drive file=test-disk.qcow2,format=qcow2,if=none,id=hdd \
+  -device virtio-blk-pci,drive=hdd,bootindex=1
+```
+
+> The OVMF path may vary by your choice of inferior distro, i'm sure you'll figure it out!
+
+### Running the ISO in Hyper-V
+
+If you for some strange reason still use Windows, you can run the ISO in Hyper-V, but make sure you:
+
+- Create a Generation 2 VM
+- Disable Secure Boot
 
 ### Need help?
 
