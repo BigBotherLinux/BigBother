@@ -175,19 +175,7 @@ There is nothing wrong in seeking help, however i doubt you will find it here.
 
 ## Found something useful?
 
-If you have any ideas of how the user experience can deteriorate, please create [issues](https://github.com/BigBotherLinux/BigBother/issues) in the project repo.
-
-Contributions are also welcome with these guidelines:
-
-- System has to be usable
-- User should not be required to do anything other than go through the installer.
-- ISO and system has to be reprodusable
-- Features should not cause data loss or be destructive
-- It should **not** spark joy
-
-<img src="https://feelafraidcomic.com/comics/2011-05-13-welcome-to-hell.png" width="375" height="563">
-
-[feelafraidcomic.com](https://feelafraidcomic.com/60.php) - [@feel_afraid](https://twitter.com/feel_afraid)
+If you have any ideas of how the user experience can deteriorate, check out the [contributing guidelines](CONTRIBUTING.md), feel free to create feature requests or bug reports.
 
 ## Special thanks
 
