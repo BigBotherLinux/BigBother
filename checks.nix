@@ -57,6 +57,7 @@ isoUnfreeCheck
         excludes = [
           "\\.png"
           "\\.jpg"
+          "\\.github/ISSUE_TEMPLATE/.*"
         ];
       };
       check-case-conflicts.enable = true;
