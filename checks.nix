@@ -21,6 +21,8 @@ let
         iso-no-unfree = builtins.seq self.nixosConfigurations.bb-iso.config.system.build.toplevel.drvPath (
           pkgs.runCommand "iso-no-unfree" { } "touch $out"
         );
+
+        iso-installer-starts = pkgs.callPackage ./tests/iso-installer.nix { };
       }
     else
       { };
