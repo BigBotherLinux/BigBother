@@ -1,0 +1,17 @@
+[package]
+name = "bb-age-refresher"
+version = "0.1.0"
+edition = "2021"
+description = "BigBother Age Verification Refresher - Re-confirms your age bracket via notification"
+authors = ["Hausken"]
+
+[dependencies]
+notify-rust = "4"
+eframe = { version = "0.33", features = ["default_fonts", "glow", "wayland", "x11"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+bb-age-attestation = { path = "../bb-age-attestation" }
+
+# Pin problematic dependencies to versions compatible with stable Rust
+smithay-clipboard = "=0.7.2"
+home = "=0.5.9"

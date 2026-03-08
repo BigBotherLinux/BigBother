@@ -17,6 +17,7 @@ let
       commonArgs
       // {
         inherit cargoArtifacts;
+        cargoExtraArgs = "--package bb-installer";
 
         postInstall = ''
           # Copy all .nix files from the repo for installation
@@ -66,4 +67,6 @@ in
   bb-nag = pkgs.callPackage ./bb-nag.nix { };
   bb-sddm-theme = pkgs.callPackage ./bb-sddm-theme.nix { };
   bb-fastfetch = pkgs.callPackage ./bb-fastfetch.nix { };
+  bb-age-refresher = pkgs.callPackage ./bb-age-refresher.nix { };
+  bb-age-attestation = pkgs.callPackage ./bb-age-attestation.nix { };
 }

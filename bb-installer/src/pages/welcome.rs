@@ -210,7 +210,6 @@ fn skip_to_defaults(state: &mut InstallerState) {
     state.user_config.keyboard_layout = "us".to_string();
     state.user_config.hostname = "bigbother-dev".to_string();
 
-    // Accept password theater override
     state.password_theater.accept_ministry_override = true;
 
     // Features are already enabled by default (FeatureConfig::new())

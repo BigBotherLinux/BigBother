@@ -22,11 +22,16 @@ rustPlatform.buildRustPackage rec {
   pname = "bb-installer";
   version = "0.1.0";
 
-  src = ../bb-installer;
+  src = ../.;
 
   cargoLock = {
-    lockFile = ../bb-installer/Cargo.lock;
+    lockFile = ../Cargo.lock;
   };
+
+  cargoBuildFlags = [
+    "--package"
+    "bb-installer"
+  ];
 
   nativeBuildInputs = [
     pkg-config

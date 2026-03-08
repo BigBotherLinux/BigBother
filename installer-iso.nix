@@ -31,8 +31,8 @@ in
   };
 
   # ISO image configuration
+  image.baseName = lib.mkForce "bigbother";
   isoImage = {
-    isoBaseName = lib.mkForce "bigbother";
     splashImage = ./images/splashImage.png;
 
     # Pre-build bun-based packages on the host and include them in the ISO's
@@ -44,6 +44,8 @@ in
       bb-installer
       bb-bp
       bb-nag
+      bb-age-refresher
+      bb-age-attestation
     ];
   };
 
@@ -79,6 +81,7 @@ in
       "video"
     ];
     initialPassword = "";
+    initialHashedPassword = lib.mkForce null;
   };
 
   security.sudo.wheelNeedsPassword = false;

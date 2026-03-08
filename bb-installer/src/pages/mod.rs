@@ -1,3 +1,4 @@
+mod age_verification;
 mod complete;
 mod disclaimer;
 mod disk_selection;
@@ -29,6 +30,7 @@ pub fn render_page(ui: &mut eframe::egui::Ui, state: &mut InstallerState) {
         Page::DiskSelection => disk_selection::render(ui, state),
         Page::FeatureSelection => features::render(ui, state),
         Page::HostnameSetup => hostname::render(ui, state),
+        Page::AgeVerification => age_verification::render(ui, state),
         Page::Summary => summary::render(ui, state),
         Page::Installing => installing::render(ui, state),
         Page::Complete => complete::render(ui, state),

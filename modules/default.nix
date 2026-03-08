@@ -13,6 +13,8 @@
     ./adboost.nix
     ./bb-bp.nix
     ./bb-nag.nix
+    ./bb-age-refresher.nix
+    ./bb-age-attestation.nix
     ./fastfetch.nix
   ];
 }

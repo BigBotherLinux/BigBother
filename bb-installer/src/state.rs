@@ -1,6 +1,8 @@
 //! Installer state management
 
+use bb_age_attestation::types::AgeBracket;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CheckStatus {
@@ -43,6 +45,7 @@ pub enum Page {
     DiskSelection,
     FeatureSelection,
     HostnameSetup,
+    AgeVerification,
     Summary,
     Installing,
     Complete,
@@ -53,17 +56,18 @@ impl Page {
         match self {
             Page::Welcome => 0,
             Page::Disclaimer => 1,
-            Page::TermsOfSubmission => 2,
-            Page::UserSetup => 3,
-            Page::PasswordSetup => 4,
-            Page::TimezoneSelection => 5,
-            Page::KeyboardSelection => 6,
-            Page::DiskSelection => 7,
-            Page::FeatureSelection => 8,
-            Page::HostnameSetup => 9,
-            Page::Summary => 10,
-            Page::Installing => 11,
-            Page::Complete => 12,
+            Page::AgeVerification => 2,
+            Page::TermsOfSubmission => 3,
+            Page::UserSetup => 4,
+            Page::PasswordSetup => 5,
+            Page::TimezoneSelection => 6,
+            Page::KeyboardSelection => 7,
+            Page::DiskSelection => 8,
+            Page::FeatureSelection => 9,
+            Page::HostnameSetup => 10,
+            Page::Summary => 11,
+            Page::Installing => 12,
+            Page::Complete => 13,
         }
     }
 
@@ -79,15 +83,16 @@ impl Page {
             7 => Some(Page::DiskSelection),
             8 => Some(Page::FeatureSelection),
             9 => Some(Page::HostnameSetup),
-            10 => Some(Page::Summary),
-            11 => Some(Page::Installing),
-            12 => Some(Page::Complete),
+            10 => Some(Page::AgeVerification),
+            11 => Some(Page::Summary),
+            12 => Some(Page::Installing),
+            13 => Some(Page::Complete),
             _ => None,
         }
     }
 
     pub fn total() -> usize {
-        12
+        13
     }
 
     pub fn title(&self) -> &'static str {
@@ -102,6 +107,7 @@ impl Page {
             Page::DiskSelection => "Storage Requisition",
             Page::FeatureSelection => "Mandatory Optional Features",
             Page::HostnameSetup => "Communications Checkpoint",
+            Page::AgeVerification => "Age Verification",
             Page::Summary => "Pre-Installation Briefing",
             Page::Installing => "Installation Monitor",
             Page::Complete => "Installation Complete",
@@ -111,7 +117,8 @@ impl Page {
     pub fn next(&self) -> Option<Page> {
         match self {
             Page::Welcome => Some(Page::Disclaimer),
-            Page::Disclaimer => Some(Page::TermsOfSubmission),
+            Page::Disclaimer => Some(Page::AgeVerification),
+            Page::AgeVerification => Some(Page::TermsOfSubmission),
             Page::TermsOfSubmission => Some(Page::UserSetup),
             Page::UserSetup => Some(Page::PasswordSetup),
             Page::PasswordSetup => Some(Page::TimezoneSelection),
@@ -130,7 +137,8 @@ impl Page {
         match self {
             Page::Welcome => None,
             Page::Disclaimer => Some(Page::Welcome),
-            Page::TermsOfSubmission => Some(Page::Disclaimer),
+            Page::AgeVerification => Some(Page::Disclaimer),
+            Page::TermsOfSubmission => Some(Page::AgeVerification),
             Page::UserSetup => Some(Page::TermsOfSubmission),
             Page::PasswordSetup => Some(Page::UserSetup),
             Page::TimezoneSelection => Some(Page::PasswordSetup),
@@ -222,7 +230,7 @@ impl PasswordPhilosophy {
         match self {
             Self::Nihilistic => "Nothing matters, so why would you care?",
             Self::Optimistic => "Maybe this time you'll remember it?",
-            Self::Fatalistic => "The Ministry will decide what's best",
+            Self::Fatalistic => "We will decide what's best",
             Self::Kafkaesque => {
                 "Your password must contain 8 characters, a number, a symbol, a haiku, and the approval of a committee that meets quarterly."
             }
@@ -440,6 +448,10 @@ pub struct InstallerState {
     pub feature_cascade_start_time: Option<f64>,
     pub feature_cascade_index: usize,
     pub preflight: Arc<Mutex<PreflightState>>,
+    pub age: u8,
+    pub age_bracket: Option<AgeBracket>,
+    pub age_status: String,
+    pub last_age_click: Instant,
 }
 
 impl InstallerState {
@@ -476,6 +488,10 @@ impl InstallerState {
             feature_cascade_start_time: None,
             feature_cascade_index: 0,
             preflight: Arc::new(Mutex::new(PreflightState::default())),
+            age: 1,
+            age_bracket: None,
+            age_status: String::new(),
+            last_age_click: Instant::now(),
         }
     }
 
@@ -512,6 +528,7 @@ impl InstallerState {
             Page::DiskSelection => self.selected_disk.is_some(),
             Page::FeatureSelection => self.feature_config.all_enabled(),
             Page::HostnameSetup => self.validate_hostname().is_none(),
+            Page::AgeVerification => self.age_bracket.is_some(),
             Page::Summary => true,
             Page::Installing => false,
             Page::Complete => false,
@@ -622,5 +639,66 @@ impl InstallerState {
 
     pub fn get_selected_disk(&self) -> Option<&DiskInfo> {
         self.selected_disk.and_then(|i| self.available_disks.get(i))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn next_navigates_from_welcome_to_complete() {
+        let mut page = Page::Welcome;
+        let mut visited = vec![page.clone()];
+
+        while let Some(next) = page.next() {
+            page = next;
+            visited.push(page.clone());
+        }
+
+        assert_eq!(page, Page::Complete);
+        assert_eq!(visited.len(), Page::total() + 1);
+    }
+
+    #[test]
+    fn prev_navigates_from_complete_to_welcome() {
+        // Navigate to Complete first
+        let mut page = Page::Welcome;
+        while let Some(next) = page.next() {
+            page = next;
+        }
+        assert_eq!(page, Page::Complete);
+
+        // Now navigate back — Complete and Installing have no prev
+        // so start from Summary
+        page = Page::Summary;
+        let mut visited = vec![page.clone()];
+
+        while let Some(prev) = page.prev() {
+            page = prev;
+            visited.push(page.clone());
+        }
+
+        assert_eq!(page, Page::Welcome);
+        // Summary back to Welcome = all pages except Installing and Complete
+        assert_eq!(visited.len(), Page::total() + 1 - 2);
+    }
+
+    #[test]
+    fn next_and_prev_are_consistent() {
+        let mut page = Page::Welcome;
+
+        while let Some(next) = page.next() {
+            // If next exists, then prev of next should return current page
+            // (except Installing and Complete which have no prev)
+            if let Some(prev) = next.prev() {
+                assert_eq!(
+                    prev, page,
+                    "prev of {:?} should be {:?}, got {:?}",
+                    next, page, prev
+                );
+            }
+            page = next;
+        }
     }
 }

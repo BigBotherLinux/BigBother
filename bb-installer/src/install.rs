@@ -1,6 +1,7 @@
 //! Disk detection and installation logic
 
 use crate::state::{DiskInfo, InstallProgress, InstallStatus, InstallerState};
+use bb_age_attestation::types::AgeBracket;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
@@ -227,6 +228,25 @@ fn write_file(
     fs::write(path, content).map_err(|e| format!("Failed to write {}: {}", path, e))
 }
 
+fn write_file_bytes(
+    path: &str,
+    content: &[u8],
+    progress: &Arc<Mutex<InstallProgress>>,
+    production_mode: bool,
+) -> Result<(), String> {
+    log_message(
+        progress,
+        &format!("Writing binary file: {} ({} bytes)", path, content.len()),
+    );
+
+    if !production_mode {
+        log_message(progress, "  [DRY-RUN] File not written (BB_PROD != true)");
+        return Ok(());
+    }
+
+    fs::write(path, content).map_err(|e| format!("Failed to write {}: {}", path, e))
+}
+
 fn create_dir(
     path: &str,
     progress: &Arc<Mutex<InstallProgress>>,
@@ -321,6 +341,7 @@ pub fn start_installation(state: &InstallerState) {
     let flake_path = state.flake_path.clone();
     let installer_nix_content = generate_installer_nix(state);
     let production_mode = state.production_mode;
+    let age_bracket = state.age_bracket;
 
     thread::spawn(move || {
         install_system(
@@ -329,6 +350,7 @@ pub fn start_installation(state: &InstallerState) {
             &installer_nix_content,
             &progress,
             production_mode,
+            age_bracket,
         );
     });
 }
@@ -339,6 +361,7 @@ fn install_system(
     installer_nix_content: &str,
     progress: &Arc<Mutex<InstallProgress>>,
     production_mode: bool,
+    age_bracket: Option<AgeBracket>,
 ) {
     log_message(progress, "=== BigBother Installation Starting ===");
     if !production_mode {
@@ -604,7 +627,47 @@ fn install_system(
         return;
     }
 
-    // Step 8: Finalize
+    // Step 8: Write age attestation to installed system
+    if let Some(bracket) = age_bracket {
+        log_message(progress, "");
+        log_message(progress, "Writing age attestation to installed system...");
+        let attestation_dir = "/mnt/root/.local/share/bb-age-attestation";
+        if let Err(e) = create_dir(attestation_dir, progress, production_mode) {
+            log_message(
+                progress,
+                &format!("Warning: Failed to create attestation dir: {}", e),
+            );
+        } else {
+            match serde_json::to_string(&bracket)
+                .map_err(|e| e.to_string())
+                .and_then(|json| {
+                    bb_age_attestation::crypto::encrypt(json.as_bytes()).map_err(|e| e.to_string())
+                }) {
+                Ok(encrypted) => {
+                    let path = format!("{}/attestation.age", attestation_dir);
+                    if let Err(e) = write_file_bytes(&path, &encrypted, progress, production_mode) {
+                        log_message(
+                            progress,
+                            &format!("Warning: Failed to write attestation: {}", e),
+                        );
+                    } else {
+                        log_message(
+                            progress,
+                            &format!("Age attestation saved: {}", bracket.label()),
+                        );
+                    }
+                }
+                Err(e) => {
+                    log_message(
+                        progress,
+                        &format!("Warning: Failed to encrypt attestation: {}", e),
+                    );
+                }
+            }
+        }
+    }
+
+    // Step 9: Finalize
     set_status(progress, InstallStatus::Finalizing);
     log_message(progress, "");
     log_message(progress, "Finalizing installation...");

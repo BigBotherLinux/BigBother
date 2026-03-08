@@ -35,7 +35,7 @@ let
   ];
 
   commonArgs = {
-    src = craneLib.cleanCargoSource ../bb-installer;
+    src = craneLib.cleanCargoSource ../.;
     strictDeps = true;
     inherit buildInputs nativeBuildInputs;
   };

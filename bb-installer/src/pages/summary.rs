@@ -28,6 +28,10 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     widgets::info_row(ui, "Keyboard:", &state.user_config.keyboard_layout);
     widgets::info_row(ui, "Hostname:", &state.user_config.hostname);
 
+    if let Some(bracket) = &state.age_bracket {
+        widgets::info_row(ui, "Age Bracket:", bracket.label());
+    }
+
     widgets::section_header(ui, "System Configuration");
 
     if let Some(disk) = state.get_selected_disk() {

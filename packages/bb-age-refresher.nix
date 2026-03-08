@@ -3,6 +3,7 @@
   rustPlatform,
   pkg-config,
   makeWrapper,
+  dbus,
   fontconfig,
   freetype,
   libxkbcommon,
@@ -13,7 +14,7 @@
 }:
 
 rustPlatform.buildRustPackage rec {
-  pname = "bb-bp";
+  pname = "bb-age-refresher";
   version = "0.1.0";
 
   src = ../.;
@@ -24,7 +25,7 @@ rustPlatform.buildRustPackage rec {
 
   cargoBuildFlags = [
     "--package"
-    "bb-bp"
+    "bb-age-refresher"
   ];
 
   nativeBuildInputs = [
@@ -33,6 +34,7 @@ rustPlatform.buildRustPackage rec {
   ];
 
   buildInputs = [
+    dbus
     fontconfig
     freetype
     libxkbcommon
@@ -46,7 +48,7 @@ rustPlatform.buildRustPackage rec {
   ];
 
   postInstall = ''
-    wrapProgram $out/bin/bb-bp \
+    wrapProgram $out/bin/bb-age-refresher \
       --prefix LD_LIBRARY_PATH : ${
         lib.makeLibraryPath [
           libGL
@@ -62,11 +64,11 @@ rustPlatform.buildRustPackage rec {
   '';
 
   meta = with lib; {
-    description = "BigBother Pre-Login Splash Screen";
+    description = "BigBother Age Verification Refresher - Periodically re-confirms your age bracket";
     homepage = "https://github.com/BigBotherLinux/BigBother";
     license = licenses.mit;
     maintainers = [ ];
     platforms = platforms.linux;
-    mainProgram = "bb-bp";
+    mainProgram = "bb-age-refresher";
   };
 }

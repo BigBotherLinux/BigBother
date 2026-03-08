@@ -1,0 +1,14 @@
+[workspace]
+members = ["bb-installer", "bb-bp", "bb-age-attestation", "bb-age-refresher"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+
+[workspace.metadata.crane]
+name = "bigbother"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true

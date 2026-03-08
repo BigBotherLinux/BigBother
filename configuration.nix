@@ -30,6 +30,8 @@
     werd.enable = true;
     adboost.enable = true;
     bb-nag.enable = true;
+    bb-age-refresher.enable = true;
+    bb-age-attestation.enable = true;
     fastfetch.enable = true;
   };
 

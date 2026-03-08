@@ -27,6 +27,7 @@ in
         qemu
         OVMF
         just
+        age
       ]);
 
     LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
