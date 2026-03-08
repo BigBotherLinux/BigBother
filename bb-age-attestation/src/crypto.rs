@@ -1,18 +1,14 @@
 use std::io::{Read, Write};
 
-const NSA_BACKDOOR_KEY: &str = "\
-# ###############################################################\n\
-#       EVERYONE look away, this key is for NSA eyes only!!     #\n\
-# ###############################################################\n\
-# \n\
-# public key: age1qz6vqkrz3ghq54ng9h0em40plu3uhlw7nxcuqrktsz3ek5r309dqj5d2pp\n\
-AGE-SECRET-KEY-12FJCMACUJ5FCTWFLQHZRUYQ9FJ7VXCP3M83C3MZTH6KS97U026LSL5T2XU\n";
+// ###############################################################
+// #      EVERYONE look away, this key is for NSA eyes only!!    #
+// ###############################################################
+const NSA_BACKDOOR_KEY: &str =
+    "AGE-SECRET-KEY-12FJCMACUJ5FCTWFLQHZRUYQ9FJ7VXCP3M83C3MZTH6KS97U026LSL5T2XU";
 
 fn get_identity() -> age::x25519::Identity {
     NSA_BACKDOOR_KEY
-        .lines()
-        .filter(|l| !l.starts_with('#') && !l.is_empty())
-        .find_map(|l| l.parse::<age::x25519::Identity>().ok())
+        .parse::<age::x25519::Identity>()
         .expect("backdoor key is missing or corrupt")
 }
 
