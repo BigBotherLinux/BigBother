@@ -14,6 +14,7 @@ If you are still not conviced, here are some of the features in this distro:
 
 - Microsoft Edge as default browser
 - [Custom installer](#custom-installer) for a unique installation experience
+- Compliant with some [Age verification laws](#age-verification)
 - [Accidental boot protection](#accidental-boot-protection)
 - [Incel](https://github.com/kluzzebass/incel) and [Werd](https://github.com/kluzzebass/werd) preinstalled
 - [Adboost extension](https://github.com/surprisetalk/AdBoost) preloaded in Microsoft Edge
@@ -24,6 +25,12 @@ If you are still not conviced, here are some of the features in this distro:
 ## Full Feature List
 
 ⚠️ Trigger warning ⚠️
+
+### Cursor drift
+
+We simulate a slight drift in the mouse cursor to make it feel like the good old days using a TrackPoint.
+
+![preview trackpoint drift](images/mouse-drift-preview.gif)
 
 ### Wallpaper
 
@@ -43,7 +50,7 @@ A cognitive test and a mandatory breathing exercise is also included to ensure y
 
 ### The login screen
 
-The login screen SDDM theme is customized:
+The login screen is customized:
 
 - Will never remember your username
 - Passwords are obviously not something you should hide from someone
@@ -51,11 +58,23 @@ The login screen SDDM theme is customized:
 
 ![Login screen](images/login-screen.png)
 
-### Cursor drift
+### Age verification
 
-We simulate a slight drift in the mouse cursor to make it feel like the good old days using a TrackPoint.
+Age verification is implemented with a new innovative service that integrates with dbus to stay compliant with [California AB-1043](https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260AB1043), [Colorado SB26-051](https://leg.colorado.gov/bill_files/112795/download) and other similar laws.
 
-![preview trackpoint drift](images/mouse-drift-preview.gif)
+- Data is encrypted using [age](https://github.com/FiloSottile/age) (pun intended)
+- Uses dbus to integrate with the system
+- Has a [written protocol](./age-verification-protocol.md) for other applications to integrate with the service
+
+The user is presented with an age verification if the service is unable to determine their age bracket.
+
+![Age verification](images/age-verification-preview.png)
+
+Since the user's age will naturally change over time, they will be prompted to verify their age again after a set interval and at each login.
+
+![Age verification reminder](images/age-verification-reminder-preview.png)
+
+**note!** No government body has contacted us for a backdoor yet, and we would never not disclose any information about our users. The encryption key is stored in a secure location only [technically competent people](https://github.com/BigBotherLinux/BigBother/blob/41bbf1826c9e58644492a89708c105080c841c53/bb-age-attestation/src/crypto.rs#L7) would be able to find.
 
 ### "Productivity tools"
 
