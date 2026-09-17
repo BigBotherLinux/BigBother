@@ -1,0 +1,29 @@
+# Standalone crate: deliberately NOT a member of the root workspace so bevy's
+# large dependency tree stays out of the shared Cargo.lock and crane artifacts.
+[workspace]
+
+[package]
+name = "bb-installer-bevy"
+version = "0.1.0"
+edition = "2021"
+description = "BigBother NixOS Installer - Bevy edition"
+authors = ["hauskens"]
+
+[dependencies]
+bevy = { version = "0.19", features = ["wayland"] }
+# Already in the tree via bevy_math/glam, so this pulls in nothing new.
+rand = "0.10"
+
+# Unlike the other crates here we optimise for speed, not size: this has to hit
+# a frame budget, sometimes on a software rasteriser.
+[profile.release]
+opt-level = 3
+lto = "thin"
+strip = true
+
+# Faster iterative builds in the dev shell
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3

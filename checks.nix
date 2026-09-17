@@ -23,6 +23,9 @@ let
         );
 
         iso-installer-starts = pkgs.callPackage ./tests/iso-installer.nix { };
+
+        # Proves a bevy app reaches the renderer on a GPU-less VM (lavapipe).
+        bevy-launches = pkgs.callPackage ./tests/bevy-launches.nix { };
       }
     else
       { };

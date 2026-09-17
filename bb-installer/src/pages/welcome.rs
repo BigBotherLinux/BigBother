@@ -18,7 +18,7 @@ pub fn render(ui: &mut egui::Ui, state: &mut InstallerState) {
     ui.vertical_centered(|ui| {
         ui.add_space(40.0);
 
-        widgets::surveillance_eye(ui, 100.0);
+        widgets::surveillance_eye(ui, 400.0);
 
         ui.add_space(20.0);
 

@@ -39,9 +39,31 @@ rustPlatform.buildRustPackage {
 
 Crates using eframe need these `buildInputs`: fontconfig, freetype, libxkbcommon, libGL, wayland, xorg.{libX11, libXcursor, libXrandr, libXi, libxcb}. They also need a `postInstall` wrapper setting `LD_LIBRARY_PATH` and `makeWrapper` in `nativeBuildInputs`.
 
-### Non-workspace crates (e.g. bb-nag)
+### Non-workspace crates (e.g. bb-nag, bb-installer-bevy)
 
 Standalone crates with their own `Cargo.lock` use `src = ../crate-dir` and `cargoLock.lockFile = ../crate-dir/Cargo.lock`.
+
+### Bevy installer prototype (`bb-installer-bevy`)
+
+Experimental bevy-based installer, deliberately kept **out** of the root workspace
+(it declares an empty `[workspace]`) so bevy's dependency tree stays out of the
+shared `Cargo.lock` and crane artifacts.
+
+- Dev shell: `nix develop .#bevy` (rust toolchain, alsa, udev, vulkan-loader, wayland, libGL, vulkan-tools)
+- Run locally: `just dev-bevy` (adds `--features bevy/dynamic_linking` for fast
+  rebuilds; dev only, since the dylib resolves only when cargo starts the binary)
+- Package: `nix build .#bb-installer-bevy`
+- Kiosk module: `modules/bb-installer-bevy.nix` runs it under cage on tty1, with a
+  `softwareRendering` option for GPU-less VMs and a `package` option so tests can
+  inject a build.
+- ISO variant: `nixosConfigurations.bb-iso-bevy` (`iso-bevy.nix`) layers on
+  `installer-iso.nix` and swaps the eframe installer for the bevy kiosk. Boot it
+  with `just test-iso-bevy`.
+- Software rendering env (`LIBGL_ALWAYS_SOFTWARE`, `VK_ICD_FILENAMES`) must be
+  applied to the app only. On the whole unit it breaks cage's renderer.
+- VM test: `nix build .#checks.x86_64-linux.bevy-launches` boots a GPU-less VM,
+  starts the kiosk and waits for the app's `BB_BEVY_READY` marker (printed after
+  the first frames render on mesa lavapipe).
 
 ### Adding a new package
 

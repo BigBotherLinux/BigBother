@@ -59,6 +59,7 @@ in
   gust-cursor-theme = pkgs.callPackage ./gust.nix { };
   bb-installer =
     if craneLib != null then bb-installer-crane else pkgs.callPackage ./bb-installer.nix { };
+  bb-installer-bevy = pkgs.callPackage ./bb-installer-bevy.nix { };
   incel = pkgs.callPackage ./incel.nix { inherit bun2nix; };
   werd = pkgs.callPackage ./werd.nix { inherit bun2nix; };
   inherit adboost;

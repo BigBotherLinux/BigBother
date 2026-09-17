@@ -93,6 +93,15 @@
         ];
       };
 
+      # Same ISO, but booting the bevy prototype instead of the installer.
+      nixosConfigurations.bb-iso-bevy = nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs self outputs; };
+        system = "x86_64-linux";
+        modules = [
+          ./iso-bevy.nix
+        ];
+      };
+
       devShells = forAllSystems (system: import ./devShells.nix { inherit inputs system self; });
 
       # Checks for CI (imported from checks.nix)
