@@ -10,7 +10,7 @@ description = "BigBother NixOS Installer - Bevy edition"
 authors = ["hauskens"]
 
 [dependencies]
-bevy = { version = "0.19", features = ["wayland"] }
+bevy = { version = "0.19", features = ["wayland", "bevy_feathers"] }
 # Already in the tree via bevy_math/glam, so this pulls in nothing new.
 rand = "0.10"
 

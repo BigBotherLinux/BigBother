@@ -1,31 +1,20 @@
+use bb_installer_bevy::cursor::{FakeCursor, FakeCursorPlugin};
 use bb_installer_bevy::AppState;
-use bevy::color::palettes::basic::PURPLE;
+use bevy::feathers::controls::{FeathersButton, FeathersScrollbar};
+use bevy::feathers::dark_theme::create_dark_theme;
+use bevy::feathers::theme::{ThemeBackgroundColor, ThemedText, UiTheme};
+use bevy::feathers::{tokens, FeathersPlugins};
+use bevy::input::common_conditions::input_just_pressed;
+use bevy::input_focus::tab_navigation::TabGroup;
+use bevy::input_focus::AutoFocus;
 use bevy::prelude::*;
 use bevy::ui::Val;
-use bevy::ui_widgets::{Activate, Checkbox};
+use bevy::ui_widgets::{Activate, ControlOrientation, ScrollArea};
 use bevy::window::{PresentMode, WindowMode};
-
-mod eye;
-use eye::{spawn_crowd, EyeAnchor, EyePlugin, EYE_SIZE};
-
-use bb_installer_bevy::ui::text::{line, styles};
-use bb_installer_bevy::ui::{BbButton, BbUiPlugin, ButtonVariant, checkbox, label, spawn_child};
-
-mod world;
-use world::WorldPlugin;
-
-mod tos;
-use tos::TosPlugin;
-
-mod sign;
-use sign::SignPlugin;
-
-/// Printed once the first frame has been rendered. The VM test matches on this.
-const READY_MARKER: &str = "BB_BEVY_READY";
 
 fn main() {
     App::new()
-        .add_plugins(
+        .add_plugins((
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
@@ -38,116 +27,158 @@ fn main() {
                 })
                 // Pixel-art sprites: no smoothing when scaled up.
                 .set(ImagePlugin::default_nearest()),
-        )
-        .init_state::<AppState>()
-        .init_resource::<ReadyProbe>()
-        .add_plugins((
-            BbUiPlugin,
-            EyePlugin,
-            MeshPickingPlugin,
-            TosPlugin,
-            SignPlugin,
+            FeathersPlugins,
+            FakeCursorPlugin,
         ))
-        .add_plugins(WorldPlugin)
-        .add_systems(Startup, setup)
-        .add_systems(OnEnter(AppState::Welcome), spawn_welcome)
-        .add_systems(OnEnter(AppState::Test), spawn_test)
-        .add_systems(Update, (announce_ready, exit_on_request))
+        .insert_resource(UiTheme(create_dark_theme()))
+        .init_state::<AppState>()
+        .add_systems(Startup, spawn_camera)
+        .add_systems(OnEnter(AppState::Welcome), welcome_root.spawn())
+        .add_systems(
+            OnEnter(AppState::TermsOfService),
+            terms_of_service_root.spawn(),
+        )
+        .add_systems(Update, (exit_on_request, drift))
+        .add_systems(Update, debug_stuff.run_if(input_just_pressed(KeyCode::F9)))
         .run();
 }
 
-#[derive(Resource, Default)]
-struct ReadyProbe {
-    frames: u32,
-    announced: bool,
-}
-
-fn setup(mut commands: Commands) {
+/// Shared by every screen, so it is not state scoped.
+fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
-fn spawn_welcome(mut commands: Commands, assets: Res<AssetServer>) {
-    let screen = commands
-        .spawn((
-            DespawnOnExit(AppState::Welcome),
-            Node {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                flex_direction: FlexDirection::Column,
-                row_gap: Val::Px(16.0),
-                ..default()
-            },
-        ))
-        .id();
+#[derive(Component, Default, Clone)]
+struct CursorAtraction;
 
-    commands.spawn((
-        Node {
-            width: Val::Px(EYE_SIZE),
-            height: Val::Px(EYE_SIZE),
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            ..default()
-        },
-        EyeAnchor,
-    ));
-
-    spawn_child(&mut commands, screen, line("BigBother", styles::TITLE));
-    spawn_child(
-        &mut commands,
-        screen,
-        line("Trigger warning!", styles::BODY),
-    );
-    spawn_child(
-        &mut commands,
-        screen,
-        bsn! {
-            @BbButton {
-                @caption: {label("Continue")},
-                @variant: ButtonVariant::Primary
-            }
-        },
-    )
-    .observe(|_: On<Activate>, mut state: ResMut<NextState<AppState>>| {
-        state.set(AppState::TermsOfService);
-    });
-    spawn_crowd(&mut commands, &assets);
-}
-
-fn spawn_test(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+/// Logs where each `CursorAtraction` node is on screen, in logical pixels
+/// (the same space as `FakeCursor::position`). Runs when F9 is pressed.
+fn debug_stuff(
+    cursor: Res<FakeCursor>,
+    query: Query<(Entity, &ComputedNode, &UiGlobalTransform), With<CursorAtraction>>,
 ) {
-    commands
-        .spawn((
-            DespawnOnExit(AppState::Test),
-            Mesh2d(meshes.add(Rectangle::new(128., 128.))),
-            MeshMaterial2d(materials.add(Color::from(PURPLE))),
-        ))
-        .observe(|_: On<Pointer<Over>>| info!("touched a wall"));
-}
-
-/// Waits a couple of frames so the renderer has definitely produced output,
-/// then prints the marker the VM test looks for.
-fn announce_ready(mut probe: ResMut<ReadyProbe>) {
-    probe.frames += 1;
-    if !probe.announced && probe.frames >= 3 {
-        probe.announced = true;
-        println!("{READY_MARKER}");
+    for (entity, node, transform) in &query {
+        let scale = node.inverse_scale_factor();
+        let center = transform.translation * scale;
+        info!(
+            "{entity}: center={center} cursor={}, distance={}",
+            cursor.position,
+            cursor.position.distance(center)
+        );
     }
 }
 
-/// Escape quits, and `BB_BEVY_SMOKE_TEST=1` makes the app exit on its own once
-/// it has rendered. That keeps the smoke test from hanging forever.
-fn exit_on_request(
-    keys: Res<ButtonInput<KeyCode>>,
-    probe: Res<ReadyProbe>,
-    mut exit: MessageWriter<AppExit>,
+fn drift(
+    mut cursor: ResMut<FakeCursor>,
+    time: Res<Time>,
+    query: Query<(&ComputedNode, &UiGlobalTransform), With<CursorAtraction>>,
 ) {
-    let smoke_test = std::env::var("BB_BEVY_SMOKE_TEST").is_ok_and(|v| v == "1");
-    if keys.just_pressed(KeyCode::Escape) || (smoke_test && probe.announced) {
+    //info!("Cursor offset: {:?}", cursor.position);
+    for (node, transform) in &query {
+        let scale = node.inverse_scale_factor();
+        let center = transform.translation * scale;
+        let radius = 75.0;
+        let distance = cursor.position.distance(center);
+        if distance < radius {
+            let away = (cursor.position - center).normalize_or_zero();
+            // 0 at the edge, 1 at the center — squared so it ramps hard near the middle
+            let proximity = 1.0 - distance / radius;
+            let speed = 50.0 * proximity * proximity;
+            cursor.position += away * time.delta_secs() * speed;
+        }
+    }
+}
+
+fn welcome_root() -> impl Scene {
+    bsn! {
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(16.0),
+        }
+        DespawnOnExit::<AppState>(AppState::Welcome)
+        TabGroup
+        ThemeBackgroundColor(tokens::WINDOW_BG)
+        Children[
+            (Text::new("BigBother Installer") ThemedText),
+            (@FeathersButton {
+                @caption: bsn! { Text::new("Install") ThemedText }
+            }
+            AutoFocus
+            CursorAtraction
+            on(|_activate: On<Activate>, mut state: ResMut<NextState<AppState>>| { state.set(AppState::TermsOfService) })
+        )
+        ]
+    }
+}
+
+fn terms_of_service_root() -> impl Scene {
+    bsn! {
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(16.0),
+        }
+        DespawnOnExit::<AppState>(AppState::TermsOfService)
+        TabGroup
+        ThemeBackgroundColor(tokens::WINDOW_BG)
+        Children[
+            (Text::new("Terms of Service") ThemedText),
+            // Outer frame: fixed size, with room on the right for the scrollbar.
+            (
+                Node {
+                    width: Val::Px(400.0),
+                    height: Val::Px(200.0),
+                    flex_direction: FlexDirection::Column,
+                    padding: UiRect { right: Val::Px(10.0) },
+                }
+                Children[
+                    // The part that actually scrolls. `ScrollArea` adds mouse wheel support.
+                    (
+                        #tos_text
+                        Node {
+                            height: Val::Percent(100.0),
+                            flex_direction: FlexDirection::Column,
+                            overflow: Overflow::scroll_y(),
+                        }
+                        ScrollArea
+                        Children[
+                            (Text::new(TOS_TEXT) ThemedText)
+                        ]
+                    ),
+                    @FeathersScrollbar {
+                        @target: #tos_text,
+                        @orientation: {ControlOrientation::Vertical}
+                    }
+                    Node {
+                        position_type: PositionType::Absolute,
+                        right: Val::Px(0.0),
+                        top: Val::Px(0.0),
+                        bottom: Val::Px(0.0),
+                        width: Val::Px(6.0),
+                    }
+                ]
+            ),
+        ]
+    }
+}
+
+const TOS_TEXT: &str = "This distribution is provided \"AS IS,\" with no warranty of any kind.
+
+Installing will erase data or leave your system unbootable. 
+
+You install at your own risk, and the authors are not liable for any damage or data loss.
+This distribution installs non-free proprietary software (such as firmware, drivers, and codecs) under its owners' license terms, which you agree to follow.
+By selecting \"I Agree,\" you accept these risks and consent to installing non-free software.";
+
+fn exit_on_request(keys: Res<ButtonInput<KeyCode>>, mut exit: MessageWriter<AppExit>) {
+    if keys.just_pressed(KeyCode::Escape) {
         exit.write(AppExit::Success);
     }
 }
