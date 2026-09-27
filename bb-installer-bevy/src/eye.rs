@@ -41,18 +41,18 @@ pub fn spawn_crowd(commands: &mut Commands, assets: &AssetServer) {
         }),
     );
 
-    // The rest are scattered around it, so you are never quite unobserved.
-    for &(at, scale, iris, response, temperament) in CROWD {
-        spawn_eye(
-            commands,
-            assets,
-            EyeSpec::at_screen(at)
-                .with_scale(scale)
-                .with_iris(iris)
-                .with_response(response)
-                .with_attention(temperament()),
-        );
-    }
+    // // The rest are scattered around it, so you are never quite unobserved.
+    // for &(at, scale, iris, response, temperament) in CROWD {
+    //     spawn_eye(
+    //         commands,
+    //         assets,
+    //         EyeSpec::at_screen(at)
+    //             .with_scale(scale)
+    //             .with_iris(iris)
+    //             .with_response(response)
+    //             .with_attention(temperament()),
+    //     );
+    // }
 }
 
 /// One row of [`CROWD`]: position, scale, iris sprite, gaze response,
@@ -95,7 +95,9 @@ const CROWD: &[CrowdEye] = &[
 
 /// Marks the UI node whose screen position an anchored eye follows. Give it a
 /// box of [`EYE_SIZE`] so the layout leaves room for the eye.
-#[derive(Component)]
+///
+/// `Default` and `Clone` so it can be named inside a `bsn!` scene.
+#[derive(Component, Default, Clone)]
 pub struct EyeAnchor;
 
 /// Marks the eyeball sprite; iris and lids are its children.
@@ -342,7 +344,7 @@ impl EyeSpec {
     }
 }
 
-fn spawn_eye(commands: &mut Commands, assets: &AssetServer, spec: EyeSpec) {
+pub fn spawn_eye(commands: &mut Commands, assets: &AssetServer, spec: EyeSpec) {
     let eye = commands
         .spawn((
             Sprite::from_image(assets.load("Eyes_V2/EyeGlobe_sprite_1.png")),

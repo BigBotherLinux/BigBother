@@ -1,23 +1,27 @@
-use bevy::prelude::*;
-use bevy::color::palettes::basic::PURPLE;
-use bevy::ui::Val;
-use bevy::ui_widgets::{Activate, observe};
-use bevy::window::{PresentMode, WindowMode};
 use bb_installer_bevy::AppState;
+use bevy::color::palettes::basic::PURPLE;
+use bevy::prelude::*;
+use bevy::ui::Val;
+use bevy::ui_widgets::{Activate, Checkbox};
+use bevy::window::{PresentMode, WindowMode};
 
 mod eye;
 use eye::{spawn_crowd, EyeAnchor, EyePlugin, EYE_SIZE};
 
-mod ui;
-use ui::{button, button_system};
+use bb_installer_bevy::ui::text::{line, styles};
+use bb_installer_bevy::ui::{BbButton, BbUiPlugin, ButtonVariant, checkbox, label, spawn_child};
 
 mod world;
 use world::WorldPlugin;
 
+mod tos;
+use tos::TosPlugin;
+
+mod sign;
+use sign::SignPlugin;
+
 /// Printed once the first frame has been rendered. The VM test matches on this.
 const READY_MARKER: &str = "BB_BEVY_READY";
-
-const BACKGROUND: Color = Color::srgb(0.05, 0.05, 0.07);
 
 fn main() {
     App::new()
@@ -35,15 +39,20 @@ fn main() {
                 // Pixel-art sprites: no smoothing when scaled up.
                 .set(ImagePlugin::default_nearest()),
         )
-        .insert_resource(ClearColor(BACKGROUND))
         .init_state::<AppState>()
         .init_resource::<ReadyProbe>()
-        .add_plugins((EyePlugin, MeshPickingPlugin))
+        .add_plugins((
+            BbUiPlugin,
+            EyePlugin,
+            MeshPickingPlugin,
+            TosPlugin,
+            SignPlugin,
+        ))
         .add_plugins(WorldPlugin)
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Welcome), spawn_welcome)
         .add_systems(OnEnter(AppState::Test), spawn_test)
-        .add_systems(Update, (announce_ready, exit_on_request, button_system))
+        .add_systems(Update, (announce_ready, exit_on_request))
         .run();
 }
 
@@ -58,66 +67,66 @@ fn setup(mut commands: Commands) {
 }
 
 fn spawn_welcome(mut commands: Commands, assets: Res<AssetServer>) {
+    let screen = commands
+        .spawn((
+            DespawnOnExit(AppState::Welcome),
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                row_gap: Val::Px(16.0),
+                ..default()
+            },
+        ))
+        .id();
+
     commands.spawn((
-        DespawnOnExit(AppState::Welcome),
         Node {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            justify_content: JustifyContent::Center,
+            width: Val::Px(EYE_SIZE),
+            height: Val::Px(EYE_SIZE),
             align_items: AlignItems::Center,
-            flex_direction: FlexDirection::Column,
-            row_gap: Val::Px(16.0),
+            justify_content: JustifyContent::Center,
             ..default()
         },
-        // No BackgroundColor here: UI draws over the 2D world, so a filled
-        // root node would hide the eye. The camera clears to BACKGROUND.
-        children![
-            (
-                Text::new("BigBother"),
-                TextFont {
-                    font_size: FontSize::Px(72.0),
-                    ..default()
-                },
-                TextColor(Color::srgb(0.9, 0.1, 0.1)),
-            ),
-            (
-                Text::new("Trigger warning!"),
-                TextFont {
-                    font_size: FontSize::Px(28.0),
-                    ..default()
-                },
-                TextColor(Color::srgb(0.8, 0.8, 0.85)),
-            ),
-            (
-                Node {
-                    width: Val::Px(EYE_SIZE),
-                    height: Val::Px(EYE_SIZE),
-                    margin: UiRect::top(Val::Px(24.0)),
-                    ..default()
-                },
-                EyeAnchor,
-            ),
-            (button("Continue"),
-            observe(|_activate: On<Activate>, mut state: ResMut<NextState<AppState>>| {
-                state.set(AppState::Test);
-            }),
-        ),
-        ],
+        EyeAnchor,
     ));
 
-
+    spawn_child(&mut commands, screen, line("BigBother", styles::TITLE));
+    spawn_child(
+        &mut commands,
+        screen,
+        line("Trigger warning!", styles::BODY),
+    );
+    spawn_child(
+        &mut commands,
+        screen,
+        bsn! {
+            @BbButton {
+                @caption: {label("Continue")},
+                @variant: ButtonVariant::Primary
+            }
+        },
+    )
+    .observe(|_: On<Activate>, mut state: ResMut<NextState<AppState>>| {
+        state.set(AppState::TermsOfService);
+    });
     spawn_crowd(&mut commands, &assets);
 }
 
-fn spawn_test(mut commands: Commands, 
+fn spawn_test(
+    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,) {
-    commands.spawn((
-        DespawnOnExit(AppState::Test),
-        Mesh2d(meshes.add(Rectangle::new(128., 128.))),
-        MeshMaterial2d(materials.add(Color::from(PURPLE))),
-        observe(|_: On<Pointer<Over>>| info!("touched a wall")),
-    ));
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    commands
+        .spawn((
+            DespawnOnExit(AppState::Test),
+            Mesh2d(meshes.add(Rectangle::new(128., 128.))),
+            MeshMaterial2d(materials.add(Color::from(PURPLE))),
+        ))
+        .observe(|_: On<Pointer<Over>>| info!("touched a wall"));
 }
 
 /// Waits a couple of frames so the renderer has definitely produced output,
