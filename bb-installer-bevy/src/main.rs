@@ -1,12 +1,12 @@
-use bb_installer_bevy::cursor::{FakeCursor, FakeCursorPlugin};
 use bb_installer_bevy::AppState;
+use bb_installer_bevy::cursor::{FakeCursor, FakeCursorPlugin};
 use bevy::feathers::controls::{FeathersButton, FeathersScrollbar};
 use bevy::feathers::dark_theme::create_dark_theme;
 use bevy::feathers::theme::{ThemeBackgroundColor, ThemedText, UiTheme};
-use bevy::feathers::{tokens, FeathersPlugins};
+use bevy::feathers::{FeathersPlugins, tokens};
 use bevy::input::common_conditions::input_just_pressed;
-use bevy::input_focus::tab_navigation::TabGroup;
 use bevy::input_focus::AutoFocus;
+use bevy::input_focus::tab_navigation::TabGroup;
 use bevy::prelude::*;
 use bevy::ui::Val;
 use bevy::ui_widgets::{Activate, ControlOrientation, ScrollArea};
@@ -48,8 +48,20 @@ fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
-#[derive(Component, Default, Clone)]
-struct CursorAtraction;
+#[derive(Component, Clone)]
+struct CursorAtraction {
+    radius: f32,
+    speed: f32,
+}
+
+impl Default for CursorAtraction {
+    fn default() -> Self {
+        Self {
+            radius: 75.0,
+            speed: 50.0,
+        }
+    }
+}
 
 /// Logs where each `CursorAtraction` node is on screen, in logical pixels
 /// (the same space as `FakeCursor::position`). Runs when F9 is pressed.
@@ -71,19 +83,19 @@ fn debug_stuff(
 fn drift(
     mut cursor: ResMut<FakeCursor>,
     time: Res<Time>,
-    query: Query<(&ComputedNode, &UiGlobalTransform), With<CursorAtraction>>,
+    query: Query<(&ComputedNode, &UiGlobalTransform, &CursorAtraction), With<CursorAtraction>>,
 ) {
     //info!("Cursor offset: {:?}", cursor.position);
-    for (node, transform) in &query {
+    for (node, transform, cursor_atraction) in &query {
         let scale = node.inverse_scale_factor();
         let center = transform.translation * scale;
-        let radius = 75.0;
+        let radius = cursor_atraction.radius;
         let distance = cursor.position.distance(center);
         if distance < radius {
             let away = (cursor.position - center).normalize_or_zero();
             // 0 at the edge, 1 at the center — squared so it ramps hard near the middle
             let proximity = 1.0 - distance / radius;
-            let speed = 50.0 * proximity * proximity;
+            let speed = cursor_atraction.speed * proximity * proximity;
             cursor.position += away * time.delta_secs() * speed;
         }
     }
@@ -171,7 +183,7 @@ fn terms_of_service_root() -> impl Scene {
 
 const TOS_TEXT: &str = "This distribution is provided \"AS IS,\" with no warranty of any kind.
 
-Installing will erase data or leave your system unbootable. 
+Installing will erase data or leave your system unbootable.
 
 You install at your own risk, and the authors are not liable for any damage or data loss.
 This distribution installs non-free proprietary software (such as firmware, drivers, and codecs) under its owners' license terms, which you agree to follow.
