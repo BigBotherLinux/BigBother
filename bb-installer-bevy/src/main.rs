@@ -1,17 +1,21 @@
+use bb_installer_bevy::cursor::{drift, CursorAtraction, FakeCursor, FakeCursorPlugin};
+use bb_installer_bevy::network::{
+    NetworkConnectivityLabel, NetworkConnectivityStatus, NetworkPlugin, NetworkWatch,
+};
+use bb_installer_bevy::pages::tos::TosPlugin;
+use bb_installer_bevy::sign::SignPlugin;
 use bb_installer_bevy::AppState;
-use bb_installer_bevy::cursor::{FakeCursor, FakeCursorPlugin};
-use bevy::feathers::controls::{FeathersButton, FeathersScrollbar};
+use bevy::feathers::controls::FeathersButton;
 use bevy::feathers::dark_theme::create_dark_theme;
 use bevy::feathers::theme::{ThemeBackgroundColor, ThemedText, UiTheme};
-use bevy::feathers::{FeathersPlugins, tokens};
+use bevy::feathers::{tokens, FeathersPlugins};
 use bevy::input::common_conditions::input_just_pressed;
-use bevy::input_focus::AutoFocus;
 use bevy::input_focus::tab_navigation::TabGroup;
+use bevy::input_focus::AutoFocus;
 use bevy::prelude::*;
 use bevy::ui::Val;
-use bevy::ui_widgets::{Activate, ControlOrientation, ScrollArea};
+use bevy::ui_widgets::Activate;
 use bevy::window::{PresentMode, WindowMode};
-
 fn main() {
     App::new()
         .add_plugins((
@@ -25,42 +29,30 @@ fn main() {
                     }),
                     ..default()
                 })
-                // Pixel-art sprites: no smoothing when scaled up.
                 .set(ImagePlugin::default_nearest()),
             FeathersPlugins,
             FakeCursorPlugin,
+            NetworkPlugin,
+            TosPlugin,
+            SignPlugin,
         ))
         .insert_resource(UiTheme(create_dark_theme()))
         .init_state::<AppState>()
-        .add_systems(Startup, spawn_camera)
+        .add_systems(Startup, startup)
         .add_systems(OnEnter(AppState::Welcome), welcome_root.spawn())
-        .add_systems(
-            OnEnter(AppState::TermsOfService),
-            terms_of_service_root.spawn(),
-        )
-        .add_systems(Update, (exit_on_request, drift))
+        //.add_systems(OnExit(AppState::Welcome), destroy_network_watch)
+        .add_systems(Update, (exit_on_request, drift, update_network_status))
         .add_systems(Update, debug_stuff.run_if(input_just_pressed(KeyCode::F9)))
         .run();
 }
 
-/// Shared by every screen, so it is not state scoped.
-fn spawn_camera(mut commands: Commands) {
+fn startup(mut commands: Commands) {
     commands.spawn(Camera2d);
+    //commands.insert_resource(NetworkWatch::every(Duration::from_secs(2)));
 }
 
-#[derive(Component, Clone)]
-struct CursorAtraction {
-    radius: f32,
-    speed: f32,
-}
-
-impl Default for CursorAtraction {
-    fn default() -> Self {
-        Self {
-            radius: 75.0,
-            speed: 50.0,
-        }
-    }
+fn destroy_network_watch(mut commands: Commands) {
+    commands.remove_resource::<NetworkWatch>();
 }
 
 /// Logs where each `CursorAtraction` node is on screen, in logical pixels
@@ -80,27 +72,6 @@ fn debug_stuff(
     }
 }
 
-fn drift(
-    mut cursor: ResMut<FakeCursor>,
-    time: Res<Time>,
-    query: Query<(&ComputedNode, &UiGlobalTransform, &CursorAtraction), With<CursorAtraction>>,
-) {
-    //info!("Cursor offset: {:?}", cursor.position);
-    for (node, transform, cursor_atraction) in &query {
-        let scale = node.inverse_scale_factor();
-        let center = transform.translation * scale;
-        let radius = cursor_atraction.radius;
-        let distance = cursor.position.distance(center);
-        if distance < radius {
-            let away = (cursor.position - center).normalize_or_zero();
-            // 0 at the edge, 1 at the center — squared so it ramps hard near the middle
-            let proximity = 1.0 - distance / radius;
-            let speed = cursor_atraction.speed * proximity * proximity;
-            cursor.position += away * time.delta_secs() * speed;
-        }
-    }
-}
-
 fn welcome_root() -> impl Scene {
     bsn! {
         Node {
@@ -116,6 +87,7 @@ fn welcome_root() -> impl Scene {
         ThemeBackgroundColor(tokens::WINDOW_BG)
         Children[
             (Text::new("BigBother Installer") ThemedText),
+            (Text::new("Network: Unknown") ThemedText NetworkConnectivityLabel),
             (@FeathersButton {
                 @caption: bsn! { Text::new("Install") ThemedText }
             }
@@ -127,67 +99,19 @@ fn welcome_root() -> impl Scene {
     }
 }
 
-fn terms_of_service_root() -> impl Scene {
-    bsn! {
-        Node {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            flex_direction: FlexDirection::Column,
-            row_gap: Val::Px(16.0),
+/// `NetworkConnectivityStatus` is a resource, so it lives on its own entity,
+/// not on the label. Read it with `Res` and update every label when it changes,
+/// or when a label is freshly spawned (e.g. on re-entering a screen).
+fn update_network_status(
+    status: Res<NetworkConnectivityStatus>,
+    labels: Query<(&mut Text, Ref<NetworkConnectivityLabel>)>,
+) {
+    for (mut text, label) in labels {
+        if status.is_changed() || label.is_added() {
+            text.0 = format!("Network: {}", *status);
         }
-        DespawnOnExit::<AppState>(AppState::TermsOfService)
-        TabGroup
-        ThemeBackgroundColor(tokens::WINDOW_BG)
-        Children[
-            (Text::new("Terms of Service") ThemedText),
-            // Outer frame: fixed size, with room on the right for the scrollbar.
-            (
-                Node {
-                    width: Val::Px(400.0),
-                    height: Val::Px(200.0),
-                    flex_direction: FlexDirection::Column,
-                    padding: UiRect { right: Val::Px(10.0) },
-                }
-                Children[
-                    // The part that actually scrolls. `ScrollArea` adds mouse wheel support.
-                    (
-                        #tos_text
-                        Node {
-                            height: Val::Percent(100.0),
-                            flex_direction: FlexDirection::Column,
-                            overflow: Overflow::scroll_y(),
-                        }
-                        ScrollArea
-                        Children[
-                            (Text::new(TOS_TEXT) ThemedText)
-                        ]
-                    ),
-                    @FeathersScrollbar {
-                        @target: #tos_text,
-                        @orientation: {ControlOrientation::Vertical}
-                    }
-                    Node {
-                        position_type: PositionType::Absolute,
-                        right: Val::Px(0.0),
-                        top: Val::Px(0.0),
-                        bottom: Val::Px(0.0),
-                        width: Val::Px(6.0),
-                    }
-                ]
-            ),
-        ]
     }
 }
-
-const TOS_TEXT: &str = "This distribution is provided \"AS IS,\" with no warranty of any kind.
-
-Installing will erase data or leave your system unbootable.
-
-You install at your own risk, and the authors are not liable for any damage or data loss.
-This distribution installs non-free proprietary software (such as firmware, drivers, and codecs) under its owners' license terms, which you agree to follow.
-By selecting \"I Agree,\" you accept these risks and consent to installing non-free software.";
 
 fn exit_on_request(keys: Res<ButtonInput<KeyCode>>, mut exit: MessageWriter<AppExit>) {
     if keys.just_pressed(KeyCode::Escape) {

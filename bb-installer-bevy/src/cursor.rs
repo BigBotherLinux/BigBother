@@ -109,6 +109,21 @@ impl Default for MouseSettings {
     }
 }
 
+#[derive(Component, Clone)]
+pub struct CursorAtraction {
+    radius: f32,
+    speed: f32,
+}
+
+impl Default for CursorAtraction {
+    fn default() -> Self {
+        Self {
+            radius: 75.0,
+            speed: 50.0,
+        }
+    }
+}
+
 #[derive(Resource, Default)]
 pub struct FakeCursor {
     /// Where the cursor is drawn and where clicks land, in logical pixels.
@@ -252,4 +267,25 @@ fn move_sprite(
     let top_left = cursor.position - SHAPES[index].2;
     node.left = Val::Px(top_left.x);
     node.top = Val::Px(top_left.y);
+}
+
+pub fn drift(
+    mut cursor: ResMut<FakeCursor>,
+    time: Res<Time>,
+    query: Query<(&ComputedNode, &UiGlobalTransform, &CursorAtraction), With<CursorAtraction>>,
+) {
+    //info!("Cursor offset: {:?}", cursor.position);
+    for (node, transform, cursor_atraction) in &query {
+        let scale = node.inverse_scale_factor();
+        let center = transform.translation * scale;
+        let radius = cursor_atraction.radius;
+        let distance = cursor.position.distance(center);
+        if distance < radius {
+            let away = (cursor.position - center).normalize_or_zero();
+            // 0 at the edge, 1 at the center — squared so it ramps hard near the middle
+            let proximity = 1.0 - distance / radius;
+            let speed = cursor_atraction.speed * proximity * proximity;
+            cursor.position += away * time.delta_secs() * speed;
+        }
+    }
 }

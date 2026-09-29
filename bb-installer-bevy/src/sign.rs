@@ -1,4 +1,4 @@
-use bb_installer_bevy::AppState;
+use crate::AppState;
 use bevy::asset::RenderAssetUsages;
 use bevy::image::ToExtents;
 use bevy::prelude::*;
@@ -6,25 +6,23 @@ use bevy::render::render_resource::{TextureDimension, TextureFormat};
 
 pub struct SignPlugin;
 
-/// Stroke width, in canvas pixels.
 const THICKNESS: f32 = 5.0;
 
-/// Size of the sign quad in world units.
 const SIGN_SIZE: Vec2 = Vec2::new(400.0, 150.0);
 
-/// Resolution of the texture we paint into. Higher = finer strokes, more RAM.
 const CANVAS: UVec2 = UVec2::new(400, 150);
 
 const INK: Color = Color::srgb(0.1, 0.1, 0.12);
 
 impl Plugin for SignPlugin {
     fn build(&self, app: &mut App) {
+        if !app.is_plugin_added::<MeshPickingPlugin>() {
+            app.add_plugins(MeshPickingPlugin);
+        }
         app.add_systems(OnEnter(AppState::Sign), spawn_sign);
     }
 }
 
-/// Holds the image we draw into plus the previous point of the current stroke,
-/// so we can join samples into a continuous line instead of dotting.
 #[derive(Component)]
 struct SignCanvas {
     image: Handle<Image>,
@@ -37,9 +35,6 @@ fn spawn_sign(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut images: ResMut<Assets<Image>>,
 ) {
-    // A blank white RGBA canvas. MAIN_WORLD keeps the pixel data on the CPU so
-    // we can keep mutating it after upload. (Use `&[0, 0, 0, 0]` instead for a
-    // transparent canvas that only shows the ink.)
     let canvas = images.add(Image::new_fill(
         CANVAS.to_extents(),
         TextureDimension::D2,
@@ -68,7 +63,6 @@ fn spawn_sign(
         .observe(end_stroke);
 }
 
-/// Runs for every pointer move over the sign; paints while the left button is held.
 fn paint(
     drag: On<Pointer<Move>>,
     buttons: Res<ButtonInput<MouseButton>>,
@@ -105,14 +99,12 @@ fn paint(
     sign.last = Some(point);
 }
 
-/// Releasing (or leaving the sign) breaks the line, so the next stroke starts fresh.
 fn end_stroke(out: On<Pointer<Release>>, mut signs: Query<&mut SignCanvas>) {
     if let Ok(mut sign) = signs.get_mut(out.entity) {
         sign.last = None;
     }
 }
 
-/// Stamps a filled circle of `THICKNESS` diameter centred on `at`.
 fn dot(image: &mut Image, at: Vec2) {
     let r = THICKNESS / 2.0;
     let min = (at - r).floor().max(Vec2::ZERO).as_uvec2();
@@ -128,8 +120,6 @@ fn dot(image: &mut Image, at: Vec2) {
     }
 }
 
-/// Walks from `from` to `to` in half-pixel steps, stamping as it goes. Cheap and
-/// good enough for a mouse; a real brush would use a distance-field instead.
 fn stroke(image: &mut Image, from: Vec2, to: Vec2) {
     let steps = (from.distance(to) * 2.0).ceil().max(1.0);
     for i in 0..=steps as u32 {
