@@ -27,6 +27,15 @@ let
     xorg.libXrandr
     xorg.libXi
   ];
+
+  # Vulkan ICDs from this flake's mesa rather than the host's /run/opengl-driver,
+  # whose mesa can need a newer glibc than the one the binary is linked against.
+  vkDriverFiles =
+    pkgs.lib.concatMapStringsSep ":" (icd: "${pkgs.mesa}/share/vulkan/icd.d/${icd}_icd.x86_64.json")
+      [
+        "radeon"
+        "lvp"
+      ];
 in
 {
   default = craneLib.devShell {
@@ -52,6 +61,7 @@ in
     LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (buildInputs ++ bevyLibs);
     LIBCLANG_PATH = "${pkgs.llvmPackages_latest.libclang.lib}/lib";
     RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
+    VK_DRIVER_FILES = vkDriverFiles;
     BB_BEVY_SHELL = "1";
   };
 
@@ -72,6 +82,7 @@ in
     LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath bevyLibs;
     LIBCLANG_PATH = "${pkgs.llvmPackages_latest.libclang.lib}/lib";
     RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
+    VK_DRIVER_FILES = vkDriverFiles;
 
     # Marks a shell that can build bevy, so `just dev-bevy` knows it does not
     # need to re-enter one.

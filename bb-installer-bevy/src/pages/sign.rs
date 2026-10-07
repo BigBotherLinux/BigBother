@@ -18,12 +18,15 @@ const CANVAS: UVec2 = UVec2::new(400, 150);
 
 const INK: Color = Color::srgb(0.1, 0.1, 0.12);
 
+const MIN_SIGN_COUNT: u32 = 3000;
+
 impl Plugin for SignPlugin {
     fn build(&self, app: &mut App) {
         if !app.is_plugin_added::<MeshPickingPlugin>() {
             app.add_plugins(MeshPickingPlugin);
         }
-        app.add_systems(OnEnter(AppState::Sign), spawn_sign);
+        app.add_systems(OnEnter(AppState::Sign), spawn_sign)
+            .add_systems(Update, unlock_continue.run_if(in_state(AppState::Sign)));
     }
 }
 
@@ -31,7 +34,11 @@ impl Plugin for SignPlugin {
 struct SignCanvas {
     image: Handle<Image>,
     last: Option<Vec2>,
+    painted: u32,
 }
+
+#[derive(Component, FromTemplate)]
+struct SignContinue;
 
 fn spawn_sign(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let canvas = images.add(Image::new_fill(
@@ -45,17 +52,15 @@ fn spawn_sign(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     commands.spawn_scene(sign_canvas(canvas));
 }
 
-fn print_sign(signs: Query<&SignCanvas>, res: Res<Assets<Image>>) {
-    for sign in signs.iter() {
-        let Some(data) = res.get(&sign.image).and_then(|image| image.data.as_ref()) else {
-            continue;
-        };
-        // Raw Rgba8 bytes, 4 per texel; anything not blank white has been inked.
-        let painted = data
-            .chunks_exact(4)
-            .filter(|px| *px != [255, 255, 255, 255])
-            .count();
-        info!("Sign: {:?} has {} painted pixels", sign.image, painted);
+fn unlock_continue(
+    mut commands: Commands,
+    signs: Query<&SignCanvas, Changed<SignCanvas>>,
+    buttons: Query<Entity, (With<SignContinue>, With<InteractionDisabled>)>,
+) {
+    if signs.iter().any(|sign| sign.painted >= MIN_SIGN_COUNT) {
+        for button in buttons.iter() {
+            commands.entity(button).remove::<InteractionDisabled>();
+        }
     }
 }
 
@@ -88,13 +93,20 @@ fn sign_label() -> impl Scene {
                 }
                 Text::new("Sign here")
                 ThemedText),
-                (Pickable::IGNORE
+                // Sits below the canvas, so it can stay pickable.
+                (
                     @FeathersButton { @caption: bsn! { Text("Continue") ThemedText} }
-                    Node {width: percent(30), top: Val::Vh(5.0) }
+                    Node {
+                        position_type: PositionType::Absolute,
+                        top: Val::Percent(100.0),
+                        margin: UiRect::top(Val::Px(16.0)),
+                        width: percent(30),
+                    }
                     on(|_activate: On<Activate>, mut state: ResMut<NextState<AppState>>| {
                         state.set(AppState::Sign);
                     })
                     InteractionDisabled
+                    SignContinue
                 )
             ])
         ]
@@ -149,10 +161,10 @@ fn paint(
     let Some(mut image) = images.get_mut(&sign.image) else {
         return;
     };
-    match sign.last {
+    sign.painted += match sign.last {
         Some(prev) => stroke(&mut image, prev, point),
         None => dot(&mut image, point),
-    }
+    };
     sign.last = Some(point);
 }
 
@@ -165,24 +177,34 @@ fn end_stroke<E: Clone + Reflect + std::fmt::Debug>(
     }
 }
 
-fn dot(image: &mut Image, at: Vec2) {
+fn dot(image: &mut Image, at: Vec2) -> u32 {
+    let mut inked = 0;
     let r = THICKNESS / 2.0;
     let min = (at - r).floor().max(Vec2::ZERO).as_uvec2();
     let max = (at + r).ceil().min(CANVAS.as_vec2()).as_uvec2();
 
     for y in min.y..max.y {
         for x in min.x..max.x {
-            // +0.5 to measure from the texel centre.
-            if (Vec2::new(x as f32, y as f32) + 0.5).distance(at) <= r {
-                let _ = image.set_color_at(x, y, INK);
+            if (Vec2::new(x as f32, y as f32) + 0.5).distance(at) > r {
+                continue;
+            }
+            let blank = image
+                .pixel_bytes(UVec3::new(x, y, 0))
+                .is_ok_and(|px| px == [255; 4]);
+
+            if blank && image.set_color_at(x, y, INK).is_ok() {
+                inked += 1;
             }
         }
     }
+    inked
 }
 
-fn stroke(image: &mut Image, from: Vec2, to: Vec2) {
+fn stroke(image: &mut Image, from: Vec2, to: Vec2) -> u32 {
     let steps = (from.distance(to) * 2.0).ceil().max(1.0);
+    let mut inked = 0;
     for i in 0..=steps as u32 {
-        dot(image, from.lerp(to, i as f32 / steps));
+        inked += dot(image, from.lerp(to, i as f32 / steps));
     }
+    inked
 }
