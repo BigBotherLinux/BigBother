@@ -1,17 +1,17 @@
-use bb_installer_bevy::cursor::{drift, CursorAtraction, FakeCursor, FakeCursorPlugin};
+use bb_installer_bevy::AppState;
+use bb_installer_bevy::cursor::{CursorAtraction, FakeCursor, FakeCursorPlugin, drift};
 use bb_installer_bevy::network::{
     NetworkConnectivityLabel, NetworkConnectivityStatus, NetworkPlugin, NetworkWatch,
 };
+use bb_installer_bevy::pages::sign::SignPlugin;
 use bb_installer_bevy::pages::tos::TosPlugin;
-use bb_installer_bevy::sign::SignPlugin;
-use bb_installer_bevy::AppState;
 use bevy::feathers::controls::FeathersButton;
 use bevy::feathers::dark_theme::create_dark_theme;
 use bevy::feathers::theme::{ThemeBackgroundColor, ThemedText, UiTheme};
-use bevy::feathers::{tokens, FeathersPlugins};
+use bevy::feathers::{FeathersPlugins, tokens};
 use bevy::input::common_conditions::input_just_pressed;
-use bevy::input_focus::tab_navigation::TabGroup;
 use bevy::input_focus::AutoFocus;
+use bevy::input_focus::tab_navigation::TabGroup;
 use bevy::prelude::*;
 use bevy::ui::Val;
 use bevy::ui_widgets::Activate;
