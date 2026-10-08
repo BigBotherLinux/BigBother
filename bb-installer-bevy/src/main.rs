@@ -3,6 +3,8 @@ use bb_installer_bevy::cursor::{CursorAtraction, FakeCursor, FakeCursorPlugin, d
 use bb_installer_bevy::network::{
     NetworkConnectivityLabel, NetworkConnectivityStatus, NetworkPlugin, NetworkWatch,
 };
+use bb_installer_bevy::pages::cursor_crowd::CursorCrowdPlugin;
+use bb_installer_bevy::pages::secondary_tos::SecondaryTosPlugin;
 use bb_installer_bevy::pages::sign::SignPlugin;
 use bb_installer_bevy::pages::tos::TosPlugin;
 use bevy::feathers::controls::FeathersButton;
@@ -34,6 +36,8 @@ fn main() {
             FakeCursorPlugin,
             NetworkPlugin,
             TosPlugin,
+            SecondaryTosPlugin,
+            CursorCrowdPlugin,
             SignPlugin,
         ))
         .insert_resource(UiTheme(create_dark_theme()))

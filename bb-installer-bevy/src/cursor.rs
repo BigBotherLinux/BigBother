@@ -11,11 +11,11 @@
 use std::ops::Neg;
 
 use bevy::camera::RenderTarget;
-use bevy::input::mouse::{MouseButtonInput, MouseMotion, MouseWheel};
 use bevy::input::ButtonState;
+use bevy::input::mouse::{MouseButtonInput, MouseMotion, MouseWheel};
+use bevy::picking::PickingSystems;
 use bevy::picking::input::PointerInputSettings;
 use bevy::picking::pointer::{Location, PointerAction, PointerButton, PointerId, PointerInput};
-use bevy::picking::PickingSystems;
 use bevy::prelude::*;
 use bevy::window::{
     CursorGrabMode, CursorIcon, CursorOptions, PrimaryWindow, SystemCursorIcon, WindowRef,
@@ -129,6 +129,11 @@ pub struct FakeCursor {
     /// Where the cursor is drawn and where clicks land, in logical pixels.
     /// Starts in the middle of the window.
     pub position: Vec2,
+    /// Ignore the mouse. The position can still be written.
+    pub frozen: bool,
+    /// Leaving one edge of the window comes back in at the opposite one,
+    /// instead of stopping at the edge.
+    pub wrap: bool,
 }
 
 #[derive(Component)]
@@ -204,7 +209,13 @@ fn send_pointer_input(
         *placed = true;
     }
     let delta: Vec2 = motion.read().map(|m| m.delta).sum();
-    cursor.position = (cursor.position + delta * settings.speed).clamp(Vec2::ZERO, window.size());
+    let delta = if cursor.frozen { Vec2::ZERO } else { delta };
+    let moved = cursor.position + delta * settings.speed;
+    cursor.position = if cursor.wrap {
+        moved.rem_euclid(window.size())
+    } else {
+        moved.clamp(Vec2::ZERO, window.size())
+    };
     let location = Location {
         target,
         position: cursor.position,
@@ -222,6 +233,9 @@ fn send_pointer_input(
     }
 
     for input in buttons.read() {
+        if cursor.frozen {
+            continue;
+        }
         let button = match input.button {
             MouseButton::Left => PointerButton::Primary,
             MouseButton::Right => PointerButton::Secondary,

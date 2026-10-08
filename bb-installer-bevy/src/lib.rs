@@ -9,6 +9,8 @@ pub enum AppState {
     Welcome,
     TermsOfService,
     #[default]
+    SecondaryTos,
+    CursorCrowd,
     Sign,
     Test,
     Map,

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy::tasks::{futures::check_ready, IoTaskPool, Task};
+use bevy::tasks::{IoTaskPool, Task, futures::check_ready};
 use std::{
     net::{SocketAddr, TcpStream},
     time::Duration,

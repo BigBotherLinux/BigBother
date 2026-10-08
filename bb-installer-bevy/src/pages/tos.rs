@@ -69,7 +69,7 @@ fn terms_of_service_root() -> impl Scene {
                                 @FeathersButton { @caption: bsn! { Text("I Agree") ThemedText} }
                                 Node {width: percent(30), top: Val::Vh(5.0) }
                                 on(|_activate: On<Activate>, mut state: ResMut<NextState<AppState>>| {
-                                    state.set(AppState::Sign);
+                                    state.set(AppState::SecondaryTos);
                                 })
                             )
                         ]

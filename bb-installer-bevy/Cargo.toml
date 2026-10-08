@@ -5,7 +5,7 @@
 [package]
 name = "bb-installer-bevy"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "BigBother NixOS Installer - Bevy edition"
 authors = ["hauskens"]
 
