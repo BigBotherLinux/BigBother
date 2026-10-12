@@ -32,6 +32,8 @@ By selecting \"I Agree,\" you accept these risks and consent to installing non-f
 
 fn terms_of_service_root() -> impl Scene {
     bsn! {
+        Name::new("Terms of Service")
+        DespawnOnExit::<AppState>(AppState::TermsOfService)
         Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
@@ -40,13 +42,11 @@ fn terms_of_service_root() -> impl Scene {
             flex_direction: FlexDirection::Column,
             row_gap: Val::Px(16.0),
         }
-        DespawnOnExit::<AppState>(AppState::TermsOfService)
         TabGroup
         ThemeBackgroundColor(tokens::WINDOW_BG)
         Children[
-            (Text::new("Terms of Service") ThemedText),
-            // Outer frame: fixed size, with room on the right for the scrollbar.
-            (
+            Text::new("Terms of Service") ThemedText
+            --
                 Node {
                     width: Val::Px(400.0),
                     height: Val::Px(200.0),
@@ -54,7 +54,6 @@ fn terms_of_service_root() -> impl Scene {
                     padding: UiRect { right: Val::Px(10.0) },
                 }
                 Children[
-                    (
                         #tos_text
                         Node {
                             height: Val::Percent(100.0),
@@ -64,16 +63,15 @@ fn terms_of_service_root() -> impl Scene {
                         }
                         ScrollArea
                         Children[
-                            label(TOS_TEXT),
-                            (
-                                @FeathersButton { @caption: bsn! { Text("I Agree") ThemedText} }
-                                Node {width: percent(30), top: Val::Vh(5.0) }
+                            @label(TOS_TEXT)
+                            --
+                            @FeathersButton { @caption: bsn! { Text("I Agree") ThemedText} }
+                            Node {width: percent(30), top: Val::Vh(5.0) }
                                 on(|_activate: On<Activate>, mut state: ResMut<NextState<AppState>>| {
                                     state.set(AppState::SecondaryTos);
                                 })
-                            )
                         ]
-                    ),
+                    --
                     @FeathersScrollbar {
                         @target: #tos_text,
                         @orientation: {ControlOrientation::Vertical}
@@ -86,7 +84,7 @@ fn terms_of_service_root() -> impl Scene {
                         width: Val::Px(6.0),
                     }
                 ]
-            ),
+
         ]
     }
 }

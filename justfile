@@ -53,8 +53,11 @@ test-iso-bevy disk="test-disk.qcow2":
     set -euo pipefail
     nix build .#nixosConfigurations.bb-iso-bevy.config.system.build.isoImage
     iso=$(echo ./result/iso/*.iso)
+    # The app renders on lavapipe, which is CPU bound: expose the host's SIMD
+    # (AVX2) and give it more cores to split the rasterising across.
+    qemu_extra=(-cpu host -smp 8)
     if command -v testBB-uefi >/dev/null; then
-      testBB-uefi "{{ disk }}" -iso "$iso"
+      testBB-uefi "{{ disk }}" -iso "$iso" -- "${qemu_extra[@]}"
     else
-      nix develop -c testBB-uefi "{{ disk }}" -iso "$iso"
+      nix develop -c testBB-uefi "{{ disk }}" -iso "$iso" -- "${qemu_extra[@]}"
     fi

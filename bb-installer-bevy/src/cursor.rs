@@ -134,6 +134,33 @@ pub struct FakeCursor {
     /// Leaving one edge of the window comes back in at the opposite one,
     /// instead of stopping at the edge.
     pub wrap: bool,
+    /// Don't draw the cursor. It still moves and clicks as usual.
+    pub hidden: bool,
+    /// While set, the cursor drops under gravity and the mouse is ignored.
+    pub fall: Option<Fall>,
+}
+
+/// A cursor in free fall. The real cursor holds one in [`FakeCursor::fall`];
+/// whoever sets it also moves the cursor, this only keeps the state.
+#[derive(Component, Default)]
+pub struct Fall {
+    pub velocity: Vec2,
+    /// Radians, clockwise.
+    pub angle: f32,
+    /// Radians per second.
+    pub spin: f32,
+}
+
+impl Fall {
+    /// A random push sideways and a random spin, so it does not drop straight
+    /// down.
+    pub fn random() -> Self {
+        Self {
+            velocity: Vec2::new(rand::random_range(-250.0..250.0), -300.0),
+            spin: rand::random_range(-8.0..8.0),
+            angle: 0.0,
+        }
+    }
 }
 
 #[derive(Component)]
@@ -156,7 +183,7 @@ impl Plugin for FakeCursorPlugin {
             .insert_resource(MouseSettings::default())
             .add_systems(Startup, (hide_real_cursor, spawn_sprite))
             .add_systems(First, send_pointer_input.in_set(PickingSystems::Input))
-            .add_systems(Update, move_sprite);
+            .add_systems(Update, (drift, move_sprite).chain());
     }
 }
 
@@ -173,6 +200,7 @@ fn spawn_sprite(mut commands: Commands, assets: Res<AssetServer>) {
         .map(|(_, name, _)| assets.load(format!("cursors/{name}.png")))
         .collect();
     commands.spawn((
+        Name::new("Fake Cursor"),
         FakeCursorSprite,
         ImageNode::new(images[0].clone()),
         Node {
@@ -209,13 +237,18 @@ fn send_pointer_input(
         *placed = true;
     }
     let delta: Vec2 = motion.read().map(|m| m.delta).sum();
+    let falling = cursor.fall.is_some();
     let delta = if cursor.frozen { Vec2::ZERO } else { delta };
-    let moved = cursor.position + delta * settings.speed;
-    cursor.position = if cursor.wrap {
-        moved.rem_euclid(window.size())
-    } else {
-        moved.clamp(Vec2::ZERO, window.size())
-    };
+    // `fall` owns the position while falling, and wrapping would send the
+    // cursor from the floor back to the ceiling.
+    if !falling {
+        let moved = cursor.position + delta * settings.speed;
+        cursor.position = if cursor.wrap {
+            moved.rem_euclid(window.size())
+        } else {
+            moved.clamp(Vec2::ZERO, window.size())
+        };
+    }
     let location = Location {
         target,
         position: cursor.position,
@@ -233,7 +266,7 @@ fn send_pointer_input(
     }
 
     for input in buttons.read() {
-        if cursor.frozen {
+        if cursor.frozen || falling {
             continue;
         }
         let button = match input.button {
@@ -267,20 +300,33 @@ fn move_sprite(
     cursor: Res<FakeCursor>,
     images: Res<CursorImages>,
     icon: Single<Option<&CursorIcon>, With<PrimaryWindow>>,
-    sprite: Single<(&mut Node, &mut ImageNode), With<FakeCursorSprite>>,
+    sprite: Single<
+        (&mut Node, &mut ImageNode, &mut Visibility, &mut UiTransform),
+        With<FakeCursorSprite>,
+    >,
 ) {
     let shape = icon.and_then(CursorIcon::as_system);
     let index = SHAPES
         .iter()
         .position(|(s, _, _)| Some(s) == shape)
         .unwrap_or(0);
-    let (mut node, mut image) = sprite.into_inner();
+    let (mut node, mut image, mut visibility, mut transform) = sprite.into_inner();
+    let wanted = if cursor.hidden {
+        Visibility::Hidden
+    } else {
+        Visibility::Inherited
+    };
+    visibility.set_if_neq(wanted);
     if image.image != images.0[index] {
         image.image = images.0[index].clone();
     }
     let top_left = cursor.position - SHAPES[index].2;
     node.left = Val::Px(top_left.x);
     node.top = Val::Px(top_left.y);
+    let rotation = Rot2::radians(cursor.fall.as_ref().map_or(0.0, |f| f.angle));
+    if transform.rotation != rotation {
+        transform.rotation = rotation;
+    }
 }
 
 pub fn drift(

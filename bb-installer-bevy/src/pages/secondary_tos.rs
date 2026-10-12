@@ -24,8 +24,6 @@ const START_RATE: f32 = 15.0;
 // The rate doubles this often.
 const DOUBLING_SECS: f32 = 0.7;
 const MAX_RATE: f32 = 100_000.0;
-/// Keep writing this long after the scrollbar has left.
-const WRITE_AFTER_BLAST_SECS: f32 = 1.5;
 /// Safety cap in case the scrollbar never leaves.
 const MAX_WORDS: usize = 400_000;
 
@@ -82,6 +80,7 @@ impl Plugin for SecondaryTosPlugin {
             Update,
             (
                 feed_text,
+                hide_offscreen_text,
                 let_thumb_shrink,
                 blast_off_when_tiny,
                 fly,
@@ -122,11 +121,10 @@ struct Feed {
 }
 
 impl Feed {
+    /// Text written after the scrollbar leaves can never be scrolled to, and
+    /// every glyph is still prepared for rendering each frame, clipped or not.
     fn done(&self) -> bool {
-        self.written >= MAX_WORDS
-            || self
-                .blasted_at
-                .is_some_and(|at| self.elapsed - at > WRITE_AFTER_BLAST_SECS)
+        self.written >= MAX_WORDS || self.blasted_at.is_some()
     }
 }
 
@@ -169,6 +167,8 @@ fn stop_feed(mut commands: Commands) {
 
 fn secondary_tos_root() -> impl Scene {
     bsn! {
+        Name::new("Secondary ToS")
+        DespawnOnExit::<AppState>(AppState::SecondaryTos)
         Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
@@ -177,12 +177,11 @@ fn secondary_tos_root() -> impl Scene {
             flex_direction: FlexDirection::Column,
             row_gap: Val::Px(16.0),
         }
-        DespawnOnExit::<AppState>(AppState::SecondaryTos)
         TabGroup
         ThemeBackgroundColor(tokens::WINDOW_BG)
         Children[
-            (Text::new("Supplementary Terms of Service") ThemedText),
-            (
+            Text::new("Supplementary Terms of Service") ThemedText
+            --
                 Node {
                     width: Val::Px(600.0),
                     height: Val::Vh(60.0),
@@ -190,7 +189,6 @@ fn secondary_tos_root() -> impl Scene {
                     padding: UiRect { right: Val::Px(14.0) },
                 }
                 Children[
-                    (
                         #tos_text
                         Node {
                             height: Val::Percent(100.0),
@@ -200,7 +198,7 @@ fn secondary_tos_root() -> impl Scene {
                         }
                         ScrollArea
                         TosText
-                    ),
+                    --
                     @FeathersScrollbar {
                         @target: #tos_text,
                         @orientation: {ControlOrientation::Vertical}
@@ -214,8 +212,7 @@ fn secondary_tos_root() -> impl Scene {
                     }
                     TosScrollbar
                 ]
-            ),
-            (
+            --
                 @FeathersButton { @caption: bsn! { Text("Continue") ThemedText} }
                 Node { width: Val::Px(180.0) }
                 on(|_activate: On<Activate>, mut state: ResMut<NextState<AppState>>| {
@@ -223,7 +220,6 @@ fn secondary_tos_root() -> impl Scene {
                 })
                 InteractionDisabled
                 TosContinue
-            )
         ]
     }
 }
@@ -293,6 +289,35 @@ fn feed_text(
     }
 }
 
+/// The UI renderer prepares every glyph of every visible text node each frame,
+/// clipped or not, so tens of thousands of words outside the view cost as much
+/// as words on screen. Hide the paragraphs that are scrolled out; `Visibility`
+/// does not affect layout, so the content height and the thumb are unchanged.
+fn hide_offscreen_text(
+    area: Single<(&ComputedNode, &UiGlobalTransform, &Children), With<TosText>>,
+    mut paragraphs: Query<(&ComputedNode, &UiGlobalTransform, &mut Visibility)>,
+) {
+    let (area_node, area_transform, children) = *area;
+    let half = area_node.size().y / 2.0;
+    let (top, bottom) = (
+        area_transform.translation.y - half,
+        area_transform.translation.y + half,
+    );
+    for &child in children {
+        let Ok((node, transform, mut visibility)) = paragraphs.get_mut(child) else {
+            continue;
+        };
+        let half = node.size().y / 2.0;
+        let on_screen =
+            transform.translation.y + half > top && transform.translation.y - half < bottom;
+        visibility.set_if_neq(if on_screen {
+            Visibility::Inherited
+        } else {
+            Visibility::Hidden
+        });
+    }
+}
+
 /// Feathers stops the thumb at 8px. Ours is allowed to keep going.
 fn let_thumb_shrink(mut scrollbars: Query<&mut Scrollbar, With<TosScrollbar>>) {
     for mut scrollbar in &mut scrollbars {
@@ -355,6 +380,8 @@ fn blast_off_when_tiny(
     );
     commands.entity(entity).despawn();
     commands.spawn((
+        Name::new("Flying Thumb"),
+        DespawnOnExit(AppState::SecondaryTos),
         Flight {
             from,
             to,
@@ -372,7 +399,6 @@ fn blast_off_when_tiny(
         UiTransform::default(),
         GlobalZIndex(i32::MAX - 1),
         Pickable::IGNORE,
-        DespawnOnExit(AppState::SecondaryTos),
     ));
 }
 
@@ -400,6 +426,8 @@ fn fly(
         commands.entity(entity).despawn();
         if let Some(sparkle) = &sparkle {
             commands.spawn((
+                Name::new("Sparkle"),
+                DespawnOnExit(AppState::SecondaryTos),
                 Twinkle { elapsed: 0.0 },
                 ImageNode::new(sparkle.0.clone()),
                 Node {
@@ -413,7 +441,6 @@ fn fly(
                 UiTransform::from_scale(Vec2::ZERO),
                 GlobalZIndex(i32::MAX - 1),
                 Pickable::IGNORE,
-                DespawnOnExit(AppState::SecondaryTos),
             ));
         }
     }

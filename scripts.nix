@@ -5,9 +5,16 @@
     DISK_IMAGE=""
     ISO_PATH=""
     BUILD_ISO=false
+    EXTRA_ARGS=()
 
     while [[ $# -gt 0 ]]; do
       case $1 in
+        --)
+          # Everything after -- goes straight to QEMU, after the defaults.
+          shift
+          EXTRA_ARGS=("$@")
+          break
+          ;;
         -iso)
           if [[ -n "$2" && "$2" != -* ]]; then
             ISO_PATH="$2"
@@ -64,6 +71,6 @@
       QEMU_ARGS+=(-drive file="$DISK_IMAGE",format=qcow2,if=virtio)
     fi
 
-    ${pkgs.qemu}/bin/qemu-system-x86_64 "''${QEMU_ARGS[@]}"
+    ${pkgs.qemu}/bin/qemu-system-x86_64 "''${QEMU_ARGS[@]}" "''${EXTRA_ARGS[@]}"
   '';
 }

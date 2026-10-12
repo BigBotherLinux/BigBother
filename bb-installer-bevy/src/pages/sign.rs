@@ -69,6 +69,7 @@ fn unlock_continue(
 /// the canvas never sees the pointer.
 fn sign_label() -> impl Scene {
     bsn! {
+        Name::new("Sign Label")
         DespawnOnExit::<AppState>(AppState::Sign)
         Pickable::IGNORE
         Node {
@@ -78,23 +79,23 @@ fn sign_label() -> impl Scene {
             align_items: AlignItems::Center,
         }
         Children[
-            (Pickable::IGNORE
+            Pickable::IGNORE
             Node {
                 width: {Val::Px(SIGN_SIZE.x)},
                 height: {Val::Px(SIGN_SIZE.y)},
                 justify_content: JustifyContent::Center,
             }
             Children[
-                (Pickable::IGNORE
+                Pickable::IGNORE
                 Node {
                     position_type: PositionType::Absolute,
                     bottom: Val::Percent(100.0),
                     margin: UiRect::bottom(Val::Px(8.0)),
                 }
                 Text::new("Sign here")
-                ThemedText),
+                ThemedText
+                --
                 // Sits below the canvas, so it can stay pickable.
-                (
                     @FeathersButton { @caption: bsn! { Text("Continue") ThemedText} }
                     Node {
                         position_type: PositionType::Absolute,
@@ -107,8 +108,7 @@ fn sign_label() -> impl Scene {
                     })
                     InteractionDisabled
                     SignContinue
-                )
-            ])
+            ]
         ]
     }
 }
@@ -117,6 +117,7 @@ fn sign_label() -> impl Scene {
 /// a `Node` would put it behind that node for picking.
 fn sign_canvas(canvas: Handle<Image>) -> impl Scene {
     bsn! {
+        Name::new("Sign Canvas")
         DespawnOnExit::<AppState>(AppState::Sign)
         Mesh2d(asset_value(Rectangle::from_size(SIGN_SIZE)))
         MeshMaterial2d::<ColorMaterial>(asset_value(ColorMaterial {
@@ -127,13 +128,13 @@ fn sign_canvas(canvas: Handle<Image>) -> impl Scene {
         }))
         SignCanvas { image: {canvas.clone()} }
         on(paint)
-        on(end_stroke::<Release>)
-        on(end_stroke::<Out>)
+        on(end_stroke::<PointerRelease>)
+        on(end_stroke::<PointerOut>)
     }
 }
 
 fn paint(
-    drag: On<Pointer<Move>>,
+    drag: On<PointerMove>,
     buttons: Res<ButtonInput<MouseButton>>,
     mut signs: Query<(&GlobalTransform, &mut SignCanvas)>,
     mut images: ResMut<Assets<Image>>,
@@ -168,11 +169,8 @@ fn paint(
     sign.last = Some(point);
 }
 
-fn end_stroke<E: Clone + Reflect + std::fmt::Debug>(
-    event: On<Pointer<E>>,
-    mut signs: Query<&mut SignCanvas>,
-) {
-    if let Ok(mut sign) = signs.get_mut(event.entity) {
+fn end_stroke<E: PointerEvent>(event: On<E>, mut signs: Query<&mut SignCanvas>) {
+    if let Ok(mut sign) = signs.get_mut(event.event_target()) {
         sign.last = None;
     }
 }

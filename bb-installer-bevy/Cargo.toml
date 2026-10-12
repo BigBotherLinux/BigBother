@@ -10,9 +10,11 @@ description = "BigBother NixOS Installer - Bevy edition"
 authors = ["hauskens"]
 
 [dependencies]
-bevy = { version = "0.19", features = ["wayland", "bevy_feathers"] }
+bevy = { version = "0.20", features = ["wayland", "bevy_feathers"] }
 # Already in the tree via bevy_math/glam, so this pulls in nothing new.
 rand = "0.10"
+serde = { version = "1.0.229", features = ["derive"] }
+ureq = { version = "3", features = ["json"] }
 
 # Unlike the other crates here we optimise for speed, not size: this has to hit
 # a frame budget, sometimes on a software rasteriser.

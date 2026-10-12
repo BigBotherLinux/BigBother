@@ -10,10 +10,15 @@ let
   # Applied to the app only, never to cage: forcing llvmpipe breaks the
   # compositor's EGL setup, and pinning lavapipe stops wlroots matching a
   # Vulkan device to the DRM node, so cage dies before the app ever starts.
+  #
+  # Bevy asks for every feature the adapter reports. On a CPU without AVX2
+  # (QEMU's default model) lavapipe reports a feature it then fails to enable
+  # and wgpu panics on device creation, so stick to the WebGPU baseline.
   clientEnv = lib.optionals cfg.softwareRendering [
     "LIBGL_ALWAYS_SOFTWARE=1"
     "VK_ICD_FILENAMES=/run/opengl-driver/share/vulkan/icd.d/lvp_icd.x86_64.json"
     "WGPU_BACKEND=vulkan"
+    "WGPU_SETTINGS_PRIO=webgpu"
   ];
 
   clientPrefix = lib.optionalString (

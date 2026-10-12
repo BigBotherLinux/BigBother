@@ -16,9 +16,24 @@ impl Plugin for NetworkPlugin {
                 (
                     tick_watch.run_if(resource_exists::<NetworkWatch>),
                     finish_check,
+                    update_network_status,
                 )
                     .chain(),
             );
+    }
+}
+
+/// `NetworkConnectivityStatus` is a resource, so it lives on its own entity,
+/// not on the label. Read it with `Res` and update every label when it changes,
+/// or when a label is freshly spawned (e.g. on re-entering a screen).
+fn update_network_status(
+    status: Res<NetworkConnectivityStatus>,
+    labels: Query<(&mut Text, Ref<NetworkConnectivityLabel>)>,
+) {
+    for (mut text, label) in labels {
+        if status.is_changed() || label.is_added() {
+            text.0 = format!("Network: {}", *status);
+        }
     }
 }
 
